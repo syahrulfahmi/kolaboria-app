@@ -1,0 +1,66 @@
+/* Color Palette Baseline (Scalable CSS Variables) */
+@theme {
+  /* Primary (Brand Blue) */
+  --color-primary-50: #edf8fd;
+  --color-primary-100: #d3eff9;
+  --color-primary-200: #a7dff4;
+  --color-primary-300: #7acfee;
+  --color-primary-400: #4ab8e0;
+  --color-primary-500: #4ab8e0;
+  --color-primary-600: #2a9ac5;
+  --color-primary-700: #1d7ca0;
+  --color-primary-800: #166380;
+  --color-primary-900: #0f4a5e;
+
+  /* Secondary (Navy Blue) */
+  --color-secondary-50: #eaecf1;
+  --color-secondary-100: #c8cdd9;
+  --color-secondary-200: #9aa2b9;
+  --color-secondary-300: #697898;
+  --color-secondary-400: #3e5280;
+  --color-secondary-500: #1c2e4a;
+  --color-secondary-600: #172742;
+  --color-secondary-700: #111e33;
+  --color-secondary-800: #0c1526;
+  --color-secondary-900: #060b16;
+
+  /* Accent (Amber/Orange) */
+  --color-accent-50: #fff8ec;
+  --color-accent-100: #ffedc8;
+  --color-accent-200: #ffd98a;
+  --color-accent-300: #ffc44c;
+  --color-accent-400: #ffb020;
+  --color-accent-500: #ffb020;
+  --color-accent-600: #e09000;
+  --color-accent-700: #b87400;
+  --color-accent-800: #8f5a00;
+  --color-accent-900: #673f00;
+
+  /* Neutral (Grays) */
+  --color-neutral-50: #f4f6f8;
+  --color-neutral-100: #f4f6f8;
+  --color-neutral-200: #e2e8ef;
+  --color-neutral-300: #cbd5df;
+  --color-neutral-400: #a2b1c0;
+  --color-neutral-500: #768799;
+  --color-neutral-600: #546270;
+  --color-neutral-700: #3b4754;
+  --color-neutral-800: #252e38;
+  --color-neutral-900: #121820;
+
+  /* Success (Soft Green) */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-500: #22c55e;
+  --color-success-700: #15803d;
+  --color-success-900: #14532d;
+
+  /* Danger (Soft Red) */
+  --color-danger-50: #fff1f2;
+  --color-danger-100: #ffe4e6;
+  --color-danger-200: #fecdd3;
+  --color-danger-500: #ef4444;
+  --color-danger-700: #b91c1c;
+  --color-danger-900: #7f1d1d;
+}

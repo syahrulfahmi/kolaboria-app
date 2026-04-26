@@ -1,0 +1,10 @@
+{
+  "name": "kolaboria",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @kolaboria/client dev",
+    "build": "pnpm --filter @kolaboria/client build",
+    "storybook": "pnpm --filter @kolaboria/client storybook",
+    "preview": "pnpm --filter @kolaboria/client preview"
+  }
+}
