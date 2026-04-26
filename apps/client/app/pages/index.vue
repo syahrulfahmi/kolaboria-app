@@ -1,6 +1,19 @@
 <template>
-  <div class="p-8">
-    <h1 class="text-heading text-primary-500">Kolaboria</h1>
-    <p class="text-body text-neutral-500 mt-2">Platform kolaborasi untuk talent, mentor, dan perusahaan.</p>
+  <div>
+    <LandingPage v-if="isComingSoon" />
+    <LandingComingSoon v-else />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import LandingPage from '~/components/landing/LandingPage.vue'
+
+definePageMeta({ layout: false })
+
+const isComingSoon = ref(true)
+
+useHead({
+  title: 'Kolaboria - Platform Kolaborasi Terbuka'
+})
+</script>
