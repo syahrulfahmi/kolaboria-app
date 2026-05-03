@@ -37,6 +37,11 @@ const meta: Meta<typeof MoleculeTicker> = {
         type: { summary: 'boolean' },
         defaultValue: { summary: 'true' }
       }
+    },
+    actionLabel: {
+      control: 'text',
+      description: 'Label tombol aksi inline (opsional). Jika diisi, tombol aksi akan muncul di bawah pesan.',
+      table: { type: { summary: 'string' } }
     }
   }
 }
@@ -85,5 +90,25 @@ export const NoTitle: Story = {
     variant: 'success',
     message: 'Aksi berhasil dilakukan tanpa ada error.',
     closable: true
+  }
+}
+
+export const WithAction: Story = {
+  args: {
+    variant: 'warning',
+    title: 'Email belum diverifikasi',
+    message: 'Verifikasi email untuk membuka akses join project.',
+    closable: false,
+    actionLabel: 'Kirim ulang email'
+  }
+}
+
+export const WithActionDanger: Story = {
+  args: {
+    variant: 'danger',
+    title: 'Gagal mengirim data',
+    message: 'Terjadi kesalahan saat menyimpan perubahan. Pastikan koneksimu stabil.',
+    closable: true,
+    actionLabel: 'Coba Lagi'
   }
 }

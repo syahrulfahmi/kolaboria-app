@@ -1,21 +1,21 @@
 <template>
   <div>
-    <p class="text-title text-primary-500 mb-2 uppercase tracking-wide">
-      Akses Platform
-    </p>
-    <h2 class="text-heading font-black text-secondary-500 mb-2 tracking-tight">
-      Selamat Datang Kembali
+    <h2 class="text-3xl font-black text-secondary-500 mb-2 tracking-tight">
+      Buat Akun Baru
     </h2>
     <p class="text-body text-secondary-300 mb-8">
-      Masuk ke ekosistem kolaboratif Anda untuk melanjutkan.
+      Gabung bersama ribuan inovator dan wujudkan idemu.
     </p>
 
-    <AuthLoginForm />
+    <AuthRegisterForm />
 
     <div class="mt-6 text-center text-body text-gray-600">
-      Belum punya akun?
-      <NuxtLink to="/register" class="text-primary-600 hover:text-primary-700">
-        Daftar sekarang
+      Sudah punya akun?
+      <NuxtLink
+        to="/login"
+        class="text-body text-primary-600 hover:text-primary-700"
+      >
+        Masuk di sini
       </NuxtLink>
     </div>
 
@@ -41,11 +41,11 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Masuk - Kolaboria',
+  title: 'Daftar - Kolaboria',
   meta: [
     {
       name: 'description',
-      content: 'Masuk ke Kolaboria buat mulai berkolaborasi.'
+      content: 'Buat akun Kolaboria baru untuk bergabung dengan komunitas.'
     }
   ]
 })

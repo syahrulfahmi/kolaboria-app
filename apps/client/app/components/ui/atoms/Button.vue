@@ -64,7 +64,8 @@ const props = defineProps({
         'danger',
         'ghost-primary',
         'ghost-secondary',
-        'ghost-danger'
+        'ghost-danger',
+        'google'
       ].includes(v)
   },
 
@@ -135,16 +136,18 @@ const variantClasses = computed(() => {
       return `
         text-primary-500 bg-transparent
         hover:bg-primary-50
-        active:bg-primary-100
+        active:text-primary-700
         hover:cursor-pointer
+        px-0! py-0!
       `
 
     case 'ghost-secondary':
       return `
         text-accent-500 bg-transparent
         hover:bg-accent-50
-        active:bg-accent-100
+        active:text-accent-700
         hover:cursor-pointer
+        px-0! py-0!
       `
 
     case 'ghost-danger':
@@ -153,7 +156,10 @@ const variantClasses = computed(() => {
         hover:bg-danger-50
         active:bg-danger-100
         hover:cursor-pointer
+        px-0! py-0!
       `
+    case 'google':
+      return `bg-white text-gray-700 border-1 border-secondary-500 hover:bg-gray-50 hover:cursor-pointer`
   }
 })
 
