@@ -1,68 +1,68 @@
 <script setup lang="ts">
-import type { Application } from '../../types/project'
+import type { Application } from "../../types/project";
 
 const props = defineProps<{
-  application: Application | null
-  modelValue: boolean
-}>()
+  application: Application | null;
+  modelValue: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  close: []
-  reviewed: [status: 'accepted' | 'rejected', note: string]
-}>()
+  "update:modelValue": [value: boolean];
+  close: [];
+  reviewed: [status: "accepted" | "rejected", note: string];
+}>();
 
-const reviewerNote = ref('')
-const isSubmitting = ref(false)
+const reviewerNote = ref("");
+const isSubmitting = ref(false);
 
 // Reset note when modal opens/closes
 watch(
   () => props.modelValue,
   (val) => {
-    if (!val) reviewerNote.value = ''
-  }
-)
+    if (!val) reviewerNote.value = "";
+  },
+);
 
-const handleReview = async (status: 'accepted' | 'rejected') => {
-  if (!props.application) return
-  isSubmitting.value = true
+const handleReview = async (status: "accepted" | "rejected") => {
+  if (!props.application) return;
+  isSubmitting.value = true;
   try {
-    emit('reviewed', status, reviewerNote.value)
+    emit("reviewed", status, reviewerNote.value);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
 const handleClose = () => {
-  emit('update:modelValue', false)
-  emit('close')
-}
+  emit("update:modelValue", false);
+  emit("close");
+};
 
 const availabilityLabels: Record<string, string> = {
-  flexible: 'Fleksibel',
-  full_time: 'Full Time',
-  part_time: 'Part Time',
-  weekends_only: 'Hanya Akhir Pekan'
-}
+  flexible: "Fleksibel",
+  full_time: "Full Time",
+  part_time: "Part Time",
+  weekends_only: "Hanya Akhir Pekan",
+};
 
 const statusConfig: Record<string, { label: string; classes: string }> = {
   pending: {
-    label: 'Menunggu',
-    classes: 'bg-accent-50 text-accent-700 ring-accent-200'
+    label: "Menunggu",
+    classes: "bg-accent-50 text-accent-700 ring-accent-200",
   },
   accepted: {
-    label: 'Diterima',
-    classes: 'bg-success-50 text-success-700 ring-success-200'
+    label: "Diterima",
+    classes: "bg-success-50 text-success-700 ring-success-200",
   },
   rejected: {
-    label: 'Ditolak',
-    classes: 'bg-danger-50 text-danger-700 ring-danger-200'
+    label: "Ditolak",
+    classes: "bg-danger-50 text-danger-700 ring-danger-200",
   },
   withdrawn: {
-    label: 'Dibatalkan',
-    classes: 'bg-neutral-100 text-neutral-500 ring-neutral-200'
-  }
-}
+    label: "Dibatalkan",
+    classes: "bg-neutral-100 text-neutral-500 ring-neutral-200",
+  },
+};
 </script>
 
 <template>
@@ -88,7 +88,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
           <span
             :class="[
               'inline-flex items-center rounded-full px-3 py-1 text-caption font-bold ring-1 ring-inset',
-              statusConfig[application.status]?.classes
+              statusConfig[application.status]?.classes,
             ]"
           >
             {{ statusConfig[application.status]?.label }}
@@ -117,7 +117,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
             (
               application.profiles?.full_name ||
               application.profiles?.username ||
-              '?'
+              "?"
             )
               .charAt(0)
               .toUpperCase()
@@ -130,7 +130,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
             }}
           </h3>
           <p class="text-caption text-neutral-600">
-            {{ application.profiles?.headline || 'Talent Kolaboria' }}
+            {{ application.profiles?.headline || "Talent Kolaboria" }}
           </p>
         </div>
         <div class="ml-auto flex flex-col items-end">
@@ -223,7 +223,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                   />
                 </svg>
-                {{ link.replace(/^https?:\/\//, '') }}
+                {{ link.replace(/^https?:\/\//, "") }}
               </a>
             </div>
             <p
@@ -257,7 +257,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
         <div class="mt-4 flex gap-3">
           <AtomicButton
             variant="outline"
-            class="flex-1 !border-danger-200 !text-danger-600 hover:!bg-danger-50 hover:!border-danger-300"
+            class="flex-1"
             :disabled="isSubmitting"
             @click="handleReview('rejected')"
           >
@@ -265,7 +265,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
           </AtomicButton>
           <AtomicButton
             variant="primary"
-            class="flex-1 !bg-success-600 hover:!bg-success-700 !text-white"
+            class="flex-1"
             :disabled="isSubmitting"
             @click="handleReview('accepted')"
           >

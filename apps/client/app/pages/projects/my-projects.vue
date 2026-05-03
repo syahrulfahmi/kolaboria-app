@@ -132,156 +132,158 @@ const filteredProjects = computed(() => {
 
     <!-- ─── MAIN CONTENT ─── -->
     <main class="max-w-7xl mx-auto py-8">
-      <!-- ─── STATISTICS GRID ─── -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        <!-- Draft -->
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
-        >
-          <h3
-            class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 relative z-10"
-          >
-            Draft
-          </h3>
-          <div class="flex items-end gap-3 relative z-10">
-            <span class="text-4xl font-black text-neutral-700 leading-none">{{
-              stats.draft
-            }}</span>
-          </div>
-        </div>
-
-        <!-- Aktif -->
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-success-200 transition-colors"
-        >
-          <div
-            class="absolute right-0 top-0 w-24 h-24 bg-success-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
-          ></div>
-          <h3
-            class="text-xs font-bold text-success-600/70 uppercase tracking-wider mb-2 relative z-10"
-          >
-            Aktif
-          </h3>
-          <div class="flex items-end gap-3 relative z-10">
-            <span class="text-4xl font-black text-success-700 leading-none">{{
-              stats.active
-            }}</span>
-          </div>
-        </div>
-
-        <!-- Selesai -->
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-primary-200 transition-colors"
-        >
-          <div
-            class="absolute right-0 top-0 w-24 h-24 bg-primary-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
-          ></div>
-          <h3
-            class="text-xs font-bold text-primary-600/70 uppercase tracking-wider mb-2 relative z-10"
-          >
-            Selesai
-          </h3>
-          <div class="flex items-end gap-3 relative z-10">
-            <span class="text-4xl font-black text-primary-700 leading-none">{{
-              stats.completed
-            }}</span>
-          </div>
-        </div>
-
-        <!-- Arsip -->
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
-        >
-          <h3
-            class="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 relative z-10"
-          >
-            Diarsipkan
-          </h3>
-          <div class="flex items-end gap-3 relative z-10">
-            <span class="text-4xl font-black text-neutral-500 leading-none">{{
-              stats.archived
-            }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── FILTER ─── -->
-      <div
-        class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar"
-      >
-        <button
-          v-for="filter in filters"
-          :key="filter.value"
-          @click="selectedFilter = filter.value"
-          :class="[
-            'px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border',
-            selectedFilter === filter.value
-              ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
-              : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
-          ]"
-        >
-          {{ filter.label }}
-        </button>
-      </div>
-
       <!-- ─── LOADING STATE ─── -->
-      <MoleculeLoading v-if="pending" text="Memuat project..." class="py-16" />
+      <MoleculeLoading v-if="pending" label="Memuat project..." class="py-16" />
 
-      <!-- ─── PROJECTS GRID ─── -->
-      <div
-        v-else-if="filteredProjects.length > 0"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        <ProjectOwnerCard
-          v-for="project in filteredProjects"
-          :key="project.id"
-          :project="project"
-          :pending-applicants-count="applicantCounts[project.id]"
-        />
-      </div>
-
-      <!-- ─── EMPTY STATE ─── -->
-      <div
-        v-else
-        class="bg-white rounded-3xl border border-neutral-200 shadow-sm py-20 px-8 text-center flex flex-col items-center"
-      >
-        <div
-          class="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center mb-5 shrink-0"
-        >
-          <svg
-            class="w-10 h-10 text-neutral-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <template v-else>
+        <!-- ─── STATISTICS GRID ─── -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <!-- Draft -->
+          <div
+            class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold text-secondary-900 mb-2">
-          Belum ada project
-        </h3>
-        <p
-          class="text-neutral-500 font-medium max-w-sm text-sm leading-relaxed mb-6"
-        >
-          {{
-            selectedFilter === 'all'
-              ? 'Anda belum membuat project apa pun. Yuk mulai kolaborasi pertama Anda!'
-              : `Tidak ada project dengan status ${filters.find((f) => f.value === selectedFilter)?.label}.`
-          }}
-        </p>
-        <NuxtLink to="/projects/create" v-if="selectedFilter === 'all'">
-          <AtomicButton variant="primary"> Mulai Buat Project </AtomicButton>
-        </NuxtLink>
+            <h3
+              class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 relative z-10"
+            >
+              Draft
+            </h3>
+            <div class="flex items-end gap-3 relative z-10">
+              <span class="text-4xl font-black text-neutral-700 leading-none">{{
+                stats.draft
+              }}</span>
+            </div>
+          </div>
 
-        <AtomicButton v-else variant="outline" @click="selectedFilter = 'all'">
-          Lihat Semua Project
-        </AtomicButton>
-      </div>
+          <!-- Aktif -->
+          <div
+            class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-success-200 transition-colors"
+          >
+            <div
+              class="absolute right-0 top-0 w-24 h-24 bg-success-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
+            ></div>
+            <h3
+              class="text-xs font-bold text-success-600/70 uppercase tracking-wider mb-2 relative z-10"
+            >
+              Aktif
+            </h3>
+            <div class="flex items-end gap-3 relative z-10">
+              <span class="text-4xl font-black text-success-700 leading-none">{{
+                stats.active
+              }}</span>
+            </div>
+          </div>
+
+          <!-- Selesai -->
+          <div
+            class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-primary-200 transition-colors"
+          >
+            <div
+              class="absolute right-0 top-0 w-24 h-24 bg-primary-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
+            ></div>
+            <h3
+              class="text-xs font-bold text-primary-600/70 uppercase tracking-wider mb-2 relative z-10"
+            >
+              Selesai
+            </h3>
+            <div class="flex items-end gap-3 relative z-10">
+              <span class="text-4xl font-black text-primary-700 leading-none">{{
+                stats.completed
+              }}</span>
+            </div>
+          </div>
+
+          <!-- Arsip -->
+          <div
+            class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
+          >
+            <h3
+              class="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 relative z-10"
+            >
+              Diarsipkan
+            </h3>
+            <div class="flex items-end gap-3 relative z-10">
+              <span class="text-4xl font-black text-neutral-500 leading-none">{{
+                stats.archived
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── FILTER ─── -->
+        <div
+          class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar"
+        >
+          <button
+            v-for="filter in filters"
+            :key="filter.value"
+            @click="selectedFilter = filter.value"
+            :class="[
+              'px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border',
+              selectedFilter === filter.value
+                ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
+                : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+            ]"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+
+        <!-- ─── PROJECTS GRID ─── -->
+        <div
+          v-if="filteredProjects.length > 0"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <ProjectOwnerCard
+            v-for="project in filteredProjects"
+            :key="project.id"
+            :project="project"
+            :pending-applicants-count="applicantCounts[project.id]"
+          />
+        </div>
+
+        <!-- ─── EMPTY STATE ─── -->
+        <div
+          v-else
+          class="bg-white rounded-3xl border border-neutral-200 shadow-sm py-20 px-8 text-center flex flex-col items-center"
+        >
+          <div
+            class="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center mb-5 shrink-0"
+          >
+            <svg
+              class="w-10 h-10 text-neutral-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-secondary-900 mb-2">
+            Belum ada project
+          </h3>
+          <p
+            class="text-neutral-500 font-medium max-w-sm text-sm leading-relaxed mb-6"
+          >
+            {{
+              selectedFilter === 'all'
+                ? 'Anda belum membuat project apa pun. Yuk mulai kolaborasi pertama Anda!'
+                : `Tidak ada project dengan status ${filters.find((f) => f.value === selectedFilter)?.label}.`
+            }}
+          </p>
+          <NuxtLink to="/projects/create" v-if="selectedFilter === 'all'">
+            <AtomicButton variant="primary"> Mulai Buat Project </AtomicButton>
+          </NuxtLink>
+
+          <AtomicButton v-else variant="outline" @click="selectedFilter = 'all'">
+            Lihat Semua Project
+          </AtomicButton>
+        </div>
+      </template>
     </main>
   </div>
 </template>

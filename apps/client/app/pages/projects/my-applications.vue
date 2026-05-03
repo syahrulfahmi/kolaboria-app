@@ -64,7 +64,7 @@
     <!-- ─── MAIN CONTENT ─── -->
     <main>
       <!-- Loading State -->
-      <MoleculeLoading v-if="pending" text="Memuat lamaran..." class="py-16" />
+      <MoleculeLoading v-if="pending" label="Memuat lamaran..." class="py-16" />
 
       <!-- Error State -->
       <MoleculeTicker
@@ -156,7 +156,7 @@
               'px-5 py-2 rounded-full text-sm font-bold tracking-wide transition-all whitespace-nowrap outline-none flex items-center justify-center min-w-[max-content]',
               selectedFilter === filter.value
                 ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300',
             ]"
           >
             {{ filter.label }}
@@ -191,7 +191,7 @@
                       <h3
                         class="text-lg font-bold text-gray-900 mb-1 truncate group-hover/timeline:text-primary-600 transition-colors"
                       >
-                        {{ app.projects?.title ?? 'Project Tidak Tersedia' }}
+                        {{ app.projects?.title ?? "Project Tidak Tersedia" }}
                       </h3>
                       <p
                         class="text-[0.65rem] font-bold tracking-widest uppercase text-gray-400 mt-1.5"
@@ -206,7 +206,7 @@
                       v-if="statusConfig[app.status]"
                       :class="[
                         'inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset uppercase tracking-wide',
-                        statusConfig[app.status].classes
+                        statusConfig[app.status].classes,
                       ]"
                     >
                       {{ statusConfig[app.status].label }}
@@ -226,7 +226,7 @@
                     <p class="text-sm text-gray-600 italic line-clamp-2">
                       "{{
                         app.motivation.length > 120
-                          ? app.motivation.substring(0, 120) + '...'
+                          ? app.motivation.substring(0, 120) + "..."
                           : app.motivation
                       }}"
                     </p>
@@ -345,8 +345,8 @@
             class="text-gray-500 font-medium max-w-sm mb-8 text-sm leading-relaxed"
           >
             {{
-              selectedFilter === 'all'
-                ? 'Tampaknya kamu belum mengirimkan aplikasi lamaran ke proyek manapun. Mari jelajahi peluang baru!'
+              selectedFilter === "all"
+                ? "Tampaknya kamu belum mengirimkan aplikasi lamaran ke proyek manapun. Mari jelajahi peluang baru!"
                 : `Kamu belum memiliki aplikasi dengan status filter ini.`
             }}
           </p>
@@ -380,135 +380,137 @@
 </template>
 
 <script setup lang="ts">
-import type { Application } from '~/types/project'
+import type { Application } from "~/types/project";
 
-definePageMeta({ layout: 'home', middleware: 'auth' })
-useHead({ title: 'Lamaran Saya — Kolaboria' })
+definePageMeta({ layout: "home", middleware: "auth" });
+useHead({ title: "Lamaran Saya — Kolaboria" });
 
-const { getMyApplications, withdrawApplication } = useProjects()
+const { getMyApplications, withdrawApplication } = useProjects();
 
 const {
   data: applications,
   pending,
   error,
-  refresh
-} = await useAsyncData<Application[]>('my-applications', () =>
-  getMyApplications()
-)
+  refresh,
+} = await useAsyncData<Application[]>("my-applications", () =>
+  getMyApplications(),
+);
 
 // Filters
 const selectedFilter = ref<
-  'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'
->('all')
+  "all" | "pending" | "accepted" | "rejected" | "withdrawn"
+>("all");
 
 const filters: Array<{
-  label: string
-  value: 'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'
+  label: string;
+  value: "all" | "pending" | "accepted" | "rejected" | "withdrawn";
 }> = [
-  { label: 'Semua Lamaran', value: 'all' },
-  { label: 'Menunggu Ditinjau', value: 'pending' },
-  { label: 'Diterima', value: 'accepted' },
-  { label: 'Ditolak', value: 'rejected' },
-  { label: 'Dibatalkan', value: 'withdrawn' }
-]
+  { label: "Semua Lamaran", value: "all" },
+  { label: "Menunggu Ditinjau", value: "pending" },
+  { label: "Diterima", value: "accepted" },
+  { label: "Ditolak", value: "rejected" },
+  { label: "Dibatalkan", value: "withdrawn" },
+];
 
 // Status styling
 const statusConfig: Record<string, { label: string; classes: string }> = {
   pending: {
-    label: 'Menunggu',
-    classes: 'bg-amber-50 text-amber-700 ring-amber-200'
+    label: "Menunggu",
+    classes: "bg-amber-50 text-amber-700 ring-amber-200",
   },
   accepted: {
-    label: 'Diterima',
-    classes: 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+    label: "Diterima",
+    classes: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   },
   rejected: {
-    label: 'Ditolak',
-    classes: 'bg-red-50 text-red-700 ring-red-200'
+    label: "Ditolak",
+    classes: "bg-red-50 text-red-700 ring-red-200",
   },
   withdrawn: {
-    label: 'Dibatalkan',
-    classes: 'bg-gray-100 text-gray-600 ring-gray-200'
-  }
-}
+    label: "Dibatalkan",
+    classes: "bg-gray-100 text-gray-600 ring-gray-200",
+  },
+};
 
 const availabilityLabel: Record<string, string> = {
-  full_time: 'Full-time',
-  part_time: 'Part-time',
-  weekends_only: 'Akhir Pekan',
-  flexible: 'Fleksibel'
-}
+  full_time: "Full-time",
+  part_time: "Part-time",
+  weekends_only: "Akhir Pekan",
+  flexible: "Fleksibel",
+};
 
 // Stats
 const userStats = computed(() => {
-  if (!applications.value) return { total: 0, pending: 0, accepted: 0 }
+  if (!applications.value) return { total: 0, pending: 0, accepted: 0 };
   return {
     total: applications.value.length,
-    pending: applications.value.filter((app) => app.status === 'pending')
+    pending: applications.value.filter((app) => app.status === "pending")
       .length,
-    accepted: applications.value.filter((app) => app.status === 'accepted')
-      .length
-  }
-})
+    accepted: applications.value.filter((app) => app.status === "accepted")
+      .length,
+  };
+});
 
 // Filtered data
 const filteredApplications = computed(() => {
-  if (!applications.value) return []
-  if (selectedFilter.value === 'all') return applications.value
-  return applications.value.filter((app) => app.status === selectedFilter.value)
-})
+  if (!applications.value) return [];
+  if (selectedFilter.value === "all") return applications.value;
+  return applications.value.filter(
+    (app) => app.status === selectedFilter.value,
+  );
+});
 
 // Helpers
 const getProjectIcon = (title?: string) => {
-  return title ? title.charAt(0).toUpperCase() : '?'
-}
+  return title ? title.charAt(0).toUpperCase() : "?";
+};
 
 const getProjectColorClass = (status: string) => {
   switch (status) {
-    case 'accepted':
-      return 'bg-emerald-500'
-    case 'pending':
-      return 'bg-amber-500'
-    case 'rejected':
-      return 'bg-red-500'
+    case "accepted":
+      return "bg-emerald-500";
+    case "pending":
+      return "bg-amber-500";
+    case "rejected":
+      return "bg-red-500";
     default:
-      return 'bg-gray-400'
+      return "bg-gray-400";
   }
-}
+};
 
 const relativeDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'hari ini'
-  if (diffDays === 1) return 'kemarin'
-  if (diffDays < 7) return `${diffDays} hari lalu`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu lalu`
-  return date.toLocaleDateString('id-ID', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  })
-}
+  if (diffDays === 0) return "hari ini";
+  if (diffDays === 1) return "kemarin";
+  if (diffDays < 7) return `${diffDays} hari lalu`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu lalu`;
+  return date.toLocaleDateString("id-ID", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
 
 // Actions
-const isWithdrawing = ref(false)
+const isWithdrawing = ref(false);
 
 const handleWithdraw = async (applicationId: string) => {
-  if (!confirm('Yakin ingin membatalkan lamaran ini?')) return
+  if (!confirm("Yakin ingin membatalkan lamaran ini?")) return;
 
-  isWithdrawing.value = true
+  isWithdrawing.value = true;
   try {
-    await withdrawApplication(applicationId)
-    await refresh()
+    await withdrawApplication(applicationId);
+    await refresh();
   } catch (err: any) {
-    alert(err?.message || 'Gagal membatalkan lamaran.')
+    alert(err?.message || "Gagal membatalkan lamaran.");
   } finally {
-    isWithdrawing.value = false
+    isWithdrawing.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

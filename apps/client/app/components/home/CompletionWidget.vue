@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { CompletionItem } from '../../utils/profileCompletion'
-import { clampCompletionScore } from '../../utils/profileCompletion'
+import { computed } from "vue";
+import type { CompletionItem } from "../../utils/profileCompletion";
+import { clampCompletionScore } from "../../utils/profileCompletion";
 
 const props = defineProps<{
-  score: number
-  completedItems: CompletionItem[]
-  username: string
-}>()
+  score: number;
+  completedItems: CompletionItem[];
+  username: string;
+}>();
 
-const safeScore = computed(() => clampCompletionScore(props.score))
-const isCompleted = computed(() => safeScore.value >= 100)
+const safeScore = computed(() => clampCompletionScore(props.score));
+const isCompleted = computed(() => safeScore.value >= 100);
 const missingItems = computed(() =>
-  props.completedItems.filter((item) => !item.done)
-)
+  props.completedItems.filter((item) => !item.done),
+);
 
-const animatedScore = ref(0)
+const animatedScore = ref(0);
 
 onMounted(() => {
   setTimeout(() => {
-    animatedScore.value = safeScore.value
-  }, 100)
-})
+    animatedScore.value = safeScore.value;
+  }, 100);
+});
 
 const scoreColorClass = computed(() => {
-  const score = safeScore.value
-  if (score < 40) return 'text-danger-600'
-  if (score < 70) return 'text-accent-600'
-  if (score < 100) return 'text-primary-700'
-  return 'text-success-700'
-})
+  const score = safeScore.value;
+  if (score < 40) return "text-danger-600";
+  if (score < 70) return "text-accent-600";
+  if (score < 100) return "text-primary-700";
+  return "text-success-700";
+});
 </script>
 
 <template>
@@ -43,14 +43,14 @@ const scoreColorClass = computed(() => {
           <h2 class="mt-1 text-title text-secondary-900">
             {{
               isCompleted
-                ? 'Portfolio siap dipakai'
-                : 'Lengkapi portfolio utama'
+                ? "Portfolio siap dipakai"
+                : "Lengkapi portfolio utama"
             }}
           </h2>
           <p class="mt-2 text-body text-neutral-600">
             {{
               isCompleted
-                ? 'Semua sinyal penting sudah lengkap.'
+                ? "Semua sinyal penting sudah lengkap."
                 : `${missingItems.length} bagian masih bisa kamu perkuat.`
             }}
           </p>
@@ -127,7 +127,7 @@ const scoreColorClass = computed(() => {
                   : 'bg-white text-neutral-500'
               "
             >
-              {{ item.done ? '✓' : '+' }}
+              {{ item.done ? "✓" : "+" }}
             </span>
             <span class="text-body font-medium text-secondary-900">{{
               item.label
@@ -140,9 +140,11 @@ const scoreColorClass = computed(() => {
       </div>
 
       <div class="flex justify-end">
-        <AtomicButton :to="`/profile/${username}/edit`" variant="primary">
-          {{ isCompleted ? 'Perbarui profil' : 'Lengkapi profil' }}
-        </AtomicButton>
+        <NuxtLink :to="`/profile/${username}/edit`">
+          <AtomicButton variant="primary">
+            {{ isCompleted ? "Perbarui profil" : "Lengkapi profil" }}
+          </AtomicButton>
+        </NuxtLink>
       </div>
     </div>
   </OrganismCard>

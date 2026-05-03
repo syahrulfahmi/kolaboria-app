@@ -1,38 +1,44 @@
 <script setup lang="ts">
-import type { Project } from '../../types/project'
+import type { Project } from "../../types/project";
 
-const { getRecentProjects } = useProjects()
+const { getRecentProjects } = useProjects();
 
-const recentProjects = ref<Project[]>([])
-const isLoading = ref(true)
+const recentProjects = ref<Project[]>([]);
+const isLoading = ref(true);
 
 onMounted(async () => {
   try {
-    recentProjects.value = await getRecentProjects(6)
+    recentProjects.value = await getRecentProjects(6);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-})
+});
 </script>
 
 <template>
   <section>
     <!-- Page Header -->
-    <div class="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+    <div
+      class="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end"
+    >
       <div>
-        <p class="text-caption font-semibold uppercase tracking-wide text-primary-700">
+        <p
+          class="text-caption font-semibold uppercase tracking-wide text-primary-700"
+        >
           Kolaborasi
         </p>
-        <h2 class="mt-1 text-heading text-secondary-900">Temukan Proyek Baru</h2>
+        <h2 class="mt-1 text-heading text-secondary-900">
+          Temukan Proyek Baru
+        </h2>
         <p class="mt-2 text-body text-neutral-600">
           Proyek open dan komersial yang membutuhkan kontribusimu.
         </p>
       </div>
       <div class="flex shrink-0 items-center gap-3">
-        <AtomicButton variant="outline" to="/projects">
+        <AtomicButton variant="outline" @click="navigateTo('/projects')">
           Lihat Semua Project
         </AtomicButton>
-        <AtomicButton variant="primary" to="/projects/create">
+        <AtomicButton variant="primary" @click="navigateTo('/projects/create')">
           Buat Project
         </AtomicButton>
       </div>

@@ -156,6 +156,61 @@ export const useProjects = () => {
     if (error) throw error
   }
 
+  const updateProjectFull = async (
+    projectId: string,
+    payload: Partial<CreateProjectPayload>
+  ): Promise<void> => {
+    if (!user.value) throw new Error('Kamu harus login.')
+
+    const { skill_tag_ids, ...projectData } = payload
+
+    const { error } = await client
+      .from('projects')
+      .update(projectData)
+      .eq('id', projectId)
+      .eq('creator_id', user.value.id)
+
+    if (error) throw error
+
+    if (skill_tag_ids !== undefined) {
+      // Delete existing skills
+      const { error: deleteError } = await client
+        .from('project_skills')
+        .delete()
+        .eq('project_id', projectId)
+
+      if (deleteError) throw deleteError
+
+      // Insert new skills
+      if (skill_tag_ids.length > 0) {
+        const skillInserts = skill_tag_ids.map((id) => ({
+          project_id: projectId,
+          skill_tag_id: id,
+          is_required: true
+        }))
+        const { error: skillError } = await client
+          .from('project_skills')
+          .insert(skillInserts)
+        if (skillError) throw skillError
+      }
+    }
+  }
+
+  const updateProjectStatus = async (
+    projectId: string,
+    status: 'open' | 'in_progress' | 'completed' | 'archived'
+  ): Promise<void> => {
+    if (!user.value) throw new Error('Kamu harus login.')
+
+    const { error } = await client
+      .from('projects')
+      .update({ status })
+      .eq('id', projectId)
+      .eq('creator_id', user.value.id)
+
+    if (error) throw error
+  }
+
   const getMyProjects = async (): Promise<Project[]> => {
     if (!user.value) return []
 
@@ -295,6 +350,8 @@ export const useProjects = () => {
     createProject,
     publishProject,
     updateProject,
+    updateProjectFull,
+    updateProjectStatus,
     getMyProjects,
     getMyApplications,
     applyToProject,

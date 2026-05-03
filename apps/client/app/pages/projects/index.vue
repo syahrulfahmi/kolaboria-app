@@ -1,92 +1,92 @@
 <script setup lang="ts">
-import type { Project, ProjectType } from '../../types/project'
+import type { Project, ProjectType } from "../../types/project";
 
 definePageMeta({
-  layout: 'home'
-})
+  layout: "home",
+});
 
-useHead({ title: 'Jelajahi Project — Kolaboria' })
+useHead({ title: "Jelajahi Project — Kolaboria" });
 
-const { getProjects } = useProjects()
+const { getProjects } = useProjects();
 
-const search = ref('')
-const filterType = ref<ProjectType | ''>('')
-const filterStatus = ref('')
-const isLoading = ref(false)
-const isLoadingMore = ref(false)
-const projects = ref<Project[]>([])
-const fetchError = ref('')
-const hasMore = ref(true)
+const search = ref("");
+const filterType = ref<ProjectType | "">("");
+const filterStatus = ref("");
+const isLoading = ref(false);
+const isLoadingMore = ref(false);
+const projects = ref<Project[]>([]);
+const fetchError = ref("");
+const hasMore = ref(true);
 
-const limit = 12
+const limit = 12;
 
 const fetchProjects = async (isLoadMore = false) => {
   if (isLoadMore) {
-    isLoadingMore.value = true
+    isLoadingMore.value = true;
   } else {
-    isLoading.value = true
+    isLoading.value = true;
   }
 
-  fetchError.value = ''
+  fetchError.value = "";
 
   try {
     // Basic pagination simulation: just limit + offset or just increase limit.
     // For now we just load total limit if it's load more.
-    const currentLimit = isLoadMore ? projects.value.length + limit : limit
+    const currentLimit = isLoadMore ? projects.value.length + limit : limit;
 
     const newProjects = await getProjects({
       search: search.value || undefined,
       type: filterType.value || undefined,
       status: (filterStatus.value as any) || undefined,
-      limit: currentLimit
-    })
+      limit: currentLimit,
+    });
 
-    projects.value = newProjects
+    projects.value = newProjects;
 
     // Check if we have more records (simple approach: if returned length equals our requested limit)
-    hasMore.value = newProjects.length === currentLimit
+    hasMore.value = newProjects.length === currentLimit;
   } catch (e: any) {
-    fetchError.value = e?.message || 'Gagal memuat project.'
+    fetchError.value = e?.message || "Gagal memuat project.";
   } finally {
-    isLoading.value = false
-    isLoadingMore.value = false
+    isLoading.value = false;
+    isLoadingMore.value = false;
   }
-}
+};
 
 // Debounced search
-let debounceTimer: ReturnType<typeof setTimeout>
+let debounceTimer: ReturnType<typeof setTimeout>;
 const handleSearch = (val: string) => {
-  search.value = val
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => fetchProjects(false), 350)
-}
+  search.value = val;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => fetchProjects(false), 350);
+};
 
-const handleFilterType = (val: ProjectType | '') => {
-  filterType.value = val
-  fetchProjects(false)
-}
+const handleFilterType = (val: ProjectType | "") => {
+  filterType.value = val;
+  fetchProjects(false);
+};
 
 const handleFilterStatus = (val: string) => {
-  filterStatus.value = val
-  fetchProjects(false)
-}
+  filterStatus.value = val;
+  fetchProjects(false);
+};
 
 const loadMore = () => {
-  fetchProjects(true)
-}
+  fetchProjects(true);
+};
 
-const { data: initialProjects } = await useAsyncData('projects-listing', () =>
-  getProjects({ limit })
-)
-projects.value = initialProjects.value ?? []
-hasMore.value = projects.value.length === limit
+const { data: initialProjects } = await useAsyncData("projects-listing", () =>
+  getProjects({ limit }),
+);
+projects.value = initialProjects.value ?? [];
+hasMore.value = projects.value.length === limit;
 
 onMounted(() => {
-  fetchProjects(false)
-})
+  fetchProjects(false);
+});
 
 // For hero stats
-const totalProjects = computed(() => projects.value.length)
+const totalProjects = computed(() => projects.value.length);
 </script>
 
 <template>
@@ -115,15 +115,6 @@ const totalProjects = computed(() => projects.value.length)
           Temukan project open-source maupun komersial dan mulai bangun
           portfolio nyata bersama talenta terbaik Indonesia.
         </p>
-        <div class="mt-8 flex items-center gap-4">
-          <AtomicButton
-            variant="primary"
-            to="/projects/create"
-            class="bg-white text-primary-900 hover:bg-neutral-50 shadow-sm ring-white"
-          >
-            Buat Project Baru
-          </AtomicButton>
-        </div>
       </div>
 
       <!-- Stats -->
@@ -134,7 +125,7 @@ const totalProjects = computed(() => projects.value.length)
           class="rounded-2xl border border-primary-700/50 bg-primary-800/30 p-5 backdrop-blur-md"
         >
           <p class="text-3xl font-bold text-white">
-            {{ totalProjects }}{{ hasMore ? '+' : '' }}
+            {{ totalProjects }}{{ hasMore ? "+" : "" }}
           </p>
           <p class="text-caption font-medium text-primary-200">
             Project Terbuka

@@ -76,7 +76,7 @@ useHead({
 <template>
   <div class="min-h-screen bg-neutral-50 max-w-7xl">
     <div v-if="pending" class="flex min-h-screen items-center justify-center">
-      <MoleculeLoading text="Memuat profil..." />
+      <MoleculeLoading label="Memuat profil..." />
     </div>
 
     <div v-else-if="error" class="max-w-4xl mx-auto py-20 px-4 text-center">
