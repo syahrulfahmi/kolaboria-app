@@ -307,7 +307,7 @@
                     v-if="app.status === 'pending'"
                     variant="outline"
                     size="sm"
-                    :disabled="isWithdrawing"
+                    :disabled="!isWithdrawing"
                     @click="handleWithdraw(app.id)"
                   >
                     Batalkan Lamaran
