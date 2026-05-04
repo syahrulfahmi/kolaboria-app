@@ -200,17 +200,9 @@ const handleStatusConfirm = async () => {
 
 <template>
   <div class="min-h-screen bg-neutral-50 pb-20">
-    <div
-      v-if="pending"
-      class="flex flex-col items-center justify-center min-h-[60vh]"
-    >
-      <MoleculeLoading text="Memuat data project..." />
-    </div>
+    <MoleculeLoading v-if="pending" type="fullscreen" label="Memuat data project..." />
 
-    <div
-      v-else-if="project"
-      class="mx-auto w-full max-w-5xl py-8 px-4 sm:px-6 lg:px-8"
-    >
+    <div v-else-if="project" class="mx-auto w-full max-w-7xl py-8">
       <!-- Header -->
       <div class="mb-8">
         <NuxtLink
