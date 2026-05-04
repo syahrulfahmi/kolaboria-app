@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+storybook-static
 
 # Node dependencies
 node_modules
@@ -13,6 +14,7 @@ node_modules
 logs
 *.log
 .skills
+.codex
 
 # Misc
 .DS_Store

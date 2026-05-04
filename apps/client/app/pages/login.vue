@@ -14,10 +14,7 @@
 
     <div class="mt-6 text-center text-body text-gray-600">
       Belum punya akun?
-      <NuxtLink
-        to="/register"
-        class="font-semibold text-primary-600 hover:text-primary-700"
-      >
+      <NuxtLink to="/register" class="text-primary-600 hover:text-primary-700">
         Daftar sekarang
       </NuxtLink>
     </div>
@@ -34,7 +31,7 @@
       </div>
     </div>
 
-    <!-- <AuthSocialLogin /> -->
+    <AuthSocialLogin />
   </div>
 </template>
 

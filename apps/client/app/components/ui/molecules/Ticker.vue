@@ -9,6 +9,8 @@ const props = withDefaults(
     title?: string
     message: string
     closable?: boolean
+    actionLabel?: string
+    actionClick?: () => void
   }>(),
   {
     variant: 'info',
@@ -18,6 +20,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'action'): void
 }>()
 
 const iconPath = computed(() => {
@@ -101,6 +104,18 @@ const variantClasses = computed(() => {
       <p class="text-sm leading-relaxed" :class="variantClasses.message">
         {{ message }}
       </p>
+      <div v-if="$slots.action || actionLabel" class="mt-2">
+        <slot name="action">
+          <atomic-button
+            v-if="actionLabel"
+            variant="ghost-secondary"
+            :class="variantClasses.title"
+            @click="actionClick ? actionClick() : emit('action')"
+          >
+            {{ actionLabel }}
+          </atomic-button>
+        </slot>
+      </div>
     </div>
     <button
       v-if="closable"

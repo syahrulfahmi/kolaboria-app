@@ -26,6 +26,7 @@ const meta: Meta<typeof AtomicButton> = {
         'primary',
         'secondary',
         'outline',
+        'outline-danger',
         'danger',
         'ghost-primary',
         'ghost-secondary',
@@ -114,6 +115,14 @@ export const Outline: Story = {
     ...Primary.args,
     label: 'Outline Button',
     variant: 'outline'
+  }
+}
+
+export const OutlineDanger: Story = {
+  args: {
+    ...Primary.args,
+    label: 'Outline Danger Button',
+    variant: 'outline-danger'
   }
 }
 
