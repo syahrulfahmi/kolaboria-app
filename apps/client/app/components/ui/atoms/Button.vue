@@ -61,6 +61,7 @@ const props = defineProps({
         'primary',
         'secondary',
         'outline',
+        'outline-danger',
         'danger',
         'ghost-primary',
         'ghost-secondary',
@@ -121,6 +122,14 @@ const variantClasses = computed(() => {
         border border-secondary-400 text-secondary-400 bg-transparent
         hover:bg-secondary-100
         active:bg-secondary-200
+        hover:cursor-pointer
+      `
+
+    case 'outline-danger':
+      return `
+        border border-danger-500 text-danger-500 bg-transparent
+        hover:bg-danger-50
+        active:bg-danger-100
         hover:cursor-pointer
       `
 

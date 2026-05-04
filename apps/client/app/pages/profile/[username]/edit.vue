@@ -9,7 +9,7 @@ import type {
 import type { Skill, Tool } from '../../../types/skill'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'home',
   middleware: 'auth'
 })
 
@@ -121,6 +121,7 @@ const runAction = async (
       title: 'Perubahan disimpan',
       message: successMessage
     })
+    await router.replace(`/profile/${username}`)
   } catch (err: any) {
     addToast({
       variant: 'danger',
@@ -176,53 +177,107 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 py-10">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-      <!-- Breadcrumb -->
-      <NuxtLink
-        :to="`/profile/${username}`"
-        class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-primary-600"
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 relative">
+    <!-- Breadcrumb -->
+    <NuxtLink
+      :to="`/profile/${username}`"
+      class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-primary-600"
+    >
+      <svg
+        class="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
       >
-        <svg
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        Kembali ke profil
-      </NuxtLink>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
+      </svg>
+      Kembali ke profil
+    </NuxtLink>
 
-      <div class="mb-8">
-        <h1 class="text-heading text-secondary-900">Edit Profil</h1>
-        <p class="mt-2 text-body text-neutral-600">
-          Kelola informasi portfolio dan preferensi kolaborasi kamu.
+    <!-- Header Mini Preview -->
+    <div
+      v-if="profile"
+      class="mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm"
+    >
+      <!-- Avatar -->
+      <div
+        class="w-16 h-16 rounded-full border-2 border-white bg-primary-50 text-title font-bold text-primary-700 overflow-hidden relative shadow-sm shrink-0 flex items-center justify-center"
+      >
+        <img
+          v-if="profile.avatar"
+          :src="profile.avatar"
+          :alt="profile.full_name || profile.username"
+          class="w-full h-full object-cover"
+        />
+        <span v-else>{{
+          (profile.full_name || profile.username || '?').charAt(0).toUpperCase()
+        }}</span>
+      </div>
+      <!-- Info Singkat -->
+      <div class="flex-1 min-w-0">
+        <h1 class="text-heading font-bold text-secondary-900 truncate">
+          Edit Profil
+        </h1>
+        <p class="text-body text-neutral-500 truncate mt-0.5">
+          <span class="font-medium text-secondary-700">{{
+            profile.full_name || profile.username
+          }}</span>
+          <span v-if="profile.full_name" class="text-neutral-400 mx-1.5"
+            >•</span
+          >
+          <span v-if="profile.full_name">@{{ profile.username }}</span>
         </p>
       </div>
-
-      <ProfileEditForm
-        v-if="profile"
-        :profile="profile"
-        :talent-profile="talentProfile"
-        :all-skills="allSkills"
-        :user-skills="userSkills"
-        :all-tools="allTools"
-        :user-tools="userTools"
-        :loading="isActionLoading"
-        @save="handleSave"
-        @cancel="handleCancel"
-        @add-skill="handleAddSkill"
-        @remove-skill="handleRemoveSkill"
-        @set-primary-skill="handleSetPrimarySkill"
-        @add-tool="handleAddTool"
-        @remove-tool="handleRemoveTool"
-      />
+      <!-- Completion Score badge -->
+      <div class="shrink-0 self-start sm:self-auto">
+        <div class="flex flex-col items-end">
+          <span
+            class="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 mb-1"
+            >Kelengkapan</span
+          >
+          <div class="flex items-center gap-2">
+            <div class="w-20 h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-success-500 rounded-full"
+                :style="{ width: `${profile.completion_score || 0}%` }"
+              ></div>
+            </div>
+            <span
+              class="text-sm font-bold"
+              :class="
+                profile.completion_score >= 80
+                  ? 'text-success-600'
+                  : 'text-accent-600'
+              "
+            >
+              {{ profile.completion_score || 0 }}%
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <ProfileEditForm
+      v-if="profile"
+      :profile="profile"
+      :talent-profile="talentProfile"
+      :all-skills="allSkills"
+      :user-skills="userSkills"
+      :all-tools="allTools"
+      :user-tools="userTools"
+      :loading="isActionLoading"
+      @save="handleSave"
+      @cancel="handleCancel"
+      @add-skill="handleAddSkill"
+      @remove-skill="handleRemoveSkill"
+      @set-primary-skill="handleSetPrimarySkill"
+      @add-tool="handleAddTool"
+      @remove-tool="handleRemoveTool"
+    />
   </div>
 </template>
