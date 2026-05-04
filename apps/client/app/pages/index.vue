@@ -1,6 +1,6 @@
 <template>
   <div>
-    <LandingPage v-if="isComingSoon" />
+    <LandingPage v-if="!isComingSoon" />
     <LandingComingSoon v-else />
   </div>
 </template>
