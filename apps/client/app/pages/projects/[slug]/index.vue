@@ -704,14 +704,15 @@
             </template>
 
             <template v-else-if="currentApplication">
-              <AtomicButton
-                to="/projects/my-applications"
-                variant="primary"
-                size="sm"
-                class="font-bold shrink-0"
-              >
-                Lihat Lamaran
-              </AtomicButton>
+              <NuxtLink to="/projects/my-applications">
+                <AtomicButton
+                  variant="primary"
+                  size="sm"
+                  class="font-bold shrink-0"
+                >
+                  Lihat Lamaran
+                </AtomicButton>
+              </NuxtLink>
             </template>
 
             <template v-else-if="canApply">

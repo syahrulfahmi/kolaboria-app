@@ -310,11 +310,14 @@ export const useProjects = () => {
     if (status === 'accepted') {
       const { error: memberError } = await client
         .from('project_members')
-        .insert({
-          project_id: application.project_id,
-          profile_id: application.applicant_id,
-          role: 'contributor'
-        })
+        .upsert(
+          {
+            project_id: application.project_id,
+            profile_id: application.applicant_id,
+            role: 'contributor'
+          },
+          { onConflict: 'project_id,profile_id', ignoreDuplicates: true }
+        )
       if (memberError) throw memberError
     }
   }
