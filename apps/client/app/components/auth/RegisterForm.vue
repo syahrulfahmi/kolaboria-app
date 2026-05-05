@@ -75,7 +75,7 @@ const handleRegister = async () => {
       title: 'Pendaftaran Berhasil',
       message: 'Silakan cek email Anda untuk verifikasi atau lanjut isi profil.'
     })
-    router.push('/onboarding')
+    router.push('/after-register')
   } catch (err: any) {
     authError.value = err?.message || 'Gagal mendaftar. Silakan coba lagi.'
   } finally {
