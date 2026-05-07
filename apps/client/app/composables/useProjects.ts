@@ -111,6 +111,19 @@ export const useProjects = () => {
 
     if (error) throw error
 
+    const { error: ownerMemberError } = await client
+      .from('project_members')
+      .upsert(
+        {
+          project_id: project.id,
+          profile_id: user.value.id,
+          role: 'owner'
+        },
+        { onConflict: 'project_id,profile_id', ignoreDuplicates: true }
+      )
+
+    if (ownerMemberError) throw ownerMemberError
+
     // Insert project skills jika ada
     if (skill_tag_ids && skill_tag_ids.length > 0) {
       const skillInserts = skill_tag_ids.map((id) => ({
@@ -207,6 +220,31 @@ export const useProjects = () => {
       .update({ status })
       .eq('id', projectId)
       .eq('creator_id', user.value.id)
+
+    if (error) throw error
+  }
+
+  const startProject = async (projectId: string): Promise<void> => {
+    if (!user.value) throw new Error('Kamu harus login.')
+
+    const { data: members, error: membersError } = await client
+      .from('project_members')
+      .select('profile_id')
+      .eq('project_id', projectId)
+      .eq('role', 'contributor')
+
+    if (membersError) throw membersError
+
+    if (!members || members.length === 0) {
+      throw new Error('Tambahkan minimal 1 collaborator sebelum memulai project.')
+    }
+
+    const { error } = await client
+      .from('projects')
+      .update({ status: 'in_progress' })
+      .eq('id', projectId)
+      .eq('creator_id', user.value.id)
+      .eq('status', 'open')
 
     if (error) throw error
   }
@@ -355,6 +393,7 @@ export const useProjects = () => {
     updateProject,
     updateProjectFull,
     updateProjectStatus,
+    startProject,
     getMyProjects,
     getMyApplications,
     applyToProject,
