@@ -90,6 +90,7 @@ watch(
     if (currentProject.status !== 'in_progress') return
 
     if (!isMember.value) {
+      toast.error('Kamu tidak memiliki akses ke workspace project ini.')
       await router.replace(`/projects/${slug.value}`)
       return
     }
@@ -123,10 +124,10 @@ watch(
               class="flex flex-wrap items-center gap-2 text-caption text-neutral-500"
             >
               <NuxtLink
-                to="/projects/my-projects"
+                :to="isOwner ? '/projects/my-projects' : '/projects/my-applications'"
                 class="font-semibold text-primary-700 hover:text-primary-800"
               >
-                Project Saya
+                {{ isOwner ? 'Project Saya' : 'Lamaran Saya' }}
               </NuxtLink>
               <span>/</span>
               <NuxtLink

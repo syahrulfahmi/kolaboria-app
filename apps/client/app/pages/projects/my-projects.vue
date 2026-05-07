@@ -1,83 +1,79 @@
 <script setup lang="ts">
-import type { Project } from "~/types/project";
-import ProjectOwnerCard from "~/components/project/ProjectOwnerCard.vue";
+import type { Project } from '~/types/project'
+import ProjectOwnerCard from '~/components/project/ProjectOwnerCard.vue'
 
-definePageMeta({ layout: "home", middleware: "auth" });
+definePageMeta({ layout: 'home', middleware: 'auth' })
 
-const { getMyProjects, getProjectApplicants } = useProjects();
+const { getMyProjects, getProjectApplicants } = useProjects()
 
 const { data: projects, pending } = await useAsyncData<Project[]>(
-  "my-projects",
-  () => getMyProjects(),
-);
+  'my-projects',
+  () => getMyProjects()
+)
 
 // Store applicant counts per project ID
-const applicantCounts = ref<Record<string, number>>({});
+const applicantCounts = ref<Record<string, number>>({})
 
 // Fetch pending applicant counts
 onMounted(async () => {
   if (projects.value && projects.value.length > 0) {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, number> = {}
     await Promise.all(
       projects.value.map(async (project) => {
         try {
-          const applicants = await getProjectApplicants(project.id);
+          const applicants = await getProjectApplicants(project.id)
           counts[project.id] = applicants.filter(
-            (a) => a.status === "pending",
-          ).length;
+            (a) => a.status === 'pending'
+          ).length
         } catch (e) {
-          counts[project.id] = 0;
+          counts[project.id] = 0
         }
-      }),
-    );
-    applicantCounts.value = counts;
+      })
+    )
+    applicantCounts.value = counts
   }
-});
+})
 
 const stats = computed(() => {
-  const p = projects.value || [];
+  const p = projects.value || []
   return {
     total: p.length,
-    draft: p.filter((x) => x.status === "draft").length,
-    active: p.filter((x) => ["open", "in_progress"].includes(x.status)).length,
-    completed: p.filter((x) => x.status === "completed").length,
-    archived: p.filter((x) => x.status === "archived").length,
-  };
-});
+    draft: p.filter((x) => x.status === 'draft').length,
+    active: p.filter((x) => ['open', 'in_progress'].includes(x.status)).length,
+    completed: p.filter((x) => x.status === 'completed').length,
+    archived: p.filter((x) => x.status === 'archived').length
+  }
+})
 
 const filters = [
-  { label: "Semua", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Aktif", value: "active" },
-  { label: "Selesai", value: "completed" },
-  { label: "Arsip", value: "archived" },
-];
+  { label: 'Semua', value: 'all' },
+  { label: 'Draft', value: 'draft' },
+  { label: 'Aktif', value: 'active' },
+  { label: 'Selesai', value: 'completed' },
+  { label: 'Arsip', value: 'archived' }
+]
 
-const selectedFilter = ref("all");
+const selectedFilter = ref('all')
 
 const filteredProjects = computed(() => {
-  let result = projects.value || [];
+  let result = projects.value || []
 
-  if (selectedFilter.value !== "all") {
-    if (selectedFilter.value === "active") {
-      result = result.filter((p) => ["open", "in_progress"].includes(p.status));
+  if (selectedFilter.value !== 'all') {
+    if (selectedFilter.value === 'active') {
+      result = result.filter((p) => ['open', 'in_progress'].includes(p.status))
     } else {
-      result = result.filter((p) => p.status === selectedFilter.value);
+      result = result.filter((p) => p.status === selectedFilter.value)
     }
   }
 
-  return result;
-});
+  return result
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 pb-20">
+  <div class="min-h-screen bg-neutral-50 pb-20 overflow-x-hidden">
     <!-- ─── HEADER ─── -->
     <OrganismCard>
-      <div
-        class="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-primary-50/50 to-transparent rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 pointer-events-none"
-      ></div>
-
       <div class="max-w-7xl mx-auto relative z-10">
         <div
           class="flex flex-col md:flex-row md:items-end justify-between gap-6"
@@ -221,7 +217,7 @@ const filteredProjects = computed(() => {
               'px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border',
               selectedFilter === filter.value
                 ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
-                : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+                : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
             ]"
           >
             {{ filter.label }}
@@ -270,8 +266,8 @@ const filteredProjects = computed(() => {
             class="text-neutral-500 font-medium max-w-sm text-sm leading-relaxed mb-6"
           >
             {{
-              selectedFilter === "all"
-                ? "Anda belum membuat project apa pun. Yuk mulai kolaborasi pertama Anda!"
+              selectedFilter === 'all'
+                ? 'Anda belum membuat project apa pun. Yuk mulai kolaborasi pertama Anda!'
                 : `Tidak ada project dengan status ${filters.find((f) => f.value === selectedFilter)?.label}.`
             }}
           </p>

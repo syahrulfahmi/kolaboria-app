@@ -533,8 +533,19 @@
 
                   <template v-else-if="isOwner">
                     <div class="flex flex-col gap-3">
+                      <NuxtLink v-if="project.status === 'in_progress'" :to="`/projects/${project.slug}/workspace`">
+                        <AtomicButton variant="primary" size="lg" block class="font-bold">
+                          <span class="flex items-center gap-2 justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
+                            </svg>
+                            Buka Workspace
+                          </span>
+                        </AtomicButton>
+                      </NuxtLink>
+
                       <NuxtLink :to="`/projects/${project.slug}/applicants`">
-                        <AtomicButton variant="primary" size="lg" block>
+                        <AtomicButton :variant="project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
                           Kelola Pelamar
                         </AtomicButton>
                       </NuxtLink>
@@ -559,11 +570,28 @@
                         {{ applicationMessage.body }}
                       </p>
                     </div>
-                    <NuxtLink to="/projects/my-applications">
-                      <AtomicButton variant="primary" size="lg" block>
-                        Lihat Lamaran Saya
-                      </AtomicButton>
-                    </NuxtLink>
+
+                    <div class="flex flex-col gap-3">
+                      <NuxtLink
+                        v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
+                        :to="`/projects/${project.slug}/workspace`"
+                      >
+                        <AtomicButton variant="primary" size="lg" block class="font-bold">
+                          <span class="flex items-center gap-2 justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
+                            </svg>
+                            Buka Workspace
+                          </span>
+                        </AtomicButton>
+                      </NuxtLink>
+
+                      <NuxtLink to="/projects/my-applications">
+                        <AtomicButton :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
+                          Lihat Lamaran Saya
+                        </AtomicButton>
+                      </NuxtLink>
+                    </div>
                   </template>
 
                   <template v-else-if="canApply">
@@ -685,16 +713,25 @@
             <template v-else-if="isOwner">
               <div class="flex items-center gap-2">
                 <AtomicButton
+                  v-if="project.status === 'in_progress'"
+                  :to="`/projects/${project.slug}/workspace`"
+                  variant="primary"
+                  size="sm"
+                  class="font-bold shrink-0"
+                >
+                  Workspace
+                </AtomicButton>
+                <AtomicButton
                   :to="`/projects/${project.slug}/edit`"
                   variant="outline"
                   size="sm"
-                  class="font-bold shrink-0"
+                  class="font-bold shrink-0 hidden sm:inline-flex"
                 >
                   Edit
                 </AtomicButton>
                 <AtomicButton
                   :to="`/projects/${project.slug}/applicants`"
-                  variant="primary"
+                  :variant="project.status === 'in_progress' ? 'outline' : 'primary'"
                   size="sm"
                   class="font-bold shrink-0"
                 >
@@ -704,15 +741,26 @@
             </template>
 
             <template v-else-if="currentApplication">
-              <NuxtLink to="/projects/my-applications">
+              <div class="flex items-center gap-2">
                 <AtomicButton
+                  v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
+                  :to="`/projects/${project.slug}/workspace`"
                   variant="primary"
                   size="sm"
                   class="font-bold shrink-0"
                 >
-                  Lihat Lamaran
+                  Workspace
                 </AtomicButton>
-              </NuxtLink>
+                <NuxtLink to="/projects/my-applications">
+                  <AtomicButton
+                    :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'outline' : 'primary'"
+                    size="sm"
+                    class="font-bold shrink-0"
+                  >
+                    Lihat Lamaran
+                  </AtomicButton>
+                </NuxtLink>
+              </div>
             </template>
 
             <template v-else-if="canApply">

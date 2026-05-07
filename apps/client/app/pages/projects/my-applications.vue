@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-10 sm:px-6">
+  <div class="px-4 py-10 sm:px-6 overflow-x-hidden">
     <!-- Hero Section (Premium Layout - matching Home) -->
     <div
       class="relative rounded-3xl overflow-hidden mb-10 bg-primary-500 shadow-xl border border-primary-400/30"
@@ -156,7 +156,7 @@
               'px-5 py-2 rounded-full text-sm font-bold tracking-wide transition-all whitespace-nowrap outline-none flex items-center justify-center min-w-[max-content]',
               selectedFilter === filter.value
                 ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300',
+                : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300'
             ]"
           >
             {{ filter.label }}
@@ -173,7 +173,7 @@
             <div class="flex gap-4 md:gap-6">
               <!-- Application Card -->
               <div
-                class="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 hover:border-primary-200 hover:shadow-md transition-all duration-300"
+                class="flex-1 bg-white rounded-2xl max-w-full border border-gray-100 shadow-sm p-5 md:p-6 hover:border-primary-200 hover:shadow-md transition-all duration-300"
               >
                 <div
                   class="flex flex-col md:flex-row md:items-start justify-between gap-5 mb-5 border-b border-gray-50 pb-5"
@@ -191,7 +191,7 @@
                       <h3
                         class="text-lg font-bold text-gray-900 mb-1 truncate group-hover/timeline:text-primary-600 transition-colors"
                       >
-                        {{ app.projects?.title ?? "Project Tidak Tersedia" }}
+                        {{ app.projects?.title ?? 'Project Tidak Tersedia' }}
                       </h3>
                       <p
                         class="text-[0.65rem] font-bold tracking-widest uppercase text-gray-400 mt-1.5"
@@ -206,7 +206,7 @@
                       v-if="statusConfig[app.status]"
                       :class="[
                         'inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset uppercase tracking-wide',
-                        statusConfig[app.status].classes,
+                        statusConfig[app.status].classes
                       ]"
                     >
                       {{ statusConfig[app.status].label }}
@@ -226,7 +226,7 @@
                     <p class="text-sm text-gray-600 italic line-clamp-2">
                       "{{
                         app.motivation.length > 120
-                          ? app.motivation.substring(0, 120) + "..."
+                          ? app.motivation.substring(0, 120) + '...'
                           : app.motivation
                       }}"
                     </p>
@@ -247,8 +247,76 @@
                 </div>
 
                 <!-- Message Section (if Accepted) -->
+                <!-- Accepted + Project In Progress → CTA ke Workspace -->
                 <div
-                  v-if="app.status === 'accepted'"
+                  v-if="
+                    app.status === 'accepted' &&
+                    app.projects?.status === 'in_progress'
+                  "
+                  class="mb-6 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div class="flex gap-3">
+                    <svg
+                      class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <div>
+                      <h4 class="text-sm font-bold text-emerald-800 mb-0.5">
+                        Kamu bagian dari tim ini!
+                      </h4>
+                      <p
+                        class="text-xs font-medium text-emerald-600/90 leading-relaxed"
+                      >
+                        Project sedang berjalan. Buka workspace untuk melihat
+                        task dan berkolaborasi.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Accepted + Project masih Open → Menunggu owner start -->
+                <div
+                  v-else-if="
+                    app.status === 'accepted' && app.projects?.status === 'open'
+                  "
+                  class="mb-6 bg-amber-50/60 border border-amber-100 rounded-xl p-4 flex gap-3"
+                >
+                  <svg
+                    class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <div>
+                    <h4 class="text-sm font-bold text-amber-800 mb-0.5">
+                      Lamaran Diterima — Menunggu Project Dimulai
+                    </h4>
+                    <p
+                      class="text-xs font-medium text-amber-700/80 leading-relaxed"
+                    >
+                      Kamu sudah bergabung sebagai collaborator. Workspace akan
+                      aktif setelah owner memulai project.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Accepted + status lain (completed/archived) -->
+                <div
+                  v-else-if="app.status === 'accepted'"
                   class="mb-6 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex gap-3"
                 >
                   <svg
@@ -290,24 +358,53 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex items-center gap-3">
-                  <NuxtLink :to="`/projects/${app.projects?.slug}`">
-                    <AtomicButton
-                      v-if="app.projects?.slug"
-                      variant="primary"
-                      fill="outline"
-                      size="sm"
-                      class="font-bold"
-                    >
+                <div class="flex items-center gap-3 flex-wrap">
+                  <!-- Open Workspace: primary CTA untuk collaborator saat project in_progress -->
+                  <NuxtLink
+                    v-if="
+                      app.status === 'accepted' &&
+                      app.projects?.status === 'in_progress' &&
+                      app.projects?.slug
+                    "
+                    :to="`/projects/${app.projects.slug}/workspace`"
+                  >
+                    <AtomicButton variant="primary" size="sm" class="font-bold">
+                      <span class="flex items-center gap-1.5">
+                        <svg
+                          class="w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2"
+                          />
+                        </svg>
+                        Open Workspace
+                      </span>
+                    </AtomicButton>
+                  </NuxtLink>
+
+                  <!-- Detail Proyek: selalu tampil sebagai secondary -->
+                  <NuxtLink
+                    v-if="app.projects?.slug"
+                    :to="`/projects/${app.projects.slug}`"
+                  >
+                    <AtomicButton variant="outline" size="sm" class="font-bold">
                       Detail Proyek
                     </AtomicButton>
                   </NuxtLink>
 
+                  <!-- Batalkan Lamaran: hanya untuk pending -->
                   <AtomicButton
                     v-if="app.status === 'pending'"
                     variant="outline"
                     size="sm"
-                    :disabled="!isWithdrawing"
+                    :loading="isWithdrawing"
+                    :disabled="isWithdrawing"
                     @click="handleWithdraw(app.id)"
                   >
                     Batalkan Lamaran
@@ -345,8 +442,8 @@
             class="text-gray-500 font-medium max-w-sm mb-8 text-sm leading-relaxed"
           >
             {{
-              selectedFilter === "all"
-                ? "Tampaknya kamu belum mengirimkan aplikasi lamaran ke proyek manapun. Mari jelajahi peluang baru!"
+              selectedFilter === 'all'
+                ? 'Tampaknya kamu belum mengirimkan aplikasi lamaran ke proyek manapun. Mari jelajahi peluang baru!'
                 : `Kamu belum memiliki aplikasi dengan status filter ini.`
             }}
           </p>
@@ -380,137 +477,135 @@
 </template>
 
 <script setup lang="ts">
-import type { Application } from "~/types/project";
+import type { Application } from '~/types/project'
 
-definePageMeta({ layout: "home", middleware: "auth" });
-useHead({ title: "Lamaran Saya — Kolaboria" });
+definePageMeta({ layout: 'home', middleware: 'auth' })
+useHead({ title: 'Lamaran Saya — Kolaboria' })
 
-const { getMyApplications, withdrawApplication } = useProjects();
+const { getMyApplications, withdrawApplication } = useProjects()
 
 const {
   data: applications,
   pending,
   error,
-  refresh,
-} = await useAsyncData<Application[]>("my-applications", () =>
-  getMyApplications(),
-);
+  refresh
+} = await useAsyncData<Application[]>('my-applications', () =>
+  getMyApplications()
+)
 
 // Filters
 const selectedFilter = ref<
-  "all" | "pending" | "accepted" | "rejected" | "withdrawn"
->("all");
+  'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'
+>('all')
 
 const filters: Array<{
-  label: string;
-  value: "all" | "pending" | "accepted" | "rejected" | "withdrawn";
+  label: string
+  value: 'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'
 }> = [
-  { label: "Semua Lamaran", value: "all" },
-  { label: "Menunggu Ditinjau", value: "pending" },
-  { label: "Diterima", value: "accepted" },
-  { label: "Ditolak", value: "rejected" },
-  { label: "Dibatalkan", value: "withdrawn" },
-];
+  { label: 'Semua Lamaran', value: 'all' },
+  { label: 'Menunggu Ditinjau', value: 'pending' },
+  { label: 'Diterima', value: 'accepted' },
+  { label: 'Ditolak', value: 'rejected' },
+  { label: 'Dibatalkan', value: 'withdrawn' }
+]
 
 // Status styling
 const statusConfig: Record<string, { label: string; classes: string }> = {
   pending: {
-    label: "Menunggu",
-    classes: "bg-amber-50 text-amber-700 ring-amber-200",
+    label: 'Menunggu',
+    classes: 'bg-amber-50 text-amber-700 ring-amber-200'
   },
   accepted: {
-    label: "Diterima",
-    classes: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    label: 'Diterima',
+    classes: 'bg-emerald-50 text-emerald-700 ring-emerald-200'
   },
   rejected: {
-    label: "Ditolak",
-    classes: "bg-red-50 text-red-700 ring-red-200",
+    label: 'Ditolak',
+    classes: 'bg-red-50 text-red-700 ring-red-200'
   },
   withdrawn: {
-    label: "Dibatalkan",
-    classes: "bg-gray-100 text-gray-600 ring-gray-200",
-  },
-};
+    label: 'Dibatalkan',
+    classes: 'bg-gray-100 text-gray-600 ring-gray-200'
+  }
+}
 
 const availabilityLabel: Record<string, string> = {
-  full_time: "Full-time",
-  part_time: "Part-time",
-  weekends_only: "Akhir Pekan",
-  flexible: "Fleksibel",
-};
+  full_time: 'Full-time',
+  part_time: 'Part-time',
+  weekends_only: 'Akhir Pekan',
+  flexible: 'Fleksibel'
+}
 
 // Stats
 const userStats = computed(() => {
-  if (!applications.value) return { total: 0, pending: 0, accepted: 0 };
+  if (!applications.value) return { total: 0, pending: 0, accepted: 0 }
   return {
     total: applications.value.length,
-    pending: applications.value.filter((app) => app.status === "pending")
+    pending: applications.value.filter((app) => app.status === 'pending')
       .length,
-    accepted: applications.value.filter((app) => app.status === "accepted")
-      .length,
-  };
-});
+    accepted: applications.value.filter((app) => app.status === 'accepted')
+      .length
+  }
+})
 
 // Filtered data
 const filteredApplications = computed(() => {
-  if (!applications.value) return [];
-  if (selectedFilter.value === "all") return applications.value;
-  return applications.value.filter(
-    (app) => app.status === selectedFilter.value,
-  );
-});
+  if (!applications.value) return []
+  if (selectedFilter.value === 'all') return applications.value
+  return applications.value.filter((app) => app.status === selectedFilter.value)
+})
 
 // Helpers
 const getProjectIcon = (title?: string) => {
-  return title ? title.charAt(0).toUpperCase() : "?";
-};
+  return title ? title.charAt(0).toUpperCase() : '?'
+}
 
 const getProjectColorClass = (status: string) => {
   switch (status) {
-    case "accepted":
-      return "bg-emerald-500";
-    case "pending":
-      return "bg-amber-500";
-    case "rejected":
-      return "bg-red-500";
+    case 'accepted':
+      return 'bg-emerald-500'
+    case 'pending':
+      return 'bg-amber-500'
+    case 'rejected':
+      return 'bg-red-500'
     default:
-      return "bg-gray-400";
+      return 'bg-gray-400'
   }
-};
+}
 
 const relativeDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return "hari ini";
-  if (diffDays === 1) return "kemarin";
-  if (diffDays < 7) return `${diffDays} hari lalu`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu lalu`;
-  return date.toLocaleDateString("id-ID", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
+  if (diffDays === 0) return 'hari ini'
+  if (diffDays === 1) return 'kemarin'
+  if (diffDays < 7) return `${diffDays} hari lalu`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu lalu`
+  return date.toLocaleDateString('id-ID', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
 
 // Actions
-const isWithdrawing = ref(false);
+const isWithdrawing = ref(false)
 
 const handleWithdraw = async (applicationId: string) => {
-  if (!confirm("Yakin ingin membatalkan lamaran ini?")) return;
+  if (!confirm('Yakin ingin membatalkan lamaran ini?')) return
 
-  isWithdrawing.value = true;
+  isWithdrawing.value = true
   try {
-    await withdrawApplication(applicationId);
-    await refresh();
+    await withdrawApplication(applicationId)
+    await refresh()
   } catch (err: any) {
-    alert(err?.message || "Gagal membatalkan lamaran.");
+    alert(err?.message || 'Gagal membatalkan lamaran.')
   } finally {
-    isWithdrawing.value = false;
+    isWithdrawing.value = false
   }
-};
+}
 </script>
 
 <style scoped>
