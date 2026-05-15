@@ -121,7 +121,6 @@ const runAction = async (
       title: 'Perubahan disimpan',
       message: successMessage
     })
-    await router.replace(`/profile/${username}`)
   } catch (err: any) {
     addToast({
       variant: 'danger',
@@ -134,11 +133,27 @@ const runAction = async (
 }
 
 const handleSave = async (formData: any) => {
-  await runAction('Profil kamu berhasil diperbarui.', async () => {
+  isActionLoading.value = true
+  try {
     const { goal, ...profilePayload } = formData
     await updateProfile(profilePayload)
     await updateTalentProfile({ goal })
-  })
+    await refreshEditableData()
+    addToast({
+      variant: 'success',
+      title: 'Profil diperbarui',
+      message: 'Profil kamu berhasil diperbarui.'
+    })
+    await router.replace(`/profile/${username}`)
+  } catch (err: any) {
+    addToast({
+      variant: 'danger',
+      title: 'Gagal menyimpan',
+      message: err.message || 'Terjadi kesalahan saat menyimpan perubahan.'
+    })
+  } finally {
+    isActionLoading.value = false
+  }
 }
 
 const handleAddSkill = async (skillId: string) => {

@@ -100,6 +100,7 @@ export const useProjects = () => {
     payload: CreateProjectPayload
   ): Promise<Project> => {
     if (!user.value) throw new Error('Kamu harus login untuk membuat project.')
+    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk membuat project.')
 
     const { skill_tag_ids, ...projectData } = payload
 
@@ -290,6 +291,7 @@ export const useProjects = () => {
     payload: ApplyProjectPayload
   ): Promise<void> => {
     if (!user.value) throw new Error('Kamu harus login untuk melamar project.')
+    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk melamar project.')
 
     const { error } = await client
       .from('applications')

@@ -597,11 +597,16 @@
                   <template v-else-if="canApply">
                     <AtomicButton
                       variant="primary"
-                      @click="showApplyModal = true"
+                      @click="isVerified ? (showApplyModal = true) : null"
                       class="w-full"
+                      :disabled="!isVerified"
+                      :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu untuk melamar.' : ''"
                     >
                       Apply Project Ini
                     </AtomicButton>
+                    <p v-if="!isVerified" class="text-xs text-center text-red-200 mt-2 font-medium">
+                      Verifikasi email Anda untuk melamar.
+                    </p>
                   </template>
 
                   <template v-else>
@@ -767,8 +772,10 @@
               <AtomicButton
                 variant="primary"
                 size="sm"
-                @click="showApplyModal = true"
+                @click="isVerified ? (showApplyModal = true) : null"
                 class="font-bold shrink-0 w-full"
+                :disabled="!isVerified"
+                :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu.' : ''"
               >
                 Apply Project Ini
               </AtomicButton>
@@ -799,6 +806,7 @@ definePageMeta({
 
 const route = useRoute()
 const { getProjectBySlug, getMyApplications } = useProjects()
+const { isVerified } = useAuth()
 const user = useSupabaseUser()
 
 const projectSlug = route.params.slug as string
