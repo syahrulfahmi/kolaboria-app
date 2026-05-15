@@ -24,9 +24,10 @@ const errorMessage = ref('')
 const router = useRouter()
 const { add: addToast } = useToast()
 
-onMounted(async () => {
-  // Use token_hash flow instead of PKCE code to avoid "PKCE code verifier not found"
-  // error when opening the link in a different browser/device.
+onMounted(() => {
+  // Hanya validasi struktur URL, JANGAN panggil verifyOtp di sini.
+  // Jika verifyOtp dipanggil saat page load, token akan langsung "hangus".
+  // Pemanggilan verifyOtp akan dilakukan saat user men-submit form password baru.
   const tokenHash = route.query.token_hash as string | undefined
   const type = route.query.type as string | undefined
 
@@ -40,25 +41,8 @@ onMounted(async () => {
     return router.replace('/login')
   }
 
-  try {
-    const { error } = await client.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: 'recovery'
-    })
-    if (error) throw error
-    status.value = 'ready'
-  } catch (err: any) {
-    addToast({
-      variant: 'danger',
-      title: 'Link Kedaluwarsa',
-      message:
-        err?.message ||
-        'Gagal memverifikasi link. Link mungkin sudah kedaluwarsa atau sudah digunakan.',
-      duration: 6000
-    })
-    console.log('error:', err?.message)
-    return router.replace('/login')
-  }
+  // Token ada, langsung tampilkan form
+  status.value = 'ready'
 })
 </script>
 

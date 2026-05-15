@@ -23,6 +23,9 @@ const authError = ref('')
 const isLoading = ref(false)
 const isSuccess = ref(false)
 
+const route = useRoute()
+const client = useSupabaseClient()
+
 const handleResetPassword = async () => {
   fieldErrors.value = {}
   authError.value = ''
@@ -41,9 +44,23 @@ const handleResetPassword = async () => {
     return
   }
 
+  const tokenHash = route.query.token_hash as string
+
   isLoading.value = true
   try {
+    // 1. Verifikasi token terlebih dahulu (ini akan meng-consume token dan memberikan sesi login)
+    const { error: verifyError } = await client.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'recovery'
+    })
+    
+    if (verifyError) {
+      throw new Error('Token tidak valid atau sudah kedaluwarsa. Silakan minta link reset baru.')
+    }
+
+    // 2. Jika token valid dan sesi didapat, perbarui password user
     await resetPassword(result.data.password)
+    
     isSuccess.value = true
     addToast({
       variant: 'success',
