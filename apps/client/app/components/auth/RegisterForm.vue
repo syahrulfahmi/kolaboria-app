@@ -65,17 +65,28 @@ const handleRegister = async () => {
   // Submit
   isLoading.value = true
   try {
-    await register(
+    const data = await register(
       result.data.email,
       result.data.password,
       result.data.fullName
     )
-    addToast({
-      variant: 'success',
-      title: 'Pendaftaran Berhasil',
-      message: 'Silakan cek email Anda untuk verifikasi atau lanjut isi profil.'
-    })
-    router.push('/after-register')
+    
+    if (data?.session) {
+      addToast({
+        variant: 'success',
+        title: 'Pendaftaran Berhasil',
+        message: 'Selamat datang! Silakan lengkapi profil Anda.'
+      })
+      router.push('/after-register')
+    } else {
+      addToast({
+        variant: 'info',
+        title: 'Verifikasi Email',
+        message: 'Silakan cek kotak masuk email Anda untuk verifikasi akun sebelum login.',
+        duration: 8000
+      })
+      router.push('/login')
+    }
   } catch (err: any) {
     authError.value = err?.message || 'Gagal mendaftar. Silakan coba lagi.'
   } finally {

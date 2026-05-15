@@ -6,6 +6,7 @@ useHead({ title: "Buat Project — Kolaboria" });
 
 const { createProject, publishProject, getSkillTags } = useProjects();
 const { getProfile } = useProfile();
+const { isVerified } = useAuth();
 const router = useRouter();
 
 const currentStep = ref(1);
@@ -125,7 +126,19 @@ const saveAndPublish = async () => {
     </div>
 
     <!-- Two-column Layout -->
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div v-if="!isVerified" class="mt-8">
+      <OrganismCard variant="outlined" class="text-center p-12">
+        <h2 class="text-title text-secondary-900 mb-2">Verifikasi Email Diperlukan</h2>
+        <p class="text-body text-neutral-600 mb-6">
+          Anda harus memverifikasi email Anda terlebih dahulu sebelum dapat membuat proyek baru. Silakan periksa inbox Anda atau minta tautan verifikasi baru dari halaman utama.
+        </p>
+        <NuxtLink to="/home">
+          <AtomicButton variant="primary">Kembali ke Beranda</AtomicButton>
+        </NuxtLink>
+      </OrganismCard>
+    </div>
+
+    <div v-else class="flex flex-col lg:flex-row gap-8">
       <!-- Sidebar Stepper -->
       <div class="lg:w-64 flex-shrink-0">
         <OrganismContentList

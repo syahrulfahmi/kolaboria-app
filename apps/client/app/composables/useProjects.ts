@@ -100,6 +100,7 @@ export const useProjects = () => {
     payload: CreateProjectPayload
   ): Promise<Project> => {
     if (!user.value) throw new Error('Kamu harus login untuk membuat project.')
+    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk membuat project.')
 
     const { skill_tag_ids, ...projectData } = payload
 
@@ -110,6 +111,19 @@ export const useProjects = () => {
       .single()
 
     if (error) throw error
+
+    const { error: ownerMemberError } = await client
+      .from('project_members')
+      .upsert(
+        {
+          project_id: project.id,
+          profile_id: user.value.id,
+          role: 'owner'
+        },
+        { onConflict: 'project_id,profile_id', ignoreDuplicates: true }
+      )
+
+    if (ownerMemberError) throw ownerMemberError
 
     // Insert project skills jika ada
     if (skill_tag_ids && skill_tag_ids.length > 0) {
@@ -211,6 +225,31 @@ export const useProjects = () => {
     if (error) throw error
   }
 
+  const startProject = async (projectId: string): Promise<void> => {
+    if (!user.value) throw new Error('Kamu harus login.')
+
+    const { data: members, error: membersError } = await client
+      .from('project_members')
+      .select('profile_id')
+      .eq('project_id', projectId)
+      .eq('role', 'contributor')
+
+    if (membersError) throw membersError
+
+    if (!members || members.length === 0) {
+      throw new Error('Tambahkan minimal 1 collaborator sebelum memulai project.')
+    }
+
+    const { error } = await client
+      .from('projects')
+      .update({ status: 'in_progress' })
+      .eq('id', projectId)
+      .eq('creator_id', user.value.id)
+      .eq('status', 'open')
+
+    if (error) throw error
+  }
+
   const getMyProjects = async (): Promise<Project[]> => {
     if (!user.value) return []
 
@@ -252,6 +291,7 @@ export const useProjects = () => {
     payload: ApplyProjectPayload
   ): Promise<void> => {
     if (!user.value) throw new Error('Kamu harus login untuk melamar project.')
+    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk melamar project.')
 
     const { error } = await client
       .from('applications')
@@ -355,6 +395,7 @@ export const useProjects = () => {
     updateProject,
     updateProjectFull,
     updateProjectStatus,
+    startProject,
     getMyProjects,
     getMyApplications,
     applyToProject,

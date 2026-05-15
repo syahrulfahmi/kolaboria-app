@@ -15,7 +15,7 @@ export const AuthService = {
   },
 
   async register(client: any, payload: RegisterRequest) {
-    const { error } = await client.auth.signUp({
+    const { data, error } = await client.auth.signUp({
       email: payload.email,
       password: payload.password,
       options: {
@@ -26,6 +26,7 @@ export const AuthService = {
       }
     })
     if (error) throw error
+    return data
   },
 
   async loginWithGoogle(client: any) {
@@ -34,6 +35,28 @@ export const AuthService = {
       options: {
         redirectTo: `${window.location.origin}/confirm`
       }
+    })
+    if (error) throw error
+  },
+
+  async resendVerification(client: any, email: string) {
+    const { error } = await client.auth.resend({
+      type: 'signup',
+      email
+    })
+    if (error) throw error
+  },
+
+  async forgotPassword(client: any, email: string) {
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+    if (error) throw error
+  },
+
+  async resetPassword(client: any, newPassword: string) {
+    const { error } = await client.auth.updateUser({
+      password: newPassword
     })
     if (error) throw error
   }

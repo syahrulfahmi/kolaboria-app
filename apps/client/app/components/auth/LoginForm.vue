@@ -13,7 +13,7 @@ type FieldErrors = Partial<Record<keyof z.infer<typeof loginSchema>, string>>
 
 // ── State ────────────────────────────────────────────────────────────────────
 const router = useRouter()
-const { login } = useAuth()
+const { login, forgotPassword } = useAuth()
 const { add: addToast } = useToast()
 
 const form = ref({
@@ -81,17 +81,21 @@ const handleForgotPassword = async () => {
   }
 
   isSendingReset.value = true
-  // Simulate API call (replace with real Supabase call later)
-  await new Promise((resolve) => setTimeout(resolve, 1500))
-  isSendingReset.value = false
-  showForgotModal.value = false
-  forgotEmail.value = ''
-
-  addToast({
-    variant: 'success',
-    message: 'Link reset password telah dikirim ke email kamu.',
-    title: 'Email Terkirim'
-  })
+  try {
+    await forgotPassword(result.data.email)
+    showForgotModal.value = false
+    forgotEmail.value = ''
+    addToast({
+      variant: 'success',
+      title: 'Email Terkirim',
+      message: 'Link reset password telah dikirim. Silakan cek kotak masuk email kamu.',
+      duration: 6000
+    })
+  } catch (err: any) {
+    forgotEmailError.value = err?.message || 'Gagal mengirim link reset. Coba lagi.'
+  } finally {
+    isSendingReset.value = false
+  }
 }
 
 const closeForgotModal = () => {

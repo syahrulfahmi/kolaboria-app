@@ -14,7 +14,11 @@ useHead({
 const { getProfile, getChecklist } = useProfile()
 const { getUserSkills } = useSkill()
 const { getUserTools } = useTool()
+const { resendVerification } = useAuth()
+const { success, error: showError } = useToast()
 const user = useSupabaseUser()
+
+const isResending = ref(false)
 
 const profile = ref<Profile | null>(null)
 const skills = ref<UserSkill[]>([])
@@ -53,8 +57,21 @@ const fetchAllData = async () => {
 
 onMounted(fetchAllData)
 
-const handleResendEmail = () => {
-  // Supabase resend flow can be wired here when auth email template is ready.
+const handleResendEmail = async () => {
+  if (isResending.value) return
+  isResending.value = true
+  
+  try {
+    await resendVerification()
+    success('Email verifikasi telah dikirim ulang. Silakan periksa inbox Anda.')
+    // Cooldown 60 detik
+    setTimeout(() => {
+      isResending.value = false
+    }, 60000)
+  } catch (err: any) {
+    showError(err.message || 'Gagal mengirim ulang email.')
+    isResending.value = false
+  }
 }
 </script>
 
