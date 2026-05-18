@@ -4,7 +4,7 @@ import type { Profile, UserSkill, UserTool } from '../types/profile'
 
 definePageMeta({
   layout: 'home',
-  middleware: 'auth'
+  middleware: ['auth', 'onboarding-guard']
 })
 
 useHead({

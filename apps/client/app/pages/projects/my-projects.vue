@@ -2,7 +2,7 @@
 import type { Project } from '~/types/project'
 import ProjectOwnerCard from '~/components/project/ProjectOwnerCard.vue'
 
-definePageMeta({ layout: 'home', middleware: 'auth' })
+definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
 const { getMyProjects, getProjectApplicants } = useProjects()
 

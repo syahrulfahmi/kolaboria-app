@@ -13,7 +13,7 @@ import EditTabTimeline from "~/components/project/edit/EditTabTimeline.vue";
 import EditTabStatus from "~/components/project/edit/EditTabStatus.vue";
 import ProjectStatusConfirmModal from "~/components/project/ProjectStatusConfirmModal.vue";
 
-definePageMeta({ layout: "home", middleware: "auth" });
+definePageMeta({ layout: "home", middleware: ["auth", "onboarding-guard"] });
 
 const route = useRoute();
 const router = useRouter();

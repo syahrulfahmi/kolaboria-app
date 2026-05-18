@@ -18,21 +18,33 @@ const props = defineProps<{
 
 const client = useSupabaseClient<any>()
 
-const { data: projects } = await useAsyncData(`projects-${props.profile.id}`, async () => {
+const { data: projects } = await useAsyncData(`portfolio-${props.profile.id}`, async () => {
   const { data, error } = await client
-    .from('projects')
-    .select('id, title, description, slug')
-    .eq('owner_id', props.profile.id)
+    .from('portfolio_projects')
+    .select('project_id, projects(id, title, description, slug, status, type)')
+    .eq('user_id', props.profile.id)
+    .order('pinned_at', { ascending: false })
     
   if (error) {
     console.error('Error fetching projects:', error)
     return []
   }
-  return data || []
+  return data?.map((d: any) => d.projects).filter(Boolean) || []
 })
 
-// Placeholder for career journeys until we have it in the database
-const careerJourneys = []
+const { data: careerJourneys } = await useAsyncData(`career-${props.profile.id}`, async () => {
+  const { data, error } = await client
+    .from('career_histories')
+    .select('*')
+    .eq('user_id', props.profile.id)
+    .order('start_year', { ascending: false })
+    
+  if (error) {
+    console.error('Error fetching career histories:', error)
+    return []
+  }
+  return data || []
+})
 </script>
 
 <template>

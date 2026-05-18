@@ -202,14 +202,14 @@
                   </div>
 
                   <div class="shrink-0 flex items-center">
-                    <span
+                      <span
                       v-if="statusConfig[app.status]"
                       :class="[
                         'inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset uppercase tracking-wide',
-                        statusConfig[app.status].classes
+                        statusConfig[app.status]?.classes
                       ]"
                     >
-                      {{ statusConfig[app.status].label }}
+                      {{ statusConfig[app.status]?.label }}
                     </span>
                   </div>
                 </div>
@@ -479,7 +479,7 @@
 <script setup lang="ts">
 import type { Application } from '~/types/project'
 
-definePageMeta({ layout: 'home', middleware: 'auth' })
+definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 useHead({ title: 'Lamaran Saya — Kolaboria' })
 
 const { getMyApplications, withdrawApplication } = useProjects()

@@ -2,7 +2,7 @@
 import type { Application, Project } from '~/types/project'
 import ApplicantDetailModal from '~/components/project/ApplicantDetailModal.vue'
 
-definePageMeta({ layout: 'home', middleware: 'auth' })
+definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
 const route = useRoute()
 const { getProjectBySlug, getProjectApplicants, reviewApplication } =

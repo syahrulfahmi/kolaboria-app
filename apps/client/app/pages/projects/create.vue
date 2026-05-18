@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CreateProjectPayload } from "~/types/project";
 
-definePageMeta({ layout: "home", middleware: "auth" });
+definePageMeta({ layout: "home", middleware: ["auth", "onboarding-guard"] });
 useHead({ title: "Buat Project — Kolaboria" });
 
 const { createProject, publishProject, getSkillTags } = useProjects();

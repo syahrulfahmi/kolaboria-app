@@ -6,7 +6,7 @@ import type {
   UpdateTaskPayload
 } from '../../../../types/workspace'
 
-definePageMeta({ layout: 'home', middleware: 'auth' })
+definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
 const route = useRoute()
 const router = useRouter()
