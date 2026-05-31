@@ -29,7 +29,7 @@ export const useProjects = () => {
         project_members(profile_id, role)
       `
       )
-      .in('status', status ? [status] : ['open', 'in_progress'])
+      .in('status', status ? [status] : ['open'])
       .eq('visibility', 'public')
       .order('created_at', { ascending: false })
       .limit(limit)

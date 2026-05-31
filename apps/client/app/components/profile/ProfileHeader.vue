@@ -151,13 +151,13 @@ const shareProfile = () => {
               Edit Profil
             </AtomicButton>
           </NuxtLink>
-          <AtomicButton
+          <!-- <AtomicButton
             variant="outline"
             @click="shareProfile"
             class="w-full flex-1"
           >
             Bagikan Profil
-          </AtomicButton>
+          </AtomicButton> -->
         </div>
 
         <!-- Inline Stats -->

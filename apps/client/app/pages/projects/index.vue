@@ -12,7 +12,6 @@ const { getProjects } = useProjects()
 
 const search = ref('')
 const filterType = ref<ProjectType | ''>('')
-const filterStatus = ref('')
 const isLoading = ref(false)
 const isLoadingMore = ref(false)
 const projects = ref<Project[]>([])
@@ -36,7 +35,6 @@ const fetchProjects = async (isLoadMore = false) => {
     const newProjects = await getProjects({
       search: search.value || undefined,
       type: filterType.value || undefined,
-      status: (filterStatus.value as any) || undefined,
       limit: currentLimit
     })
 
@@ -63,11 +61,6 @@ const handleFilterType = (val: ProjectType | '') => {
   fetchProjects(false)
 }
 
-const handleFilterStatus = (val: string) => {
-  filterStatus.value = val
-  fetchProjects(false)
-}
-
 const loadMore = () => {
   fetchProjects(true)
 }
@@ -82,18 +75,8 @@ onMounted(() => {
   fetchProjects(false)
 })
 
-const openProjectsCount = computed(
-  () => projects.value.filter((p) => p.status === 'open').length
-)
-const inProgressProjectsCount = computed(
-  () => projects.value.filter((p) => p.status === 'in_progress').length
-)
-
 const activeFiltersText = computed(() => {
   const parts = []
-  if (filterStatus.value) {
-    parts.push(filterStatus.value === 'open' ? 'Open' : 'In Progress')
-  }
   if (filterType.value) {
     parts.push(
       filterType.value
@@ -150,7 +133,6 @@ const activeFiltersText = computed(() => {
       <ProjectFilterBar
         @search="handleSearch"
         @filter-type="handleFilterType"
-        @filter-status="handleFilterStatus"
       />
     </div>
 
@@ -235,7 +217,6 @@ const activeFiltersText = computed(() => {
           @click="
             () => {
               search = ''
-              filterStatus = ''
               filterType = ''
               handleSearch('')
             }
