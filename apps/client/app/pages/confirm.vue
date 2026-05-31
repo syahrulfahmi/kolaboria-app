@@ -34,12 +34,13 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Memproses Login... - Kolaboria'
+  title: 'Memproses Sesi... - Kolaboria'
 })
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center py-24 text-center">
-    <MoleculeLoading type="section" label="Memproses Login..." />
+    <MoleculeLoading type="section" label="Memproses Sesi Anda..." />
+    <p class="text-sm text-neutral-500 mt-4">Sedang memverifikasi data Anda.</p>
   </div>
 </template>

@@ -249,7 +249,7 @@ const handleLogout = async () => {
               Beranda
             </NuxtLink>
             <NuxtLink
-              to="/my-applications"
+              to="/projects/my-applications"
               class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
               active-class="bg-primary-50 text-primary-700"
               @click="isMobileMenuOpen = false"
@@ -257,7 +257,7 @@ const handleLogout = async () => {
               Lamaranku
             </NuxtLink>
             <NuxtLink
-              to="/my-projects"
+              to="/projects/my-projects"
               class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
               active-class="bg-primary-50 text-primary-700"
               @click="isMobileMenuOpen = false"

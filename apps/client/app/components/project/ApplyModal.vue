@@ -34,14 +34,14 @@ const addPortfolio = () => {
 }
 
 const removePortfolio = (link: string) => {
-  form.portfolio_links = form.portfolio_links.filter(l => l !== link)
+  form.portfolio_links = form.portfolio_links.filter((l) => l !== link)
 }
 
 const isValid = computed(() => form.motivation.trim().length > 10)
 
 const submitApplication = async () => {
   if (!isValid.value) return
-  
+
   isSubmitting.value = true
   submitError.value = ''
   try {
@@ -61,13 +61,15 @@ const submitApplication = async () => {
 
 <template>
   <OrganismModal
-    :show="show"
+    :model-value="show"
     title="Apply ke Project"
     @close="emit('close')"
   >
     <div class="space-y-5">
       <div>
-        <label class="mb-1.5 block text-caption font-semibold text-secondary-900">
+        <label
+          class="mb-1.5 block text-caption font-semibold text-secondary-900"
+        >
           Kenapa kamu tertarik bergabung? <span class="text-danger-500">*</span>
         </label>
         <textarea
@@ -79,7 +81,9 @@ const submitApplication = async () => {
       </div>
 
       <div>
-        <label class="mb-1.5 block text-caption font-semibold text-secondary-900">
+        <label
+          class="mb-1.5 block text-caption font-semibold text-secondary-900"
+        >
           Kontribusi yang bisa diberikan
         </label>
         <textarea
@@ -91,7 +95,9 @@ const submitApplication = async () => {
       </div>
 
       <div>
-        <label class="mb-1.5 block text-caption font-semibold text-secondary-900">
+        <label
+          class="mb-1.5 block text-caption font-semibold text-secondary-900"
+        >
           Link Portfolio / Relevan
         </label>
         <div class="flex gap-2">
@@ -102,22 +108,35 @@ const submitApplication = async () => {
             class="h-11 flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-body outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
             @keydown.enter.prevent="addPortfolio"
           />
-          <AtomicButton type="button" variant="outline" @click="addPortfolio">Tambah</AtomicButton>
+          <AtomicButton type="button" variant="outline" @click="addPortfolio"
+            >Tambah</AtomicButton
+          >
         </div>
-        <div v-if="form.portfolio_links.length > 0" class="mt-3 flex flex-wrap gap-2">
+        <div
+          v-if="form.portfolio_links.length > 0"
+          class="mt-3 flex flex-wrap gap-2"
+        >
           <span
             v-for="link in form.portfolio_links"
             :key="link"
             class="flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-caption font-medium text-neutral-700 max-w-xs truncate"
           >
             <span class="truncate">{{ link }}</span>
-            <button type="button" class="shrink-0 text-neutral-400 hover:text-danger-500 transition-colors" @click="removePortfolio(link)">×</button>
+            <button
+              type="button"
+              class="shrink-0 text-neutral-400 hover:text-danger-500 transition-colors"
+              @click="removePortfolio(link)"
+            >
+              ×
+            </button>
           </span>
         </div>
       </div>
 
       <div>
-        <label class="mb-1.5 block text-caption font-semibold text-secondary-900">
+        <label
+          class="mb-1.5 block text-caption font-semibold text-secondary-900"
+        >
           Ketersediaan Waktu
         </label>
         <select
@@ -140,7 +159,11 @@ const submitApplication = async () => {
     </div>
 
     <template #footer>
-      <AtomicButton variant="outline" @click="emit('close')" :disabled="isSubmitting">
+      <AtomicButton
+        variant="outline"
+        @click="emit('close')"
+        :disabled="isSubmitting"
+      >
         Batal
       </AtomicButton>
       <AtomicButton

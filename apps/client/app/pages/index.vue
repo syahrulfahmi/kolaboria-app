@@ -11,7 +11,7 @@ import LandingPage from '~/components/landing/LandingPage.vue'
 
 definePageMeta({ layout: false })
 
-const isComingSoon = ref(true)
+const isComingSoon = ref(false)
 
 useHead({
   title: 'Kolaboria - Platform Kolaborasi Terbuka'

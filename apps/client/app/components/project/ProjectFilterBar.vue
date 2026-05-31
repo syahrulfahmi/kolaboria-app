@@ -5,19 +5,16 @@ import type { ProjectType } from '../../types/project'
 const emit = defineEmits<{
   search: [value: string]
   filterType: [value: ProjectType | '']
-  filterStatus: [value: string]
 }>()
 
 const search = ref('')
 const selectedType = ref<ProjectType | ''>('')
-const selectedStatus = ref('')
 const isFilterOpen = ref(false)
 
 const filterPanelRef = ref<HTMLElement | null>(null)
 
 watch(search, (val) => emit('search', val))
 watch(selectedType, (val) => emit('filterType', val))
-watch(selectedStatus, (val) => emit('filterStatus', val))
 
 const typeOptions = [
   { value: '', label: 'Semua Tipe' },
@@ -30,32 +27,14 @@ const typeOptions = [
   { value: 'other', label: 'Lainnya' }
 ]
 
-const statusOptions = [
-  { value: '', label: 'Semua Status' },
-  { value: 'open', label: 'Open' },
-  { value: 'in_progress', label: 'In Progress' }
-]
-
 const activeFilterCount = computed(() => {
   let count = 0
   if (selectedType.value) count++
-  if (selectedStatus.value) count++
   return count
 })
 
 const activeFilters = computed(() => {
   const filters = []
-  if (selectedStatus.value) {
-    const statusObj = statusOptions.find(
-      (o) => o.value === selectedStatus.value
-    )
-    if (statusObj)
-      filters.push({
-        type: 'status',
-        label: statusObj.label,
-        value: statusObj.value
-      })
-  }
   if (selectedType.value) {
     const typeObj = typeOptions.find((o) => o.value === selectedType.value)
     if (typeObj)
@@ -64,13 +43,11 @@ const activeFilters = computed(() => {
   return filters
 })
 
-const removeFilter = (type: 'status' | 'type') => {
-  if (type === 'status') selectedStatus.value = ''
+const removeFilter = (type: 'type') => {
   if (type === 'type') selectedType.value = ''
 }
 
 const clearAllFilters = () => {
-  selectedStatus.value = ''
   selectedType.value = ''
 }
 
@@ -148,40 +125,7 @@ onUnmounted(() => {
           v-if="isFilterOpen"
           class="absolute right-0 top-[calc(100%+8px)] z-50 w-full sm:w-[500px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl shadow-neutral-900/5 origin-top-right transform transition-all"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
-            <!-- Divider line (only visible on sm and above) -->
-            <div
-              class="hidden sm:block absolute left-1/2 top-0 bottom-0 w-px bg-neutral-100 -translate-x-1/2"
-            ></div>
-
-            <!-- Status Filter -->
-            <div>
-              <h3
-                class="mb-3 text-caption font-semibold uppercase tracking-wider text-neutral-500"
-              >
-                Status Project
-              </h3>
-              <div class="flex flex-wrap gap-2">
-                <label
-                  v-for="opt in statusOptions"
-                  :key="opt.value"
-                  class="flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2 transition-all hover:bg-neutral-50"
-                  :class="
-                    selectedStatus === opt.value
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-neutral-200 bg-white text-neutral-700'
-                  "
-                >
-                  <input
-                    type="radio"
-                    :value="opt.value"
-                    v-model="selectedStatus"
-                    class="sr-only"
-                  />
-                  <span class="text-caption font-medium">{{ opt.label }}</span>
-                </label>
-              </div>
-            </div>
+          <div class="grid grid-cols-1 gap-6 relative">
 
             <!-- Type Filter -->
             <div>

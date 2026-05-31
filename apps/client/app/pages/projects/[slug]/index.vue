@@ -366,7 +366,7 @@
                     Tanggal Mulai
                   </p>
                   <p class="text-gray-900 font-semibold text-base">
-                    {{ formattedStartDate || "Fleksibel" }}
+                    {{ formattedStartDate || 'Fleksibel' }}
                   </p>
                 </div>
                 <div>
@@ -441,7 +441,7 @@
                       (
                         member.profiles?.full_name ||
                         member.profiles?.username ||
-                        "?"
+                        '?'
                       )
                         .charAt(0)
                         .toUpperCase()
@@ -517,7 +517,7 @@
                     >
                       <p class="text-xs text-white/60 mb-0.5">Deadline</p>
                       <p class="text-sm font-semibold text-white truncate">
-                        {{ formattedDeadline || "Fleksibel" }}
+                        {{ formattedDeadline || 'Fleksibel' }}
                       </p>
                     </div>
                   </div>
@@ -533,8 +533,19 @@
 
                   <template v-else-if="isOwner">
                     <div class="flex flex-col gap-3">
+                      <NuxtLink v-if="project.status === 'in_progress'" :to="`/projects/${project.slug}/workspace`">
+                        <AtomicButton variant="primary" size="lg" block class="font-bold">
+                          <span class="flex items-center gap-2 justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
+                            </svg>
+                            Buka Workspace
+                          </span>
+                        </AtomicButton>
+                      </NuxtLink>
+
                       <NuxtLink :to="`/projects/${project.slug}/applicants`">
-                        <AtomicButton variant="primary" size="lg" block>
+                        <AtomicButton :variant="project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
                           Kelola Pelamar
                         </AtomicButton>
                       </NuxtLink>
@@ -559,20 +570,43 @@
                         {{ applicationMessage.body }}
                       </p>
                     </div>
-                    <NuxtLink to="/projects/my-applications">
-                      <AtomicButton variant="primary" size="lg" block>
-                        Lihat Lamaran Saya
-                      </AtomicButton>
-                    </NuxtLink>
+
+                    <div class="flex flex-col gap-3">
+                      <NuxtLink
+                        v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
+                        :to="`/projects/${project.slug}/workspace`"
+                      >
+                        <AtomicButton variant="primary" size="lg" block class="font-bold">
+                          <span class="flex items-center gap-2 justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
+                            </svg>
+                            Buka Workspace
+                          </span>
+                        </AtomicButton>
+                      </NuxtLink>
+
+                      <NuxtLink to="/projects/my-applications">
+                        <AtomicButton :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
+                          Lihat Lamaran Saya
+                        </AtomicButton>
+                      </NuxtLink>
+                    </div>
                   </template>
 
                   <template v-else-if="canApply">
                     <AtomicButton
                       variant="primary"
-                      @click="showApplyModal = true"
+                      @click="isVerified ? (showApplyModal = true) : null"
+                      class="w-full"
+                      :disabled="!isVerified"
+                      :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu untuk melamar.' : ''"
                     >
                       Apply Project Ini
                     </AtomicButton>
+                    <p v-if="!isVerified" class="text-xs text-center text-red-200 mt-2 font-medium">
+                      Verifikasi email Anda untuk melamar.
+                    </p>
                   </template>
 
                   <template v-else>
@@ -582,8 +616,8 @@
                       <p class="text-sm font-medium text-white text-center">
                         {{
                           openSlots === 0
-                            ? "Slot untuk project ini sudah penuh."
-                            : "Project ini belum membuka lamaran baru."
+                            ? 'Slot untuk project ini sudah penuh.'
+                            : 'Project ini belum membuka lamaran baru.'
                         }}
                       </p>
                     </div>
@@ -684,16 +718,25 @@
             <template v-else-if="isOwner">
               <div class="flex items-center gap-2">
                 <AtomicButton
+                  v-if="project.status === 'in_progress'"
+                  :to="`/projects/${project.slug}/workspace`"
+                  variant="primary"
+                  size="sm"
+                  class="font-bold shrink-0"
+                >
+                  Workspace
+                </AtomicButton>
+                <AtomicButton
                   :to="`/projects/${project.slug}/edit`"
                   variant="outline"
                   size="sm"
-                  class="font-bold shrink-0"
+                  class="font-bold shrink-0 hidden sm:inline-flex"
                 >
                   Edit
                 </AtomicButton>
                 <AtomicButton
                   :to="`/projects/${project.slug}/applicants`"
-                  variant="primary"
+                  :variant="project.status === 'in_progress' ? 'outline' : 'primary'"
                   size="sm"
                   class="font-bold shrink-0"
                 >
@@ -703,22 +746,36 @@
             </template>
 
             <template v-else-if="currentApplication">
-              <AtomicButton
-                to="/projects/my-applications"
-                variant="primary"
-                size="sm"
-                class="font-bold shrink-0"
-              >
-                Lihat Lamaran
-              </AtomicButton>
+              <div class="flex items-center gap-2">
+                <AtomicButton
+                  v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
+                  :to="`/projects/${project.slug}/workspace`"
+                  variant="primary"
+                  size="sm"
+                  class="font-bold shrink-0"
+                >
+                  Workspace
+                </AtomicButton>
+                <NuxtLink to="/projects/my-applications">
+                  <AtomicButton
+                    :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'outline' : 'primary'"
+                    size="sm"
+                    class="font-bold shrink-0"
+                  >
+                    Lihat Lamaran
+                  </AtomicButton>
+                </NuxtLink>
+              </div>
             </template>
 
             <template v-else-if="canApply">
               <AtomicButton
                 variant="primary"
                 size="sm"
-                @click="showApplyModal = true"
-                class="font-bold shrink-0"
+                @click="isVerified ? (showApplyModal = true) : null"
+                class="font-bold shrink-0 w-full"
+                :disabled="!isVerified"
+                :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu.' : ''"
               >
                 Apply Project Ini
               </AtomicButton>
@@ -728,7 +785,7 @@
       </div>
     </div>
 
-    <ApplyModal
+    <ProjectApplyModal
       v-if="project"
       :project-id="project.id"
       :show="showApplyModal"
@@ -739,287 +796,284 @@
 </template>
 
 <script setup lang="ts">
-import type { Application, Project } from "~/types/project";
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { useRoute } from "vue-router";
+import type { Application, Project } from '~/types/project'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 
 definePageMeta({
-  layout: "home",
-});
+  layout: 'home'
+})
 
-const route = useRoute();
-const { getProjectBySlug, getMyApplications } = useProjects();
-const user = useSupabaseUser();
+const route = useRoute()
+const { getProjectBySlug, getMyApplications } = useProjects()
+const { isVerified } = useAuth()
+const user = useSupabaseUser()
 
-const projectSlug = route.params.slug as string;
+const projectSlug = route.params.slug as string
 
 const {
   data: project,
   error,
   pending,
-  refresh: refreshProject,
+  refresh: refreshProject
 } = await useAsyncData<Project | null>(`project-${projectSlug}`, () =>
-  getProjectBySlug(projectSlug),
-);
+  getProjectBySlug(projectSlug)
+)
 
 useHead({
   title: project.value
     ? `${project.value.title} - Kolaboria`
-    : "Project - Kolaboria",
-});
+    : 'Project - Kolaboria'
+})
 
 const { data: myApps, refresh: refreshApps } = await useAsyncData<
   Application[]
 >(`my-apps-${projectSlug}`, () =>
-  user.value ? getMyApplications() : Promise.resolve([]),
-);
+  user.value ? getMyApplications() : Promise.resolve([])
+)
 
 const currentApplication = computed(() =>
-  myApps.value?.find((app) => app.project_id === project.value?.id),
-);
+  myApps.value?.find((app) => app.project_id === project.value?.id)
+)
 
-const hasApplied = computed(() => !!currentApplication.value);
+const hasApplied = computed(() => !!currentApplication.value)
 
 const isOwner = computed(
-  () => !!user.value && user.value.id === project.value?.creator_id,
-);
+  () => !!user.value && user.value.id === project.value?.creator_id
+)
 
 const members = computed(
   () =>
     project.value?.project_members?.filter(
-      (member) => member.role === "contributor",
-    ) ?? [],
-);
+      (member) => member.role === 'contributor'
+    ) ?? []
+)
 
-const filledSlots = computed(() => members.value.length);
+const filledSlots = computed(() => members.value.length)
 
 const openSlots = computed(() => {
-  if (!project.value) return 0;
-  return Math.max(0, project.value.max_slots - filledSlots.value);
-});
+  if (!project.value) return 0
+  return Math.max(0, project.value.max_slots - filledSlots.value)
+})
 
 const canApply = computed(() => {
-  if (!user.value) return false;
-  if (isOwner.value) return false;
-  if (hasApplied.value) return false;
+  if (!user.value) return false
+  if (isOwner.value) return false
+  if (hasApplied.value) return false
   const alreadyMember = members.value.some(
-    (member) => member.profile_id === user.value?.id,
-  );
+    (member) => member.profile_id === user.value?.id
+  )
   return (
-    !alreadyMember && project.value?.status === "open" && openSlots.value > 0
-  );
-});
+    !alreadyMember && project.value?.status === 'open' && openSlots.value > 0
+  )
+})
 
 const isClosedForApplication = computed(
   () =>
     !!project.value &&
-    (project.value.status !== "open" || openSlots.value === 0),
-);
+    (project.value.status !== 'open' || openSlots.value === 0)
+)
 
 const formatDate = (date: string | null | undefined) => {
-  if (!date) return null;
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-};
+  if (!date) return null
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
 
-const formattedDeadline = computed(() => formatDate(project.value?.deadline));
-const formattedStartDate = computed(() =>
-  formatDate(project.value?.start_date),
-);
+const formattedDeadline = computed(() => formatDate(project.value?.deadline))
+const formattedStartDate = computed(() => formatDate(project.value?.start_date))
 
 const typeLabel: Record<string, string> = {
-  web_app: "Web App",
-  mobile_app: "Mobile App",
-  ui_ux: "UI/UX Design",
-  backend: "Backend",
-  data_analytics: "Data & Analytics",
-  devops: "DevOps",
-  other: "Lainnya",
-};
+  web_app: 'Web App',
+  mobile_app: 'Mobile App',
+  ui_ux: 'UI/UX Design',
+  backend: 'Backend',
+  data_analytics: 'Data & Analytics',
+  devops: 'DevOps',
+  other: 'Lainnya'
+}
 
 const coverLabel = computed(() =>
-  project.value ? typeLabel[project.value.type] : "Project",
-);
+  project.value ? typeLabel[project.value.type] : 'Project'
+)
 
 const creatorName = computed(
   () =>
     project.value?.profiles?.full_name ||
     project.value?.profiles?.username ||
-    "Anonim",
-);
+    'Anonim'
+)
 
-const creatorUsername = computed(() => project.value?.profiles?.username);
-const creatorInitial = computed(() =>
-  creatorName.value.charAt(0).toUpperCase(),
-);
+const creatorUsername = computed(() => project.value?.profiles?.username)
+const creatorInitial = computed(() => creatorName.value.charAt(0).toUpperCase())
 
 const requiredSkills = computed(
   () =>
-    project.value?.project_skills?.filter((skill) => skill.is_required) ?? [],
-);
+    project.value?.project_skills?.filter((skill) => skill.is_required) ?? []
+)
 
 const optionalSkills = computed(
   () =>
-    project.value?.project_skills?.filter((skill) => !skill.is_required) ?? [],
-);
+    project.value?.project_skills?.filter((skill) => !skill.is_required) ?? []
+)
 
 const projectDurationLabel = computed(() => {
   if (!project.value?.start_date || !project.value?.deadline) {
-    return "Belum ditentukan";
+    return 'Belum ditentukan'
   }
 
-  const start = new Date(project.value.start_date);
-  const end = new Date(project.value.deadline);
+  const start = new Date(project.value.start_date)
+  const end = new Date(project.value.deadline)
   const diffInMonths =
     (end.getFullYear() - start.getFullYear()) * 12 +
-    (end.getMonth() - start.getMonth());
+    (end.getMonth() - start.getMonth())
 
-  return diffInMonths > 0 ? `${diffInMonths} Bulan` : "< 1 Bulan";
-});
+  return diffInMonths > 0 ? `${diffInMonths} Bulan` : '< 1 Bulan'
+})
 
 const timelineStatusLabel = computed(() =>
-  project.value?.status === "open"
-    ? "Pendaftaran Terbuka"
-    : project.value?.status === "in_progress"
-      ? "Sedang Berjalan"
-      : project.value?.status === "completed"
-        ? "Selesai"
-        : "Belum Membuka Lamaran",
-);
+  project.value?.status === 'open'
+    ? 'Pendaftaran Terbuka'
+    : project.value?.status === 'in_progress'
+      ? 'Sedang Berjalan'
+      : project.value?.status === 'completed'
+        ? 'Selesai'
+        : 'Belum Membuka Lamaran'
+)
 
 const heroStats = computed(() => [
   {
-    label: "Slot Tersedia",
+    label: 'Slot Tersedia',
     value: openSlots.value,
-    iconAttrs: { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
+    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
     pathAttrs: {
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      "stroke-width": "2",
-      d: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197",
-    },
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'stroke-width': '2',
+      d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197'
+    }
   },
   {
-    label: "Kontributor",
+    label: 'Kontributor',
     value: members.value.length,
-    iconAttrs: { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
+    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
     pathAttrs: {
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      "stroke-width": "2",
-      d: "M17 20h5v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z",
-    },
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'stroke-width': '2',
+      d: 'M17 20h5v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z'
+    }
   },
   {
-    label: "Estimasi Waktu",
+    label: 'Estimasi Waktu',
     value: projectDurationLabel.value,
-    iconAttrs: { fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
+    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
     pathAttrs: {
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-      "stroke-width": "2",
-      d: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-    },
-  },
-]);
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'stroke-width': '2',
+      d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+    }
+  }
+])
 
 const contentTags = computed(() => {
-  const techTags = project.value?.tech_stack ?? [];
+  const techTags = project.value?.tech_stack ?? []
   const skillTags =
-    project.value?.project_skills?.map((skill) => skill.skill_tags.name) ?? [];
-  return [...new Set([...techTags, ...skillTags])].slice(0, 12);
-});
+    project.value?.project_skills?.map((skill) => skill.skill_tags.name) ?? []
+  return [...new Set([...techTags, ...skillTags])].slice(0, 12)
+})
 
 const descriptionParagraphs = computed(() => {
-  const description = project.value?.description?.trim();
-  if (!description) return [];
+  const description = project.value?.description?.trim()
+  if (!description) return []
   return description
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-});
+    .filter(Boolean)
+})
 
 const applicationMessage = computed(() => {
   switch (currentApplication.value?.status) {
-    case "pending":
+    case 'pending':
       return {
-        title: "Lamaranmu sedang ditinjau",
-        body: "Pemilik project akan meninjau motivasi dan kontribusimu.",
-      };
-    case "accepted":
+        title: 'Lamaranmu sedang ditinjau',
+        body: 'Pemilik project akan meninjau motivasi dan kontribusimu.'
+      }
+    case 'accepted':
       return {
-        title: "Lamaranmu diterima",
-        body: "Kamu sudah masuk ke alur kolaborasi project ini.",
-      };
-    case "rejected":
+        title: 'Lamaranmu diterima',
+        body: 'Kamu sudah masuk ke alur kolaborasi project ini.'
+      }
+    case 'rejected':
       return {
-        title: "Lamaranmu belum diterima",
-        body: "Kamu tetap bisa mengeksplor project lain yang lebih cocok.",
-      };
-    case "withdrawn":
+        title: 'Lamaranmu belum diterima',
+        body: 'Kamu tetap bisa mengeksplor project lain yang lebih cocok.'
+      }
+    case 'withdrawn':
       return {
-        title: "Lamaran ditarik kembali",
-        body: "Status lamaran ini sudah tidak aktif.",
-      };
+        title: 'Lamaran ditarik kembali',
+        body: 'Status lamaran ini sudah tidak aktif.'
+      }
     default:
-      return null;
+      return null
   }
-});
+})
 
-const showApplyModal = ref(false);
+const showApplyModal = ref(false)
 
 const handleApplied = async () => {
-  await refreshApps();
-  await refreshProject();
-};
+  await refreshApps()
+  await refreshProject()
+}
 
 // Refs for DOM sections
-const heroSection = ref<HTMLElement | null>(null);
+const heroSection = ref<HTMLElement | null>(null)
 
 // Scroll state
-const showStickyBar = ref(false);
-let scrollHandler: () => void;
+const showStickyBar = ref(false)
+let scrollHandler: () => void
 
 // Track mobile breakpoint (< 1024px = lg)
-const isMobile = ref(false);
+const isMobile = ref(false)
 const updateIsMobile = () => {
-  if (typeof window !== "undefined") {
-    isMobile.value = window.innerWidth < 1024;
+  if (typeof window !== 'undefined') {
+    isMobile.value = window.innerWidth < 1024
   }
-};
+}
 
 const setupScrollListener = () => {
-  updateIsMobile();
+  updateIsMobile()
   scrollHandler = () => {
-    const heroBottom = heroSection.value?.getBoundingClientRect().bottom ?? 0;
-    showStickyBar.value = isMobile.value && heroBottom <= 20;
-  };
-  window.addEventListener("scroll", scrollHandler, { passive: true });
+    const heroBottom = heroSection.value?.getBoundingClientRect().bottom ?? 0
+    showStickyBar.value = isMobile.value && heroBottom <= 20
+  }
+  window.addEventListener('scroll', scrollHandler, { passive: true })
   window.addEventListener(
-    "resize",
+    'resize',
     () => {
-      updateIsMobile();
-      const heroBottom = heroSection.value?.getBoundingClientRect().bottom ?? 0;
-      showStickyBar.value = isMobile.value && heroBottom <= 0;
+      updateIsMobile()
+      const heroBottom = heroSection.value?.getBoundingClientRect().bottom ?? 0
+      showStickyBar.value = isMobile.value && heroBottom <= 0
     },
-    { passive: true },
-  );
-};
+    { passive: true }
+  )
+}
 
 onMounted(() => {
-  setupScrollListener();
+  setupScrollListener()
   // Trigger initial check
-  if (scrollHandler) scrollHandler();
-});
+  if (scrollHandler) scrollHandler()
+})
 
 onBeforeUnmount(() => {
-  if (typeof window !== "undefined" && scrollHandler) {
-    window.removeEventListener("scroll", scrollHandler);
+  if (typeof window !== 'undefined' && scrollHandler) {
+    window.removeEventListener('scroll', scrollHandler)
   }
-});
+})
 </script>
 
 <style scoped>

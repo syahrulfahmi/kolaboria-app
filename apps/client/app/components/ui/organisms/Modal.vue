@@ -174,14 +174,15 @@ const emit = defineEmits(['update:modelValue', 'close', 'primary', 'secondary'])
 const sizeClass = computed(() => {
   switch (props.size) {
     case 'sm':
-      return 'sm:max-w-sm'
-    case 'lg':
       return 'sm:max-w-lg'
-    case 'xl':
-      return 'sm:max-w-2xl'
     case 'md':
+      return 'sm:max-w-xl'
+    case 'lg':
+      return 'sm:max-w-3xl'
+    case 'xl':
+      return 'sm:max-w-5xl'
     default:
-      return 'sm:max-w-md'
+      return 'sm:max-w-xl'
   }
 })
 

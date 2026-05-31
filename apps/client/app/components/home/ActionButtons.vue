@@ -122,7 +122,7 @@ defineEmits<{
       <div
         class="flex items-center gap-4 px-6 py-4 opacity-60 grayscale transition-opacity hover:opacity-80 hover:grayscale-0"
       >
-        <div
+        <!-- <div
           class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 ring-1 ring-inset ring-neutral-200/50"
         >
           <svg
@@ -138,8 +138,8 @@ defineEmits<{
               d="M12 4v16m8-8H4"
             />
           </svg>
-        </div>
-        <div class="flex-1">
+        </div> -->
+        <!-- <div class="flex-1">
           <div class="flex items-center gap-2">
             <p class="text-sm font-semibold text-neutral-700">
               Buat Project Baru
@@ -152,7 +152,7 @@ defineEmits<{
           <p class="text-caption text-neutral-500">
             Mulai kolaborasimu sendiri
           </p>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
