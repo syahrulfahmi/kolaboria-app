@@ -33,7 +33,10 @@ export const AuthService = {
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/confirm`
+        redirectTo: `${window.location.origin}/confirm`,
+        queryParams: {
+          prompt: 'consent',
+        },
       }
     })
     if (error) throw error
