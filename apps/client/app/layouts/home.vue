@@ -12,15 +12,10 @@ const mobileMenuButtonRef = ref<HTMLElement | null>(null)
 const userMenuRef = ref<HTMLElement | null>(null)
 const userProfile = ref<any>(null)
 
-const profilePath = computed(() =>
-  userProfile.value?.username ? `/profile/${userProfile.value.username}` : '#'
-)
+const profilePath = '/profile/me'
 
 const displayName = computed(
-  () =>
-    userProfile.value?.full_name ||
-    user.value?.user_metadata?.full_name ||
-    'User'
+  () => userProfile.value?.full_name || user.value?.name || 'User'
 )
 
 onMounted(async () => {
@@ -66,28 +61,28 @@ const handleLogout = async () => {
             <div class="hidden items-center gap-1 md:flex">
               <NuxtLink
                 to="/home"
-                class="rounded-lg px-3 py-2 text-caption font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-700"
+                class="rounded-lg px-3 py-2 font-label-1 text-secondary transition-colors hover:bg-neutral-100 hover:text-primary-700"
                 active-class="bg-primary-50 text-primary-700"
               >
                 Beranda
               </NuxtLink>
               <NuxtLink
                 to="/projects/my-applications"
-                class="rounded-lg px-3 py-2 text-caption font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-700"
+                class="rounded-lg px-3 py-2 font-label-1 text-secondary transition-colors hover:bg-neutral-100 hover:text-primary-700"
                 active-class="bg-primary-50 text-primary-700"
               >
                 Lamaranku
               </NuxtLink>
               <NuxtLink
                 to="/projects/my-projects"
-                class="rounded-lg px-3 py-2 text-caption font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-700"
+                class="rounded-lg px-3 py-2 font-label-1 text-secondary transition-colors hover:bg-neutral-100 hover:text-primary-700"
                 active-class="bg-primary-50 text-primary-700"
               >
                 Project Saya
               </NuxtLink>
               <NuxtLink
                 :to="profilePath"
-                class="rounded-lg px-3 py-2 text-caption font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-primary-700"
+                class="rounded-lg px-3 py-2 font-label-1 text-secondary transition-colors hover:bg-neutral-100 hover:text-primary-700"
                 active-class="bg-primary-50 text-primary-700"
               >
                 Profil
@@ -129,26 +124,19 @@ const handleLogout = async () => {
                 @click="isUserDropdownOpen = !isUserDropdownOpen"
               >
                 <div class="hidden text-right sm:block">
-                  <p
-                    class="text-caption font-semibold leading-none text-secondary-900"
-                  >
+                  <p class="font-body-1 leading-none text-secondary-900">
                     {{ displayName }}
                   </p>
-                  <p class="mt-1 text-caption text-neutral-500">
+                  <p class="mt-1 font-label-2 text-secondary">
                     {{ user?.email }}
                   </p>
                 </div>
-                <div
-                  class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-primary-50 text-title font-bold text-primary-700"
-                >
-                  <img
-                    v-if="userProfile?.avatar"
-                    :src="userProfile.avatar"
-                    alt="User"
-                    class="h-full w-full object-cover"
-                  />
-                  <span v-else>{{ displayName.charAt(0).toUpperCase() }}</span>
-                </div>
+                <AtomicAvatar
+                  :src="userProfile?.avatar"
+                  :name="displayName"
+                  size="sm"
+                  class="h-9! w-9!"
+                />
               </button>
 
               <transition
@@ -165,23 +153,23 @@ const handleLogout = async () => {
                 >
                   <NuxtLink
                     :to="profilePath"
-                    class="block px-4 py-2 text-caption text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-secondary-900"
+                    class="block px-4 py-2 font-body-2 transition-colors hover:bg-neutral-50 hover:text-secondary-900"
                   >
                     Profil Saya
                   </NuxtLink>
                   <a
                     href="#"
-                    class="block px-4 py-2 text-caption text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-secondary-900"
+                    class="block px-4 py-2 font-body-2 transition-colors hover:bg-neutral-50 hover:text-secondary-900"
                   >
                     Pusat Bantuan
                   </a>
-                  <button
-                    type="button"
-                    class="block w-full px-4 py-2 text-left text-caption text-danger-700 transition-colors hover:bg-danger-50"
+                  <AtomicButton
+                    variant="ghost-danger"
                     @click="handleLogout"
+                    class="w-full! justify-start! py-2! px-4!"
                   >
                     Keluar
-                  </button>
+                  </AtomicButton>
                 </div>
               </transition>
             </div>
@@ -279,13 +267,14 @@ const handleLogout = async () => {
             >
               Pusat Bantuan
             </a>
-            <button
-              type="button"
-              class="block w-full rounded-lg px-3 py-2 text-left text-body font-medium text-danger-700 hover:bg-danger-50"
+            <AtomicButton
+              variant="ghost-danger"
+              block
+              class="!px-3 !py-2 !justify-start !font-body-2"
               @click="handleLogout"
             >
               Keluar
-            </button>
+            </AtomicButton>
           </div>
         </div>
       </transition>

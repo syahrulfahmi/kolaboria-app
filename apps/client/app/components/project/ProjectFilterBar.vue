@@ -90,7 +90,7 @@ onUnmounted(() => {
       <div class="relative" ref="filterPanelRef">
         <button
           type="button"
-          class="h-12 flex items-center justify-center gap-2 rounded-xl border px-5 text-body font-medium transition-all w-full sm:w-auto"
+          class="h-12 flex items-center justify-center gap-2 rounded-xl border px-5 font-label-1 transition-all w-full sm:w-auto"
           :class="
             isFilterOpen || activeFilterCount > 0
               ? 'border-primary-400 bg-primary-50 text-primary-700'
@@ -99,7 +99,7 @@ onUnmounted(() => {
           @click.stop="toggleFilterPanel"
         >
           <svg
-            class="h-5 w-5"
+            class="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -126,14 +126,9 @@ onUnmounted(() => {
           class="absolute right-0 top-[calc(100%+8px)] z-50 w-full sm:w-[500px] rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl shadow-neutral-900/5 origin-top-right transform transition-all"
         >
           <div class="grid grid-cols-1 gap-6 relative">
-
             <!-- Type Filter -->
             <div>
-              <h3
-                class="mb-3 text-caption font-semibold uppercase tracking-wider text-neutral-500"
-              >
-                Tipe Project
-              </h3>
+              <h3 class="mb-3 font-body-2">Tipe Project</h3>
               <div class="flex flex-wrap gap-2">
                 <label
                   v-for="opt in typeOptions"
@@ -151,7 +146,7 @@ onUnmounted(() => {
                     v-model="selectedType"
                     class="sr-only"
                   />
-                  <span class="text-caption font-medium">{{ opt.label }}</span>
+                  <span class="font-body-2">{{ opt.label }}</span>
                 </label>
               </div>
             </div>
@@ -165,7 +160,7 @@ onUnmounted(() => {
       v-if="activeFilters.length > 0"
       class="flex flex-wrap items-center gap-2"
     >
-      <span class="text-caption text-neutral-500">Filter Aktif:</span>
+      <span class="font-body-2">Filter Aktif:</span>
       <AtomicTag
         v-for="filter in activeFilters"
         :key="filter.type"

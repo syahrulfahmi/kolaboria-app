@@ -9,6 +9,20 @@ export interface SubmitOnboardingRequest {
 }
 
 // --- Response / Model ---
+export interface Address {
+  id: string
+  provinceId: number
+  province: string
+  regencyId: number
+  regency: string
+  districtId: number
+  district: string
+  villageId: number
+  village: string
+  address: string
+  postalCode: string
+}
+
 export interface Profile {
   id: string
   username: string
@@ -28,6 +42,7 @@ export interface Profile {
   last_active_at: string
   created_at: string
   updated_at: string
+  address?: Address | null
 }
 
 export interface TalentProfile {

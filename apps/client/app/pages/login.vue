@@ -1,20 +1,18 @@
 <template>
   <div>
-    <p class="text-title text-primary-500 mb-2 uppercase tracking-wide">
-      Akses Platform
-    </p>
-    <h2 class="text-heading font-black text-secondary-500 mb-2 tracking-tight">
-      Selamat Datang Kembali
-    </h2>
-    <p class="text-body text-secondary-300 mb-8">
+    <h2 class="font-title-2 mb-2 tracking-tight">Selamat Datang Kembali</h2>
+    <p class="font-body-1 text-secondary mb-8">
       Masuk ke ekosistem kolaboratif Anda untuk melanjutkan.
     </p>
 
     <AuthLoginForm />
 
-    <div class="mt-6 text-center text-body text-gray-600">
+    <div class="mt-6 text-center font-body-1">
       Belum punya akun?
-      <NuxtLink to="/register" class="text-primary-600 hover:text-primary-700">
+      <NuxtLink
+        to="/register"
+        class="font-body-1 text-primary-600 hover:text-primary-700"
+      >
         Daftar sekarang
       </NuxtLink>
     </div>
@@ -25,7 +23,7 @@
         <div class="w-full border-t border-secondary-100"></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="px-4 font-label-sm bg-white text-secondary-300"
+        <span class="px-4 font-label-2 bg-white text-secondary"
           >Atau masuk pakai</span
         >
       </div>

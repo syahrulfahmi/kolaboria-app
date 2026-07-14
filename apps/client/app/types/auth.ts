@@ -9,3 +9,15 @@ export interface RegisterRequest {
   password: string
   fullName: string
 }
+
+// --- Response ---
+export interface User {
+  id: string
+  name: string
+  email: string
+  username: string
+  emailVerifiedAt: string | null
+  isActive: boolean
+  createdAt: string
+}
+

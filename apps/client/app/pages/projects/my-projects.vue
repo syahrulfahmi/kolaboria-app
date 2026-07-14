@@ -79,12 +79,8 @@ const filteredProjects = computed(() => {
           class="flex flex-col md:flex-row md:items-end justify-between gap-6"
         >
           <div class="flex flex-col gap-1">
-            <h1
-              class="text-display font-black text-secondary-900 tracking-tight"
-            >
-              Project Saya
-            </h1>
-            <p class="text-lg text-neutral-500">
+            <h1 class="font-title-1 tracking-tight">Project Saya</h1>
+            <p class="font-body-1 text-secondary">
               Kelola project dan pantau kandidat yang melamar
             </p>
           </div>
@@ -96,7 +92,7 @@ const filteredProjects = computed(() => {
               <span
                 class="w-2.5 h-2.5 rounded-full bg-primary-500 animate-pulse"
               ></span>
-              <span class="font-bold text-primary-700 text-sm tracking-wide"
+              <span class="font-label-1 text-primary-600 tracking-wide"
                 >{{ stats.total }} Project</span
               >
             </div>
@@ -138,15 +134,9 @@ const filteredProjects = computed(() => {
           <div
             class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
           >
-            <h3
-              class="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 relative z-10"
-            >
-              Draft
-            </h3>
+            <h3 class="font-label-1 mb-2 relative z-10">Draft</h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-neutral-700 leading-none">{{
-                stats.draft
-              }}</span>
+              <span class="font-title-1 leading-none">{{ stats.draft }}</span>
             </div>
           </div>
 
@@ -157,13 +147,11 @@ const filteredProjects = computed(() => {
             <div
               class="absolute right-0 top-0 w-24 h-24 bg-success-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
             ></div>
-            <h3
-              class="text-xs font-bold text-success-600/70 uppercase tracking-wider mb-2 relative z-10"
-            >
+            <h3 class="font-label-1 text-success-600/70 mb-2 relative z-10">
               Aktif
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-success-700 leading-none">{{
+              <span class="font-title-1 text-success-700 leading-none">{{
                 stats.active
               }}</span>
             </div>
@@ -176,15 +164,13 @@ const filteredProjects = computed(() => {
             <div
               class="absolute right-0 top-0 w-24 h-24 bg-primary-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
             ></div>
-            <h3
-              class="text-xs font-bold text-primary-600/70 uppercase tracking-wider mb-2 relative z-10"
-            >
+            <h3 class="font-label-1 text-primary-600/70 mb-2 relative z-10">
               Selesai
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-primary-700 leading-none">{{
-                stats.completed
-              }}</span>
+              <span class="font-title-1 text-primary-700 leading-none">
+                {{ stats.completed }}
+              </span>
             </div>
           </div>
 
@@ -192,15 +178,13 @@ const filteredProjects = computed(() => {
           <div
             class="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col justify-center relative overflow-hidden group hover:border-neutral-300 transition-colors"
           >
-            <h3
-              class="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 relative z-10"
-            >
+            <h3 class="font-label-1 text-secondary mb-2 relative z-10">
               Diarsipkan
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-neutral-500 leading-none">{{
-                stats.archived
-              }}</span>
+              <span class="font-title-1 text-secondary leading-none">
+                {{ stats.archived }}
+              </span>
             </div>
           </div>
         </div>
@@ -214,10 +198,10 @@ const filteredProjects = computed(() => {
             :key="filter.value"
             @click="selectedFilter = filter.value"
             :class="[
-              'px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border',
+              'px-5 py-2 rounded-full font-label-2 whitespace-nowrap transition-all border',
               selectedFilter === filter.value
                 ? 'bg-secondary-900 text-white border-secondary-900 shadow-md'
-                : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+                : 'bg-white border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
             ]"
           >
             {{ filter.label }}

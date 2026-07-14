@@ -16,22 +16,16 @@ useHead({
 })
 
 const route = useRoute()
-const client = useSupabaseClient()
-
-const status = ref<'loading' | 'ready' | 'error'>('loading')
-const errorMessage = ref('')
-
 const router = useRouter()
 const { add: addToast } = useToast()
 
-onMounted(() => {
-  // Hanya validasi struktur URL, JANGAN panggil verifyOtp di sini.
-  // Jika verifyOtp dipanggil saat page load, token akan langsung "hangus".
-  // Pemanggilan verifyOtp akan dilakukan saat user men-submit form password baru.
-  const tokenHash = route.query.token_hash as string | undefined
-  const type = route.query.type as string | undefined
+const status = ref<'ready' | 'error'>('ready')
 
-  if (!tokenHash || type !== 'recovery') {
+onMounted(() => {
+  const token = route.query.token as string | undefined
+
+  if (!token) {
+    status.value = 'error'
     addToast({
       variant: 'danger',
       title: 'Link Tidak Valid',
@@ -40,9 +34,6 @@ onMounted(() => {
     })
     return router.replace('/login')
   }
-
-  // Token ada, langsung tampilkan form
-  status.value = 'ready'
 })
 </script>
 
@@ -59,16 +50,8 @@ onMounted(() => {
       Masukkan password baru yang kuat untuk mengamankan akun Kolaboria kamu.
     </p>
 
-    <!-- State: Loading -->
-    <div
-      v-if="status === 'loading'"
-      class="flex flex-col items-center justify-center py-8"
-    >
-      <MoleculeLoading type="section" label="Memverifikasi link reset..." />
-    </div>
-
     <!-- State: Ready (Show Form) -->
-    <div v-else-if="status === 'ready'">
+    <div v-if="status === 'ready'">
       <AuthResetPasswordForm />
     </div>
 
@@ -77,7 +60,7 @@ onMounted(() => {
       <MoleculeTicker
         variant="danger"
         title="Link Tidak Valid"
-        :message="errorMessage"
+        message="Link reset password tidak valid atau sudah kedaluwarsa."
         class="mb-6"
         :closable="false"
       />

@@ -44,20 +44,13 @@
       <div class="relative z-20 mt-12 flex-1 flex flex-col justify-center">
         <!-- Main Content with humanistic text rhythm -->
         <div class="mb-14 relative pl-6 border-l-2 border-white/20">
-          <p
-            class="font-label-sm text-white/80 mb-4 tracking-[0.2em] uppercase text-xs font-semibold"
-          >
-            Komunitas Terbuka
-          </p>
           <h2
             class="text-4xl lg:text-[2.75rem] font-black text-white mb-6 leading-[1.15] tracking-tight drop-shadow-sm"
           >
             Selamat Datang di <br />
             Masa Depan <span class="text-white/90">Kolaborasi</span>
           </h2>
-          <p
-            class="font-paragraph-lg text-white/80 max-w-lg leading-[1.7] text-[1.1rem]"
-          >
+          <p class="font-title-2 text-white max-w-lg leading-[1.7]">
             Gabung bersama ribuan talenta dan mentor ahli untuk membangun
             inovasi digital yang berdampak nyata tanpa hambatan hierarki.
           </p>
@@ -79,7 +72,7 @@
                 ></path>
               </svg>
             </div>
-            <span class="text-white/95 font-medium tracking-wide"
+            <span class="text-white/95 font-title-3 tracking-wide"
               >Ubah ide jadi proyek nyata</span
             >
           </div>
@@ -97,7 +90,7 @@
                 ></path>
               </svg>
             </div>
-            <span class="text-white/95 font-medium tracking-wide"
+            <span class="text-white/95 font-title-3 tracking-wide"
               >Dapatkan mentor & tim solid</span
             >
           </div>
@@ -115,7 +108,7 @@
                 ></path>
               </svg>
             </div>
-            <span class="text-white/95 font-medium tracking-wide"
+            <span class="text-white/95 font-title-3 tracking-wide"
               >Bangun reputasi profesional</span
             >
           </div>
@@ -125,7 +118,7 @@
       <div
         class="relative z-20 mt-12 flex items-center gap-4 border-t border-white/15 pt-8"
       >
-        <p class="text-white/70 text-sm font-medium tracking-wide">
+        <p class="text-white font-title-3 tracking-wide">
           Dipercaya oleh
           <span class="text-white font-bold">10.000+</span> kolaborator aktif.
         </p>

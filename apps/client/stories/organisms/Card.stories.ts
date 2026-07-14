@@ -125,7 +125,7 @@ export const CompleteLayout: Story = {
           <template #footer>
             <div class="flex justify-between items-center">
               <span class="text-xs text-neutral-400">Dibuat 2 jam lalu</span>
-              <button class="px-4 py-2 text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors">Lamar Sekarang</button>
+              <button class="px-4 py-2 text-sm text-body text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors">Lamar Sekarang</button>
             </div>
           </template>
         </OrganismCard>

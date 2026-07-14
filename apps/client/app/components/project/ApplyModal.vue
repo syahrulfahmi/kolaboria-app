@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, reactive, computed } from 'vue'
 import type { ApplicantAvailability } from '../../types/project'
 
 const props = defineProps<{
@@ -15,6 +16,7 @@ const { applyToProject } = useProjects()
 
 const isSubmitting = ref(false)
 const submitError = ref('')
+const showErrors = ref(false)
 
 const form = reactive({
   motivation: '',
@@ -37,10 +39,20 @@ const removePortfolio = (link: string) => {
   form.portfolio_links = form.portfolio_links.filter((l) => l !== link)
 }
 
-const isValid = computed(() => form.motivation.trim().length > 10)
+const motivationError = computed(() => {
+  if (!form.motivation.trim()) return 'Motivasi wajib diisi.'
+  if (form.motivation.trim().length < 10)
+    return 'Motivasi harus minimal 10 karakter.'
+  return ''
+})
+
+const isValid = computed(() => !motivationError.value)
 
 const submitApplication = async () => {
-  if (!isValid.value) return
+  if (!isValid.value) {
+    showErrors.value = true
+    return
+  }
 
   isSubmitting.value = true
   submitError.value = ''
@@ -67,45 +79,50 @@ const submitApplication = async () => {
   >
     <div class="space-y-5">
       <div>
-        <label
-          class="mb-1.5 block text-caption font-semibold text-secondary-900"
-        >
+        <label class="mb-1.5 block text-caption text-body text-secondary-900">
           Kenapa kamu tertarik bergabung? <span class="text-danger-500">*</span>
         </label>
         <textarea
           v-model="form.motivation"
           rows="4"
           placeholder="Ceritakan ketertarikanmu pada project ini (min. 10 karakter)."
-          class="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-body outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 resize-none"
+          class="w-full rounded-lg border bg-white px-4 py-3 text-body text-neutral-900 outline-none transition duration-150 resize-none focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500"
+          :class="
+            showErrors && motivationError
+              ? 'border-red-300 focus:border-red-500'
+              : 'border-neutral-300 focus:border-primary-500'
+          "
         />
+        <p
+          v-if="showErrors && motivationError"
+          class="mt-1.5 text-xs text-red-500 font-medium"
+        >
+          {{ motivationError }}
+        </p>
       </div>
 
       <div>
-        <label
-          class="mb-1.5 block text-caption font-semibold text-secondary-900"
-        >
+        <label class="mb-1.5 block text-caption text-body text-secondary-900">
           Kontribusi yang bisa diberikan
         </label>
         <textarea
           v-model="form.expected_contribution"
           rows="3"
           placeholder="Apa yang akan kamu lakukan di project ini?"
-          class="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-body outline-none transition focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 resize-none"
+          class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-body text-neutral-900 outline-none transition duration-150 resize-none focus:outline-none focus:border-primary-500 disabled:bg-neutral-100 disabled:text-neutral-500"
         />
       </div>
 
       <div>
-        <label
-          class="mb-1.5 block text-caption font-semibold text-secondary-900"
-        >
+        <label class="mb-1.5 block text-caption text-body text-secondary-900">
           Link Portfolio / Relevan
         </label>
-        <div class="flex gap-2">
-          <input
+        <div class="flex gap-2 items-center">
+          <MoleculeInputField
             v-model="portfolioInput"
             type="url"
             placeholder="https://..."
-            class="h-11 flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 text-body outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+            class="flex-1"
             @keydown.enter.prevent="addPortfolio"
           />
           <AtomicButton type="button" variant="outline" @click="addPortfolio"
@@ -134,14 +151,12 @@ const submitApplication = async () => {
       </div>
 
       <div>
-        <label
-          class="mb-1.5 block text-caption font-semibold text-secondary-900"
-        >
+        <label class="mb-1.5 block text-caption text-body text-secondary-900">
           Ketersediaan Waktu
         </label>
         <select
           v-model="form.availability"
-          class="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-body outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+          class="h-[42px] w-full rounded-lg border border-neutral-300 bg-white px-3 text-body text-neutral-900 outline-none transition duration-150 focus:border-primary-500 disabled:bg-neutral-100 disabled:text-neutral-500"
         >
           <option value="flexible">Fleksibel</option>
           <option value="full_time">Full Time</option>
@@ -168,11 +183,17 @@ const submitApplication = async () => {
       </AtomicButton>
       <AtomicButton
         variant="primary"
-        :disabled="!isValid || isSubmitting"
+        :disabled="isSubmitting"
         @click="submitApplication"
       >
         {{ isSubmitting ? 'Mengirim...' : 'Kirim Lamaran' }}
       </AtomicButton>
     </template>
   </OrganismModal>
+
+  <MoleculeLoading
+    v-if="isSubmitting"
+    type="fullscreen"
+    label="Mengirim Lamaran..."
+  />
 </template>

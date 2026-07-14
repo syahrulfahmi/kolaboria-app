@@ -44,7 +44,7 @@ const stats = computed(() => [
       class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
     >
       <div>
-        <p class="text-caption font-semibold uppercase text-neutral-500">
+        <p class="text-caption text-body uppercase text-neutral-500">
           Workspace Overview
         </p>
         <h2 class="mt-2 text-heading text-secondary-900">
@@ -64,7 +64,7 @@ const stats = computed(() => [
         class="rounded-lg border p-4"
         :class="stat.class"
       >
-        <p class="text-caption font-semibold uppercase">{{ stat.label }}</p>
+        <p class="text-caption text-body uppercase">{{ stat.label }}</p>
         <p class="mt-2 text-heading">{{ stat.value }}</p>
       </div>
     </div>

@@ -1,16 +1,47 @@
+import { computed } from 'vue'
+import { jwtDecode } from 'jwt-decode'
 import { AuthService } from '../services/auth.service'
-import type { LoginRequest, RegisterRequest } from '../types/auth'
+import type { User } from '../types/auth'
 
 export const useAuth = () => {
-  const user = useSupabaseUser()
-  const client = useSupabaseClient()
+  const accessToken = useCookie('auth_token')
+  const refreshToken = useCookie('auth_refresh_token')
+  const user = useState<User | null>('user', () => null)
+
+  const isAuthenticated = computed(() => !!accessToken.value)
+  const isVerified = computed(() => !!user.value?.emailVerifiedAt)
 
   const login = async (email: string, password: string) => {
-    await AuthService.login(client, { email, password })
+    const res = await AuthService.login({ email, password })
+    if (res.data) {
+      accessToken.value = res.data.accessToken
+      refreshToken.value = res.data.refreshToken
+      user.value = res.data.user
+    }
   }
 
   const logout = async () => {
-    await AuthService.logout(client)
+    try {
+      if (refreshToken.value) {
+        await AuthService.logout(refreshToken.value)
+      }
+    } catch (err) {
+      console.warn('Backend logout failed', err)
+    } finally {
+      accessToken.value = null
+      refreshToken.value = null
+      user.value = null
+
+      const currentProfile = useState('current_profile')
+      const currentTalentProfile = useState('current_talent_profile')
+      const isOnboardedState = useState('is_onboarded')
+
+      currentProfile.value = null
+      currentTalentProfile.value = null
+      isOnboardedState.value = null
+
+      navigateTo('/login')
+    }
   }
 
   const register = async (
@@ -18,29 +49,70 @@ export const useAuth = () => {
     password: string,
     fullName: string
   ) => {
-    return await AuthService.register(client, { email, password, fullName })
+    return await AuthService.register({ email, password, fullName })
   }
 
-
-  const loginWithGoogle = async () => {
-    await AuthService.loginWithGoogle(client)
+  const loginWithGoogle = () => {
+    AuthService.loginWithGoogle()
   }
 
-  const resendVerification = async () => {
-    if (!user.value?.email) throw new Error('Email tidak ditemukan')
-    await AuthService.resendVerification(client, user.value.email)
+  const loginWithGoogleCallback = async (code: string) => {
+    const res = await AuthService.loginWithGoogleCallback(code)
+    if (res.data) {
+      accessToken.value = res.data.accessToken
+      refreshToken.value = res.data.refreshToken
+      user.value = res.data.user
+    }
+  }
+
+  const resendVerification = async (email?: string) => {
+    const targetEmail = email || user.value?.email
+    if (!targetEmail) throw new Error('Email tidak ditemukan')
+    await AuthService.resendVerification(targetEmail)
   }
 
   const forgotPassword = async (email: string) => {
-    await AuthService.forgotPassword(client, email)
+    await AuthService.forgotPassword(email)
   }
 
-  const resetPassword = async (newPassword: string) => {
-    await AuthService.resetPassword(client, newPassword)
+  const resetPassword = async (token: string, newPassword: string) => {
+    await AuthService.resetPassword({ token, newPassword })
   }
 
-  const isAuthenticated = computed(() => !!user.value)
-  const isVerified = computed(() => !!user.value?.email_confirmed_at)
+  const fetchCurrentUser = async () => {
+    if (!accessToken.value) return null
+    try {
+      const res = await AuthService.getMe()
+      if (res.data) {
+        user.value = res.data
+      }
+      return user.value
+    } catch (err) {
+      accessToken.value = null
+      refreshToken.value = null
+      user.value = null
+      return null
+    }
+  }
+
+  interface DecodedToken {
+    user_id?: string
+    username?: string
+    exp?: number
+  }
+
+  const getDecodedToken = (): DecodedToken | null => {
+    if (!accessToken.value) return null
+    try {
+      return jwtDecode<DecodedToken>(accessToken.value)
+    } catch (e) {
+      console.error('Failed to parse JWT token:', e)
+      return null
+    }
+  }
+
+  const currentUserId = computed(() => getDecodedToken()?.user_id || null)
+  const currentUsername = computed(() => getDecodedToken()?.username || null)
 
   return {
     user,
@@ -50,8 +122,12 @@ export const useAuth = () => {
     logout,
     register,
     loginWithGoogle,
+    loginWithGoogleCallback,
     resendVerification,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    fetchCurrentUser,
+    currentUserId,
+    currentUsername
   }
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { getApiErrorMessage } from '../../utils/error'
 
 const resetSchema = z
   .object({
@@ -24,7 +25,6 @@ const isLoading = ref(false)
 const isSuccess = ref(false)
 
 const route = useRoute()
-const client = useSupabaseClient()
 
 const handleResetPassword = async () => {
   fieldErrors.value = {}
@@ -44,22 +44,16 @@ const handleResetPassword = async () => {
     return
   }
 
-  const tokenHash = route.query.token_hash as string
+  const token = (route.query.token || route.query.token_hash) as string
+  if (!token) {
+    authError.value = 'Token reset tidak ditemukan. Silakan minta link reset baru.'
+    return
+  }
 
   isLoading.value = true
   try {
-    // 1. Verifikasi token terlebih dahulu (ini akan meng-consume token dan memberikan sesi login)
-    const { error: verifyError } = await client.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: 'recovery'
-    })
-    
-    if (verifyError) {
-      throw new Error('Token tidak valid atau sudah kedaluwarsa. Silakan minta link reset baru.')
-    }
-
-    // 2. Jika token valid dan sesi didapat, perbarui password user
-    await resetPassword(result.data.password)
+    // Panggil resetPassword dengan token dan password baru ke Go backend
+    await resetPassword(token, result.data.password)
     
     isSuccess.value = true
     addToast({
@@ -69,8 +63,8 @@ const handleResetPassword = async () => {
       duration: 6000
     })
     setTimeout(() => router.push('/login'), 2000)
-  } catch (err: any) {
-    authError.value = err?.message || 'Gagal mengubah password. Link mungkin sudah kedaluwarsa.'
+  } catch (err: unknown) {
+    authError.value = getApiErrorMessage(err, 'Gagal mengubah password. Link mungkin sudah kedaluwarsa.')
   } finally {
     isLoading.value = false
   }

@@ -28,6 +28,6 @@ defineEmits<{
           'border-tertiary-500 focus:border-tertiary-500 focus:ring-tertiary-500'
       ]"
     />
-    <span v-if="error" class="text-caption text-tertiary-500">{{ error }}</span>
+    <span v-if="error" class="text-body-3 text-tertiary-500">{{ error }}</span>
   </div>
 </template>

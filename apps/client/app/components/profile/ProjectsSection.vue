@@ -7,11 +7,9 @@ defineProps<{
 </script>
 
 <template>
-  <section
-    class="bg-white rounded-2xl p-6 md:p-8 border border-neutral-200 shadow-sm transition-shadow hover:shadow-md"
-  >
+  <section class="bg-white rounded-2xl p-6 md:p-8 border border-neutral-200">
     <div class="flex items-center justify-between mb-6">
-      <h3 class="text-heading text-secondary-900 flex items-center gap-2">
+      <h3 class="font-label-1 flex items-center gap-2">
         <svg
           class="w-6 h-6 text-primary-600"
           fill="none"
@@ -27,11 +25,11 @@ defineProps<{
         </svg>
         Karya Unggulan
       </h3>
-      <a
-        v-if="projects && projects.length > 0"
-        href="#"
-        class="text-caption font-semibold text-neutral-500 hover:text-primary-600 transition-colors"
-        >Lihat Semua</a
+      <NuxtLink
+        v-if="projects && projects.length > 0 && isOwner"
+        to="/portfolio/me"
+        class="font-label-2 text-primary-600 hover:text-primary-800 transition-colors"
+        >Lihat Semua</NuxtLink
       >
     </div>
 
@@ -41,7 +39,7 @@ defineProps<{
         v-for="project in projects"
         :key="project.id"
         :to="project.slug ? `/projects/${project.slug}` : '#'"
-        class="p-5 rounded-xl bg-white border border-neutral-200 hover:border-primary-300 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col"
+        class="p-5 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100/70 hover:border-neutral-200 transition-all duration-300 cursor-pointer group flex flex-col"
       >
         <div class="flex items-start justify-between mb-4">
           <div
@@ -52,34 +50,13 @@ defineProps<{
         </div>
 
         <h4
-          class="text-title text-secondary-900 mb-2 group-hover:text-primary-600 transition-colors"
+          class="font-body-1 mb-2 group-hover:text-primary-600 transition-colors"
         >
           {{ project.title }}
         </h4>
-        <p
-          class="text-neutral-600 text-caption leading-relaxed mb-6 flex-1 line-clamp-3"
-        >
+        <p class="font-paragraph-2 text-secondary mb-6 flex-1 line-clamp-3">
           {{ project.description || 'Tidak ada deskripsi.' }}
         </p>
-
-        <div
-          class="flex items-center text-caption font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors mt-auto"
-        >
-          Eksplor Proyek
-          <svg
-            class="w-4 h-4 ml-1 transform group-hover:translate-x-1.5 transition-transform duration-300"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 8l4 4m0 0l-4 4m4-4H3"
-            />
-          </svg>
-        </div>
       </NuxtLink>
 
       <!-- Empty State -->
@@ -104,15 +81,15 @@ defineProps<{
             />
           </svg>
         </div>
-        <h4 class="text-title text-secondary-900">Belum Ada Karya Unggulan</h4>
-        <p class="text-caption text-neutral-500 mt-1 max-w-sm">
+        <h4 class="font-body-1">Belum Ada Karya Unggulan</h4>
+        <p class="font-paragraph-2 text-secondary mt-1 max-w-sm">
           {{
             isOwner
               ? 'Kamu belum memilih karya unggulan apapun untuk ditampilkan di profil.'
               : 'User ini belum menambahkan karya unggulan.'
           }}
         </p>
-        <NuxtLink :to="`/profile/${username}/edit#portfolio`" v-if="isOwner">
+        <NuxtLink to="/profile/me/edit/portfolio" v-if="isOwner">
           <AtomicButton variant="ghost-primary" class="mt-4">
             Jelajahi Project Selesai
           </AtomicButton>

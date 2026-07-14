@@ -7,7 +7,7 @@ definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 const route = useRoute()
 const { getProjectBySlug, getProjectApplicants, reviewApplication } =
   useProjects()
-const user = useSupabaseUser()
+const { user, currentUserId } = useAuth()
 
 const projectSlug = route.params.slug as string
 
@@ -31,7 +31,7 @@ const {
   { watch: [projectId] }
 )
 
-if (project.value && user.value?.id !== project.value.creator_id) {
+if (project.value && currentUserId.value !== project.value.creator_id) {
   throw createError({
     statusCode: 403,
     message: 'Akses ditolak. Anda bukan pemilik project ini.'
@@ -92,6 +92,8 @@ const filteredApplications = computed(() => {
   return result
 })
 
+const isSubmitting = ref(false)
+
 const openModal = (applicant: Application) => {
   selectedApplicant.value = applicant
   isModalOpen.value = true
@@ -102,10 +104,17 @@ const handleReviewed = async (
   note: string
 ) => {
   if (!selectedApplicant.value) return
-  await reviewApplication(selectedApplicant.value.id, status, note)
-  isModalOpen.value = false
-  selectedApplicant.value = null
-  await refreshApplicants()
+  isSubmitting.value = true
+  try {
+    await reviewApplication(selectedApplicant.value.id, status, note)
+    isModalOpen.value = false
+    selectedApplicant.value = null
+    await refreshApplicants()
+  } catch (err) {
+    // Error is handled in useProjects toast
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const statusConfig: Record<string, { label: string; classes: string }> = {
@@ -179,11 +188,11 @@ const availabilityLabels: Record<string, string> = {
               <p
                 class="text-lg text-neutral-500 truncate flex items-center gap-2"
               >
-                <span class="font-semibold text-secondary-700">{{
+                <span class="text-body text-secondary-700">{{
                   project?.title
                 }}</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-neutral-300"></span>
-                <span class="text-sm uppercase tracking-wider font-semibold">{{
+                <span class="text-sm uppercase tracking-wider text-body">{{
                   project?.type?.replace('_', ' ') || 'Project'
                 }}</span>
               </p>
@@ -227,9 +236,7 @@ const availabilityLabels: Record<string, string> = {
             <span class="text-4xl font-black text-accent-700 leading-none">{{
               stats.pending
             }}</span>
-            <span class="text-sm font-semibold text-accent-600 mb-1"
-              >Kandidat</span
-            >
+            <span class="text-sm text-body text-accent-600 mb-1">Kandidat</span>
           </div>
         </div>
 
@@ -249,7 +256,7 @@ const availabilityLabels: Record<string, string> = {
             <span class="text-4xl font-black text-success-700 leading-none">{{
               stats.accepted
             }}</span>
-            <span class="text-sm font-semibold text-success-600 mb-1"
+            <span class="text-sm text-body text-success-600 mb-1"
               >Berhasil</span
             >
           </div>
@@ -271,7 +278,7 @@ const availabilityLabels: Record<string, string> = {
             <span class="text-4xl font-black text-neutral-500 leading-none">{{
               stats.rejected
             }}</span>
-            <span class="text-sm font-semibold text-neutral-400 mb-1"
+            <span class="text-sm text-body text-neutral-400 mb-1"
               >Kandidat</span
             >
           </div>
@@ -340,7 +347,7 @@ const availabilityLabels: Record<string, string> = {
         >
           <div class="flex items-start gap-4 mb-4">
             <div
-              class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-title font-semibold text-primary-700 shrink-0"
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-title text-body text-primary-700 shrink-0"
             >
               {{
                 (app.profiles?.full_name || app.profiles?.username || '?')
@@ -374,7 +381,7 @@ const availabilityLabels: Record<string, string> = {
           >
             <div>
               <p
-                class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1"
+                class="text-[10px] text-body text-neutral-400 uppercase tracking-wider mb-1"
               >
                 Ketersediaan
               </p>
@@ -384,7 +391,7 @@ const availabilityLabels: Record<string, string> = {
             </div>
             <div>
               <p
-                class="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1"
+                class="text-[10px] text-body text-neutral-400 uppercase tracking-wider mb-1"
               >
                 Profil Lengkap
               </p>
@@ -469,6 +476,12 @@ const availabilityLabels: Record<string, string> = {
       v-model="isModalOpen"
       :application="selectedApplicant"
       @reviewed="handleReviewed"
+    />
+
+    <MoleculeLoading
+      v-if="isSubmitting"
+      type="fullscreen"
+      label="Memproses Review..."
     />
   </div>
 </template>

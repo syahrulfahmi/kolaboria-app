@@ -22,7 +22,7 @@
 
         <!-- Ekosistem -->
         <div class="col-span-1">
-          <h4 class="text-white font-semibold mb-4">Ekosistem</h4>
+          <h4 class="text-white text-body mb-4">Ekosistem</h4>
           <ul class="space-y-2.5">
             <li>
               <NuxtLink
@@ -50,7 +50,7 @@
 
         <!-- Eksplorasi -->
         <!-- <div class="col-span-1">
-          <h4 class="text-white font-semibold mb-4">Eksplorasi</h4>
+          <h4 class="text-white text-body mb-4">Eksplorasi</h4>
           <ul class="space-y-2.5">
             <li>
               <NuxtLink
@@ -85,7 +85,7 @@
 
         <!-- Kolaboria -->
         <!-- <div class="col-span-1">
-          <h4 class="text-white font-semibold mb-4">Kolaboria</h4>
+          <h4 class="text-white text-body mb-4">Kolaboria</h4>
           <ul class="space-y-2.5">
             <li>
               <NuxtLink

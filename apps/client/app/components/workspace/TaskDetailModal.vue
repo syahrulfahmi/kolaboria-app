@@ -130,7 +130,7 @@ const deleteTask = () => {
           class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p class="text-caption font-semibold uppercase text-neutral-500">
+            <p class="text-caption text-body uppercase text-neutral-500">
               Detail Task
             </p>
             <p class="mt-1 text-body text-neutral-600">
@@ -192,7 +192,7 @@ const deleteTask = () => {
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-caption font-semibold uppercase text-neutral-500">
+          <label class="text-caption text-body uppercase text-neutral-500">
             Description
           </label>
           <textarea
@@ -219,7 +219,7 @@ const deleteTask = () => {
 
       <section class="flex flex-col gap-4">
         <div>
-          <p class="text-caption font-semibold uppercase text-neutral-500">
+          <p class="text-caption text-body uppercase text-neutral-500">
             Komentar
           </p>
           <h3 class="mt-1 text-title text-secondary-900">Diskusi task</h3>

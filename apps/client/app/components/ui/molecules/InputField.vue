@@ -1,13 +1,8 @@
 <template>
   <div class="flex flex-col gap-1.5">
-    <label
-      v-if="label"
-      class="text-xs font-semibold tracking-wide uppercase text-neutral-500"
-    >
+    <label v-if="label" class="font-label-1">
       {{ label }}
-      <span v-if="required" class="text-primary-400 text-base leading-none"
-        >*</span
-      >
+      <span v-if="required" class="text-danger-500 leading-none">*</span>
     </label>
 
     <div class="relative flex items-center">
@@ -104,9 +99,9 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="text-caption text-red-500">{{ error }}</span>
+      <span class="font-body-3 text-red-500">{{ error }}</span>
     </div>
-    <span v-else-if="hint" class="text-caption text-neutral-500 mt-0.5">{{
+    <span v-else-if="hint" class="font-body-3 text-secondary mt-1">{{
       hint
     }}</span>
   </div>

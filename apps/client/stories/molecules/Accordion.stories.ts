@@ -119,17 +119,17 @@ export const WithCustomSlot: Story = {
             <div class="flex gap-3">
               <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm shrink-0">FR</div>
               <div>
-                <p class="font-semibold text-neutral-800">Fahmi Rahman</p>
+                <p class="text-body text-neutral-800">Fahmi Rahman</p>
                 <p class="text-neutral-500 text-xs">Founder & Full-stack Developer</p>
               </div>
             </div>
           </template>
           <template #item-1>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-700 border border-primary-200">Vue 3</span>
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-success-50 text-success-700 border border-success-200">Nuxt 4</span>
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-900 border border-accent-200">Tailwind v4</span>
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200">Supabase</span>
+              <span class="px-3 py-1 text-xs text-body rounded-full bg-primary-100 text-primary-700 border border-primary-200">Vue 3</span>
+              <span class="px-3 py-1 text-xs text-body rounded-full bg-success-50 text-success-700 border border-success-200">Nuxt 4</span>
+              <span class="px-3 py-1 text-xs text-body rounded-full bg-accent-100 text-accent-900 border border-accent-200">Tailwind v4</span>
+              <span class="px-3 py-1 text-xs text-body rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200">Supabase</span>
             </div>
           </template>
         </MoleculeAccordion>

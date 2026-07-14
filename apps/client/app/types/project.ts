@@ -1,25 +1,41 @@
 // ============================================================
 // Project Hub — TypeScript Types
 // ============================================================
-
-export type ProjectStatus = 'draft' | 'open' | 'in_progress' | 'completed' | 'archived'
-export type ProjectType = 'web_app' | 'mobile_app' | 'ui_ux' | 'backend' | 'data_analytics' | 'devops' | 'other'
+export type ProjectStatus =
+  | 'draft'
+  | 'open'
+  | 'in_progress'
+  | 'completed'
+  | 'archived'
+export type ProjectType =
+  | 'web_app'
+  | 'mobile_app'
+  | 'ui_ux'
+  | 'backend'
+  | 'data_analytics'
+  | 'devops'
+  | 'other'
 export type ProjectVisibility = 'public' | 'invite_only'
-export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn'
+export type ApplicationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'withdrawn'
 export type ProjectMemberRole = 'owner' | 'contributor'
-export type ApplicantAvailability = 'full_time' | 'part_time' | 'weekends_only' | 'flexible'
-
+export type ApplicantAvailability =
+  | 'full_time'
+  | 'part_time'
+  | 'weekends_only'
+  | 'flexible'
 export interface SkillTag {
   id: string
   name: string
 }
-
 export interface ProjectSkill {
   skill_tag_id: string
   is_required: boolean
   skill_tags: SkillTag
 }
-
 export interface ProjectMember {
   project_id: string
   profile_id: string
@@ -31,7 +47,6 @@ export interface ProjectMember {
     avatar: string | null
   }
 }
-
 export interface Project {
   id: string
   creator_id: string
@@ -58,7 +73,6 @@ export interface Project {
   project_skills?: ProjectSkill[]
   project_members?: ProjectMember[]
 }
-
 export interface Application {
   id: string
   project_id: string
@@ -80,9 +94,7 @@ export interface Application {
   }
   projects?: Pick<Project, 'id' | 'title' | 'slug' | 'status'>
 }
-
 // ---- Request Payloads ----
-
 export interface CreateProjectPayload {
   title: string
   summary: string
@@ -95,8 +107,8 @@ export interface CreateProjectPayload {
   tech_stack?: string[]
   why_join?: string
   skill_tag_ids?: string[]
+  slug?: string
 }
-
 export interface ApplyProjectPayload {
   project_id: string
   motivation: string
@@ -104,13 +116,26 @@ export interface ApplyProjectPayload {
   portfolio_links?: string[]
   availability: ApplicantAvailability
 }
-
 // ---- Filters ----
-
 export interface ProjectFilters {
   search?: string
   status?: ProjectStatus
   type?: ProjectType
   cursor?: string | null
   limit?: number
+}
+// ---- Portfolio ----
+export interface PortfolioItem {
+  project_id: string
+  title: string
+  summary: string
+  type: ProjectType
+  slug: string
+  tech_stack: string[]
+  member_count: number
+  pinned_at: string
+}
+export interface WorkHistory {
+  activities: import('./workspace').ActivityLog[]
+  my_tasks: import('./workspace').Task[]
 }

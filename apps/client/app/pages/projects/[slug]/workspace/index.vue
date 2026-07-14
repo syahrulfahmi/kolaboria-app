@@ -2,7 +2,8 @@
 import type { Project } from '../../../../types/project'
 import type {
   CreateWorkspaceTaskPayload,
-  ReorderTaskUpdate,
+  Task,
+  TaskStatus,
   UpdateTaskPayload
 } from '../../../../types/workspace'
 
@@ -10,12 +11,11 @@ definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
 const route = useRoute()
 const router = useRouter()
-const user = useSupabaseUser()
+const { user, currentUserId } = useAuth()
 const { getProjectBySlug } = useProjects()
 const toast = useToast()
 
 const slug = computed(() => String(route.params.slug || ''))
-const boardRef = ref<HTMLElement | null>(null)
 
 const { data: project, pending } = await useAsyncData<Project | null>(
   () => `project-workspace-${slug.value}`,
@@ -28,7 +28,6 @@ const workspace = useWorkspace(projectId)
 const {
   tasksByStatus,
   activities,
-  overview,
   members,
   comments,
   loading,
@@ -37,32 +36,142 @@ const {
 } = workspace
 
 const isOwner = computed(() =>
-  Boolean(user.value?.id && project.value?.creator_id === user.value.id)
+  Boolean(
+    currentUserId.value && project.value?.creator_id === currentUserId.value
+  )
 )
 
 const isMember = computed(() => {
   if (isOwner.value) return true
   return Boolean(
     project.value?.project_members?.some(
-      (member) => member.profile_id === user.value?.id
+      (member) => member.profile_id === currentUserId.value
     )
   )
 })
 
 const canOpenWorkspace = computed(
-  () => Boolean(project.value) && project.value?.status === 'in_progress'
+  () =>
+    Boolean(project.value) &&
+    ['in_progress', 'completed', 'archived'].includes(
+      project.value?.status ?? ''
+    )
 )
 
-const scrollToBoard = () => {
-  boardRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+// Task Detail & Creation State
+const selectedTaskId = ref<string | null>(null)
+const isDetailOpen = ref(false)
+const isCreateOpen = ref(false)
+const searchQuery = ref('')
+const showStatusPopup = ref(false)
+
+const isReadOnly = computed(
+  () =>
+    project.value?.status === 'completed' ||
+    project.value?.status === 'archived'
+)
+
+const inactivePopupContent = computed(() => {
+  if (project.value?.status === 'completed') {
+    return {
+      type: 'success' as const,
+      title: 'Project Telah Selesai',
+      description:
+        'Project ini telah selesai dan ditutup. Terima kasih atas kontribusimu!'
+    }
+  }
+  if (project.value?.status === 'archived') {
+    return {
+      type: 'warning' as const,
+      title: 'Project Diarsipkan',
+      description:
+        'Project ini telah diarsipkan oleh pemiliknya. Board masih bisa dilihat namun tidak bisa dimodifikasi.'
+    }
+  }
+  return null
+})
+
+const handleInactiveConfirm = () => {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.replace('/')
+  }
 }
 
-const handleCreateTask = async (payload: CreateWorkspaceTaskPayload) => {
-  await workspace.createTask(payload)
+const selectedTask = computed(() => {
+  if (!selectedTaskId.value) return null
+  return (
+    workspace.tasks.value.find((t) => t.id === selectedTaskId.value) ?? null
+  )
+})
+
+const createForm = reactive<CreateWorkspaceTaskPayload>({
+  title: '',
+  description: '',
+  assignee_id: null,
+  due_date: null,
+  status: 'todo'
+})
+
+const assigneeOptions = computed(() => [
+  { label: 'Tidak ada assignee', value: '' },
+  ...members.value.map((member) => ({
+    label: member.full_name || member.username,
+    value: member.id
+  }))
+])
+
+const filteredTasks = computed<Record<TaskStatus, Task[]>>(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return tasksByStatus.value
+
+  const filterList = (list: Task[]) =>
+    list.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q))
+    )
+
+  return {
+    todo: filterList(tasksByStatus.value.todo),
+    in_progress: filterList(tasksByStatus.value.in_progress),
+    review: filterList(tasksByStatus.value.review),
+    done: filterList(tasksByStatus.value.done)
+  }
+})
+
+const handleTaskClick = (task: Task) => {
+  selectedTaskId.value = task.id
+  isDetailOpen.value = true
+  workspace.fetchTaskComments(task.id)
 }
 
-const handleReorderTasks = async (updates: ReorderTaskUpdate[]) => {
-  await workspace.reorderTasks(updates)
+const openCreateModal = (status: TaskStatus) => {
+  createForm.title = ''
+  createForm.description = ''
+  createForm.assignee_id = null
+  createForm.due_date = null
+  createForm.status = status
+  isCreateOpen.value = true
+}
+
+const submitCreate = async () => {
+  const title = createForm.title.trim()
+  if (!title) return
+
+  try {
+    await workspace.createTask({
+      title,
+      description: createForm.description?.trim() || null,
+      assignee_id: createForm.assignee_id || null,
+      due_date: createForm.due_date || null,
+      status: createForm.status
+    })
+    isCreateOpen.value = false
+  } catch (err) {
+    // Handled in composable toast
+  }
 }
 
 const handleUpdateTask = async (taskId: string, payload: UpdateTaskPayload) => {
@@ -71,10 +180,22 @@ const handleUpdateTask = async (taskId: string, payload: UpdateTaskPayload) => {
 
 const handleDeleteTask = async (taskId: string) => {
   await workspace.deleteTask(taskId)
+  if (selectedTaskId.value === taskId) {
+    selectedTaskId.value = null
+    isDetailOpen.value = false
+  }
 }
 
 const handleCommentSubmit = async (taskId: string, body: string) => {
   await workspace.addComment(taskId, body)
+}
+
+const handleCommentUpdate = async (commentId: string, body: string) => {
+  await workspace.updateComment(commentId, body)
+}
+
+const handleCommentDelete = async (commentId: string) => {
+  await workspace.deleteComment(commentId)
 }
 
 const handleCommentsRefresh = async (taskId: string) => {
@@ -82,10 +203,21 @@ const handleCommentsRefresh = async (taskId: string) => {
 }
 
 watch(
-  [project, user],
-  async ([currentProject, currentUser]) => {
-    if (!currentProject) return
-    if (!currentUser?.id) return
+  [project, currentUserId],
+  async ([currentProject, id]) => {
+    if (!currentProject || !id) return
+
+    // Tampilkan popup informatif jika project sudah tidak aktif
+    if (
+      currentProject.status === 'completed' ||
+      currentProject.status === 'archived'
+    ) {
+      showStatusPopup.value = true
+      try {
+        await workspace.refreshWorkspace(currentProject.creator_id)
+      } catch {}
+      return
+    }
 
     if (currentProject.status !== 'in_progress') return
 
@@ -108,89 +240,170 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 pb-16">
+  <div class="h-[calc(100vh-64px)] flex flex-col bg-neutral-50 overflow-hidden">
     <MoleculeLoading v-if="pending" label="Memuat workspace..." class="py-20" />
 
-    <main
-      v-else-if="project"
-      class="mx-auto flex max-w-7xl flex-col gap-8 pb-8"
-    >
-      <section class="rounded-lg border border-neutral-200 bg-white p-6">
-        <div
-          class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
-        >
-          <div>
-            <div
-              class="flex flex-wrap items-center gap-2 text-caption text-neutral-500"
-            >
-              <NuxtLink
-                :to="isOwner ? '/projects/my-projects' : '/projects/my-applications'"
-                class="font-semibold text-primary-700 hover:text-primary-800"
-              >
-                {{ isOwner ? 'Project Saya' : 'Lamaran Saya' }}
-              </NuxtLink>
-              <span>/</span>
-              <NuxtLink
-                :to="`/projects/${project.slug}`"
-                class="font-semibold text-primary-700 hover:text-primary-800"
-              >
-                {{ project.title }}
-              </NuxtLink>
-              <span>/ Workspace</span>
-            </div>
-
-            <h1 class="mt-4 text-display text-secondary-900">
-              {{ project.title }}
-            </h1>
-            <p class="mt-3 max-w-3xl text-body text-neutral-600">
-              {{ project.summary }}
-            </p>
-          </div>
-
-          <ProjectStatusBadge :status="project.status" size="sm" />
-        </div>
-      </section>
-
-      <OrganismEmptyState
-        v-if="!canOpenWorkspace"
-        title="Workspace belum aktif"
-        description="Project perlu dimulai terlebih dahulu sebelum board dan activity workspace dapat digunakan."
-        icon="folder"
+    <template v-else-if="project">
+      <WorkspacePageHeader
+        :project="project"
+        :tasks="tasksByStatus"
+        :is-owner="isOwner && !isReadOnly"
+        :is-submitting="saving"
+        @create-task-click="openCreateModal('todo')"
+        @search-change="searchQuery = $event"
       />
 
-      <template v-else>
-        <WorkspaceOverview
-          :overview="overview"
-          @scroll-to-board="scrollToBoard"
+      <div class="flex-1 flex overflow-hidden min-h-0 relative">
+        <!-- Sidebar -->
+        <WorkspaceSidebar
+          :members="members"
+          :activities="activities"
+          :project-creator-id="project.creator_id"
+          :loading="loading"
         />
 
-        <section ref="boardRef">
+        <!-- Empty State if not started -->
+        <div
+          v-if="!canOpenWorkspace"
+          class="flex-1 flex items-center justify-center p-8 bg-white"
+        >
+          <OrganismEmptyState
+            title="Workspace belum aktif"
+            description="Project perlu dimulai terlebih dahulu sebelum board dan activity workspace dapat digunakan."
+            icon="folder"
+          />
+        </div>
+
+        <!-- Kanban Board Area -->
+        <template v-else>
           <WorkspaceBoard
-            :tasks="tasksByStatus"
+            class="flex-1 h-full min-h-0"
+            :tasks="filteredTasks"
             :members="members"
-            :comments="comments"
-            :comments-loading="commentsLoading"
-            :saving="saving"
+            :is-owner="isOwner && !isReadOnly"
+            :selected-task-id="selectedTaskId"
+            @task-create="openCreateModal"
+            @task-click="handleTaskClick"
+          />
+
+          <!-- Task Detail Pane -->
+          <WorkspaceTaskDetailPane
+            :is-open="isDetailOpen"
+            :task="selectedTask"
+            :members="workspace.members.value"
+            :comments="workspace.comments.value"
+            :comments-loading="workspace.commentsLoading.value"
+            :saving="workspace.saving.value"
             :is-owner="isOwner"
-            @task-create="handleCreateTask"
-            @tasks-reorder="handleReorderTasks"
-            @task-update="handleUpdateTask"
-            @task-delete="handleDeleteTask"
+            :current-user-id="currentUserId || ''"
+            @close="
+              () => {
+                isDetailOpen = false
+                selectedTaskId = null
+              }
+            "
+            @update="handleUpdateTask"
+            @delete="handleDeleteTask"
             @comment-submit="handleCommentSubmit"
+            @comment-update="handleCommentUpdate"
+            @comment-delete="handleCommentDelete"
             @comments-refresh="handleCommentsRefresh"
           />
-        </section>
 
-        <WorkspaceActivityFeed :logs="activities" :loading="loading" />
-      </template>
-    </main>
+          <MoleculeLoading
+            v-if="workspace.saving.value"
+            type="fullscreen"
+            label="Menyimpan Task..."
+          />
+        </template>
+      </div>
 
-    <main v-else class="mx-auto max-w-4xl px-4 py-20">
+      <!-- Creation Modal -->
+      <OrganismModal
+        v-model="isCreateOpen"
+        title="Buat Task Baru"
+        size="xl"
+        primary-label="Buat Task"
+        secondary-label="Batal"
+        :primary-loading="saving"
+        :primary-disabled="saving || createForm.title.trim().length === 0"
+        @on-primary-click="submitCreate"
+        @on-secondary-click="isCreateOpen = false"
+      >
+        <div class="grid gap-4 md:grid-cols-2">
+          <MoleculeInputField
+            v-model="createForm.title"
+            label="Judul"
+            required
+            :disabled="saving"
+          />
+
+          <MoleculeDropdown
+            v-model="createForm.status"
+            label="Status"
+            :options="[
+              { label: 'Todo', value: 'todo' },
+              { label: 'In Progress', value: 'in_progress' },
+              { label: 'Review', value: 'review' },
+              { label: 'Done', value: 'done' }
+            ]"
+            :disabled="saving"
+          />
+
+          <MoleculeDropdown
+            v-model="createForm.assignee_id"
+            label="Ditugaskan kepada"
+            :options="assigneeOptions"
+            :disabled="saving"
+            searchable
+          />
+
+          <MoleculeDatePicker
+            :model-value="
+              createForm.due_date ? new Date(createForm.due_date) : null
+            "
+            @update:model-value="
+              createForm.due_date = $event
+                ? `${($event as Date).getFullYear()}-${String(($event as Date).getMonth() + 1).padStart(2, '0')}-${String(($event as Date).getDate()).padStart(2, '0')}`
+                : null
+            "
+            label="Target Selesai"
+            :disabled="saving"
+          />
+
+          <MoleculeTextarea
+            :model-value="createForm.description ?? undefined"
+            @update:model-value="
+              createForm.description = $event ? String($event) : null
+            "
+            label="Deskripsi"
+            :rows="4"
+            :disabled="saving"
+            class="md:col-span-2"
+          />
+        </div>
+      </OrganismModal>
+
+      <!-- Status Inactive Popup -->
+      <OrganismPopup
+        v-if="inactivePopupContent"
+        v-model="showStatusPopup"
+        :type="inactivePopupContent.type"
+        :title="inactivePopupContent.title"
+        :description="inactivePopupContent.description"
+        positive-label="Mengerti"
+        :show-close="false"
+        :persistent="true"
+        @positive="handleInactiveConfirm"
+      />
+    </template>
+
+    <div v-else class="mx-auto max-w-4xl px-4 py-20">
       <OrganismEmptyState
         title="Project tidak ditemukan"
         description="Project yang kamu cari tidak tersedia atau sudah tidak bisa diakses."
         icon="search"
       />
-    </main>
+    </div>
   </div>
 </template>

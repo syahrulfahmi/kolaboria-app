@@ -48,12 +48,9 @@ const fetchProjects = async (isLoadMore = false) => {
   }
 }
 
-// Debounced search
-let debounceTimer: ReturnType<typeof setTimeout>
 const handleSearch = (val: string) => {
   search.value = val
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => fetchProjects(false), 350)
+  fetchProjects(false)
 }
 
 const handleFilterType = (val: ProjectType | '') => {
@@ -266,7 +263,7 @@ const activeFiltersText = computed(() => {
             </svg>
             Memuat...
           </span>
-          <span v-else class="font-semibold">Muat Lebih Banyak</span>
+          <span v-else class="text-body">Muat Lebih Banyak</span>
         </AtomicButton>
       </div>
     </div>

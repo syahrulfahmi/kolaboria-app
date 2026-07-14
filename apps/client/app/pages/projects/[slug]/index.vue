@@ -39,7 +39,7 @@
       >
         <MoleculeTicker
           variant="warning"
-          message="Project ini masih Draft — belum bisa dilihat publik."
+          message="Proyek ini masih berupa draf. Publikasikan proyek untuk membuatnya dapat dilihat oleh publik."
           :closable="false"
           @action-click="navigateTo(`/projects/${project.slug}/edit`)"
           action-label="Edit & Publikasikan"
@@ -113,56 +113,39 @@
           >
             <!-- LEFT: Text content —— takes most of the width -->
             <div class="flex-1 min-w-0">
-              <!-- Pill breadcrumb -->
-              <div class="flex items-center gap-2.5 mb-7">
-                <NuxtLink
-                  to="/projects"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-white/60 hover:text-white transition-colors text-xs font-semibold tracking-wider uppercase"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-primary-300"></span>
-                  Proyek Kolaborasi
-                </NuxtLink>
-                <span class="text-white/20 text-xs">·</span>
-                <span
-                  class="text-primary-300 text-xs font-semibold tracking-wider uppercase"
-                >
-                  {{ coverLabel }}
-                </span>
-              </div>
-
               <!-- Title -->
-              <h1
-                class="text-4xl md:text-5xl lg:text-[3.25rem] font-black leading-[1.08] tracking-tight text-white mb-5"
-              >
+              <h1 class="font-title-1 font-black text-white mb-5">
                 {{ project.title }}
               </h1>
 
               <!-- Status row -->
               <div class="flex flex-wrap items-center gap-3 mb-7">
-                <ProjectStatusBadge :status="project.status" />
+                <AtomicTag variant="success">
+                  {{ statusConfig?.label }}
+                </AtomicTag>
                 <div class="flex items-center gap-2 ml-2">
                   <div
-                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/90 uppercase"
+                    class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center font-body-1 text-white/90 uppercase"
                   >
                     {{ creatorInitial }}
                   </div>
-                  <span class="text-white/60 text-sm font-medium">Oleh</span>
+                  <span class="text-white/60 font-body-1">Oleh</span>
                   <NuxtLink
                     v-if="creatorUsername"
                     :to="`/profile/${creatorUsername}`"
-                    class="text-white/80 hover:text-white transition-colors text-sm font-medium"
+                    class="text-white/80 hover:text-white transition-colors font-body-1"
                   >
                     {{ creatorName }}
                   </NuxtLink>
-                  <span v-else class="text-white/80 text-sm font-medium">{{
-                    creatorName
-                  }}</span>
+                  <span v-else class="text-white/80 font-body-1">
+                    {{ creatorName }}
+                  </span>
                 </div>
               </div>
 
               <!-- Description -->
               <p
-                class="font-paragraph-lg text-white/65 leading-[1.85] text-[1rem] max-w-2xl"
+                class="font-paragraph-2 text-white/80 leading-[1.85] max-w-2xl"
               >
                 {{ project.summary }}
               </p>
@@ -182,12 +165,10 @@
                     </svg>
                   </div>
                   <div>
-                    <div class="text-lg font-black text-white leading-none">
+                    <div class="font-label-1 font-black text-white">
                       {{ stat.value }}
                     </div>
-                    <div
-                      class="text-[10px] text-white/45 font-semibold tracking-wider uppercase mt-0.5"
-                    >
+                    <div class="font-label-2 text-white/45 mt-0.5">
                       {{ stat.label }}
                     </div>
                   </div>
@@ -222,27 +203,20 @@
           <div class="lg:col-span-8 flex flex-col gap-16">
             <!-- ─── SECTION: About ─── -->
             <section id="section-about" ref="sectionAbout" class="scroll-mt-20">
-              <div class="flex items-center gap-2 mb-5">
-                <span
-                  class="w-1 h-4 rounded-full bg-primary-400 flex-shrink-0"
-                ></span>
-                <h2
-                  class="text-xs font-bold text-gray-400 tracking-[0.15em] uppercase"
-                >
-                  Deskripsi Proyek
-                </h2>
-              </div>
+              <AtomicSectionTitle variant="default">
+                Deskripsi Proyek
+              </AtomicSectionTitle>
               <div class="space-y-5">
                 <p
                   v-for="(paragraph, idx) in descriptionParagraphs"
                   :key="idx"
-                  class="text-gray-700 leading-[1.85] text-[0.975rem]"
+                  class="text-gray-700 leading-[1.85] font-paragraph-2"
                 >
                   {{ paragraph }}
                 </p>
                 <p
                   v-if="descriptionParagraphs.length === 0"
-                  class="text-gray-700 leading-[1.85] text-[0.975rem]"
+                  class="text-gray-700 leading-[1.85] font-paragraph-2"
                 >
                   {{ project.summary }}
                 </p>
@@ -257,23 +231,14 @@
               ref="sectionRequirements"
               class="scroll-mt-20"
             >
-              <div class="flex items-center gap-2 mb-6">
-                <span
-                  class="w-1 h-4 rounded-full bg-secondary-400 flex-shrink-0"
-                ></span>
-                <h2
-                  class="text-xs font-bold text-gray-400 tracking-[0.15em] uppercase"
-                >
-                  Persyaratan
-                </h2>
-              </div>
+              <AtomicSectionTitle variant="default">
+                Persyaratan
+              </AtomicSectionTitle>
 
               <div class="space-y-7">
                 <!-- Skills -->
                 <div>
-                  <p
-                    class="font-label-sm text-gray-500 mb-3 text-sm font-medium"
-                  >
+                  <p class="text-secondary mb-4 font-paragraph-2">
                     Keterampilan
                   </p>
                   <div
@@ -282,20 +247,20 @@
                     "
                     class="flex flex-wrap gap-2"
                   >
-                    <span
+                    <AtomicTagCategory
                       v-for="skill in requiredSkills"
                       :key="skill.skill_tag_id"
-                      class="px-3 py-1 bg-primary-50 text-primary-700 border border-primary-200 text-sm font-medium rounded-md"
+                      variant="primary"
                     >
                       {{ skill.skill_tags.name }}
-                    </span>
-                    <span
+                    </AtomicTagCategory>
+                    <AtomicTagCategory
                       v-for="skill in optionalSkills"
                       :key="skill.skill_tag_id"
-                      class="px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200 text-sm font-medium rounded-md"
+                      variant="default"
                     >
                       {{ skill.skill_tags.name }}
-                    </span>
+                    </AtomicTagCategory>
                   </div>
                   <span v-else class="text-gray-400 text-sm italic">
                     Tidak ditentukan
@@ -305,22 +270,18 @@
                 <!-- Category + Capacity inline -->
                 <div class="grid grid-cols-2 gap-6">
                   <div>
-                    <p
-                      class="font-label-sm text-gray-500 mb-1.5 text-sm font-medium"
-                    >
+                    <p class="font-paragraph-2 text-secondary mb-2">
                       Kategori Project
                     </p>
-                    <p class="text-gray-900 font-semibold text-base">
+                    <p class="font-label-2">
                       {{ coverLabel }}
                     </p>
                   </div>
                   <div>
-                    <p
-                      class="font-label-sm text-gray-500 mb-1.5 text-sm font-medium"
-                    >
+                    <p class="font-paragraph-2 text-secondary mb-2">
                       Kapasitas Tim
                     </p>
-                    <p class="text-gray-900 font-semibold text-base">
+                    <p class="font-label-2">
                       {{ members.length }} / {{ project.max_slots }} kontributor
                     </p>
                   </div>
@@ -337,18 +298,9 @@
               class="scroll-mt-20"
             >
               <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="w-1 h-4 rounded-full bg-accent-400 flex-shrink-0"
-                  ></span>
-                  <h2
-                    class="text-xs font-bold text-gray-400 tracking-[0.15em] uppercase"
-                  >
-                    Timeline
-                  </h2>
-                </div>
+                <AtomicSectionTitle> Timeline </AtomicSectionTitle>
                 <span
-                  class="flex items-center gap-1.5 text-xs font-semibold text-green-600"
+                  class="flex items-center gap-1.5 text-xs text-body text-green-600"
                 >
                   <span
                     class="w-1.5 h-1.5 rounded-full bg-green-500"
@@ -360,32 +312,22 @@
 
               <div class="grid grid-cols-3 gap-4">
                 <div>
-                  <p
-                    class="font-label-sm text-gray-500 mb-1.5 text-sm font-medium"
-                  >
+                  <p class="font-paragraph-2 text-secondary mb-2">
                     Tanggal Mulai
                   </p>
-                  <p class="text-gray-900 font-semibold text-base">
+                  <p class="font-label-2">
                     {{ formattedStartDate || 'Fleksibel' }}
                   </p>
                 </div>
                 <div>
-                  <p
-                    class="font-label-sm text-gray-500 mb-1.5 text-sm font-medium"
-                  >
-                    Durasi
-                  </p>
-                  <p class="text-gray-900 font-semibold text-base">
+                  <p class="font-paragraph-2 text-secondary mb-2">Durasi</p>
+                  <p class="font-label-2">
                     {{ projectDurationLabel }}
                   </p>
                 </div>
                 <div>
-                  <p
-                    class="font-label-sm text-gray-500 mb-1.5 text-sm font-medium"
-                  >
-                    Sistem
-                  </p>
-                  <p class="text-gray-900 font-semibold text-base">
+                  <p class="font-paragraph-2 text-secondary mb-2">Sistem</p>
+                  <p class="font-label-2">
                     {{ coverLabel }}
                   </p>
                 </div>
@@ -396,19 +338,8 @@
             <template v-if="project.why_join">
               <hr class="border-gray-200" />
               <section id="section-why-join" class="scroll-mt-20">
-                <div class="flex items-center gap-2 mb-5">
-                  <span
-                    class="w-1 h-4 rounded-full bg-accent-400 flex-shrink-0"
-                  ></span>
-                  <h2
-                    class="text-xs font-bold text-accent-600 tracking-[0.15em] uppercase"
-                  >
-                    Kenapa Bergabung
-                  </h2>
-                </div>
-                <p
-                  class="text-gray-700 leading-[1.85] text-[0.975rem] whitespace-pre-line"
-                >
+                <AtomicSectionTitle> Kenapa Bergabung </AtomicSectionTitle>
+                <p class="font-paragraph-2 whitespace-pre-line">
                   {{ project.why_join }}
                 </p>
               </section>
@@ -417,16 +348,7 @@
             <!-- ─── SECTION: Team ─── -->
             <hr class="border-gray-200" />
             <section id="section-team" ref="sectionTeam" class="scroll-mt-20">
-              <div class="flex items-center gap-2 mb-6">
-                <span
-                  class="w-1 h-4 rounded-full bg-gray-300 flex-shrink-0"
-                ></span>
-                <h2
-                  class="text-xs font-bold text-gray-400 tracking-[0.15em] uppercase"
-                >
-                  Tim Proyek
-                </h2>
-              </div>
+              <AtomicSectionTitle> Tim Proyek </AtomicSectionTitle>
 
               <div v-if="members.length > 0" class="space-y-4">
                 <div
@@ -450,7 +372,7 @@
                   <div class="min-w-0">
                     <NuxtLink
                       :to="`/profile/${member.profiles?.username}`"
-                      class="block truncate font-semibold text-gray-900 text-sm leading-tight hover:text-primary-600 transition-colors"
+                      class="block truncate text-body text-gray-900 text-sm leading-tight hover:text-primary-600 transition-colors"
                     >
                       {{
                         member.profiles?.full_name || member.profiles?.username
@@ -460,7 +382,7 @@
                   </div>
                 </div>
               </div>
-              <p v-else class="text-sm text-gray-500 italic">
+              <p v-else class="font-paragraph-2 text-secondary italic">
                 Belum ada anggota yang bergabung.
               </p>
             </section>
@@ -492,14 +414,12 @@
                   "
                 ></div>
                 <div class="relative z-10 p-7">
-                  <h3 class="font-black text-2xl text-white mb-2">
-                    Siap Bergabung?
-                  </h3>
-                  <p class="text-white/80 leading-relaxed mb-6 text-sm">
+                  <h3 class="font-title-2 text-white mb-2">Siap Bergabung?</h3>
+                  <p class="font-paragraph-2 text-white mb-6">
                     Kolaborasi bersama
-                    <span class="text-white font-semibold">{{
-                      creatorName
-                    }}</span>
+                    <span class="text-white font-body-1">
+                      {{ creatorName }}
+                    </span>
                     dan mulai kontribusi di project ini.
                   </p>
 
@@ -507,16 +427,18 @@
                     <div
                       class="bg-white/10 rounded-xl p-3 border border-white/10"
                     >
-                      <p class="text-xs text-white/60 mb-0.5">Slot Tersedia</p>
-                      <p class="text-lg font-bold text-white">
+                      <p class="font-label-2 text-white mb-0.5">
+                        Slot Tersedia
+                      </p>
+                      <p class="font-body-2 text-white">
                         {{ openSlots }}
                       </p>
                     </div>
                     <div
                       class="bg-white/10 rounded-xl p-3 border border-white/10"
                     >
-                      <p class="text-xs text-white/60 mb-0.5">Deadline</p>
-                      <p class="text-sm font-semibold text-white truncate">
+                      <p class="font-label-2 text-white mb-0.5">Deadline</p>
+                      <p class="font-body-2 text-white truncate">
                         {{ formattedDeadline || 'Fleksibel' }}
                       </p>
                     </div>
@@ -533,19 +455,30 @@
 
                   <template v-else-if="isOwner">
                     <div class="flex flex-col gap-3">
-                      <NuxtLink v-if="project.status === 'in_progress'" :to="`/projects/${project.slug}/workspace`">
-                        <AtomicButton variant="primary" size="lg" block class="font-bold">
-                          <span class="flex items-center gap-2 justify-center">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
-                            </svg>
-                            Buka Workspace
-                          </span>
+                      <NuxtLink
+                        v-if="project.status === 'in_progress'"
+                        :to="`/projects/${project.slug}/workspace`"
+                      >
+                        <AtomicButton
+                          variant="primary"
+                          size="md"
+                          block
+                          class="font-bold"
+                        >
+                          Buka Workspace
                         </AtomicButton>
                       </NuxtLink>
 
                       <NuxtLink :to="`/projects/${project.slug}/applicants`">
-                        <AtomicButton :variant="project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
+                        <AtomicButton
+                          :variant="
+                            project.status === 'in_progress'
+                              ? 'secondary'
+                              : 'primary'
+                          "
+                          size="lg"
+                          block
+                        >
                           Kelola Pelamar
                         </AtomicButton>
                       </NuxtLink>
@@ -558,36 +491,48 @@
                   </template>
 
                   <template
-                    v-else-if="currentApplication && applicationMessage"
+                    v-else-if="hasActiveApplication && applicationMessage"
                   >
                     <div
                       class="rounded-xl border border-primary-300/30 bg-primary-900/40 p-4 mb-4 backdrop-blur-sm"
                     >
-                      <p class="text-sm font-semibold text-primary-100">
+                      <p class="font-body-2 text-primary-100">
                         {{ applicationMessage.title }}
                       </p>
-                      <p class="mt-1 text-xs text-white/70">
+                      <p class="mt-1 font-body-2 text-white">
                         {{ applicationMessage.body }}
                       </p>
                     </div>
 
                     <div class="flex flex-col gap-3">
                       <NuxtLink
-                        v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
+                        v-if="
+                          currentApplication?.status === 'accepted' &&
+                          project.status === 'in_progress'
+                        "
                         :to="`/projects/${project.slug}/workspace`"
                       >
-                        <AtomicButton variant="primary" size="lg" block class="font-bold">
-                          <span class="flex items-center gap-2 justify-center">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
-                            </svg>
-                            Buka Workspace
-                          </span>
+                        <AtomicButton
+                          variant="primary"
+                          size="md"
+                          block
+                          class="font-bold"
+                        >
+                          Buka Workspace
                         </AtomicButton>
                       </NuxtLink>
 
                       <NuxtLink to="/projects/my-applications">
-                        <AtomicButton :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'secondary' : 'primary'" size="lg" block>
+                        <AtomicButton
+                          :variant="
+                            currentApplication?.status === 'accepted' &&
+                            project.status === 'in_progress'
+                              ? 'secondary'
+                              : 'primary'
+                          "
+                          size="md"
+                          block
+                        >
                           Lihat Lamaran Saya
                         </AtomicButton>
                       </NuxtLink>
@@ -600,11 +545,18 @@
                       @click="isVerified ? (showApplyModal = true) : null"
                       class="w-full"
                       :disabled="!isVerified"
-                      :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu untuk melamar.' : ''"
+                      :title="
+                        !isVerified
+                          ? 'Verifikasi email Anda terlebih dahulu untuk melamar.'
+                          : ''
+                      "
                     >
                       Apply Project Ini
                     </AtomicButton>
-                    <p v-if="!isVerified" class="text-xs text-center text-red-200 mt-2 font-medium">
+                    <p
+                      v-if="!isVerified"
+                      class="text-xs text-center text-red-200 mt-2 font-medium"
+                    >
                       Verifikasi email Anda untuk melamar.
                     </p>
                   </template>
@@ -646,10 +598,10 @@
                         +{{ openSlots }}
                       </div>
                     </div>
-                    <p class="text-white/70 text-xs font-medium">
-                      <span class="text-white font-bold">{{
-                        members.length
-                      }}</span>
+                    <p class="text-white text-xs font-medium">
+                      <span class="font-label-2">
+                        {{ members.length }}
+                      </span>
                       kontributor aktif
                     </p>
                   </div>
@@ -717,48 +669,63 @@
 
             <template v-else-if="isOwner">
               <div class="flex items-center gap-2">
-                <AtomicButton
-                  v-if="project.status === 'in_progress'"
-                  :to="`/projects/${project.slug}/workspace`"
-                  variant="primary"
-                  size="sm"
-                  class="font-bold shrink-0"
-                >
-                  Workspace
-                </AtomicButton>
-                <AtomicButton
-                  :to="`/projects/${project.slug}/edit`"
-                  variant="outline"
-                  size="sm"
-                  class="font-bold shrink-0 hidden sm:inline-flex"
-                >
-                  Edit
-                </AtomicButton>
-                <AtomicButton
-                  :to="`/projects/${project.slug}/applicants`"
-                  :variant="project.status === 'in_progress' ? 'outline' : 'primary'"
-                  size="sm"
-                  class="font-bold shrink-0"
-                >
-                  Kelola Pelamar
-                </AtomicButton>
+                <NuxtLink :to="`/projects/${project.slug}/workspace`">
+                  <AtomicButton
+                    v-if="project.status === 'in_progress'"
+                    variant="primary"
+                    size="sm"
+                    class="font-bold shrink-0"
+                  >
+                    Workspace
+                  </AtomicButton>
+                </NuxtLink>
+                <NuxtLink :to="`/projects/${project.slug}/edit`">
+                  <AtomicButton
+                    variant="outline"
+                    size="sm"
+                    class="font-bold shrink-0 hidden sm:inline-flex"
+                  >
+                    Edit
+                  </AtomicButton>
+                </NuxtLink>
+                <NuxtLink>
+                  <AtomicButton
+                    :to="`/projects/${project.slug}/applicants`"
+                    :variant="
+                      project.status === 'in_progress' ? 'outline' : 'primary'
+                    "
+                    size="sm"
+                    class="font-bold shrink-0"
+                  >
+                    Kelola Pelamar
+                  </AtomicButton>
+                </NuxtLink>
               </div>
             </template>
 
-            <template v-else-if="currentApplication">
+            <template v-else-if="hasActiveApplication">
               <div class="flex items-center gap-2">
-                <AtomicButton
-                  v-if="currentApplication.status === 'accepted' && project.status === 'in_progress'"
-                  :to="`/projects/${project.slug}/workspace`"
-                  variant="primary"
-                  size="sm"
-                  class="font-bold shrink-0"
-                >
-                  Workspace
-                </AtomicButton>
+                <NuxtLink :to="`/projects/${project.slug}/workspace`">
+                  <AtomicButton
+                    v-if="
+                      currentApplication?.status === 'accepted' &&
+                      project.status === 'in_progress'
+                    "
+                    variant="primary"
+                    size="sm"
+                    class="font-bold shrink-0"
+                  >
+                    Workspace
+                  </AtomicButton>
+                </NuxtLink>
                 <NuxtLink to="/projects/my-applications">
                   <AtomicButton
-                    :variant="currentApplication.status === 'accepted' && project.status === 'in_progress' ? 'outline' : 'primary'"
+                    :variant="
+                      currentApplication?.status === 'accepted' &&
+                      project.status === 'in_progress'
+                        ? 'outline'
+                        : 'primary'
+                    "
                     size="sm"
                     class="font-bold shrink-0"
                   >
@@ -775,7 +742,9 @@
                 @click="isVerified ? (showApplyModal = true) : null"
                 class="font-bold shrink-0 w-full"
                 :disabled="!isVerified"
-                :title="!isVerified ? 'Verifikasi email Anda terlebih dahulu.' : ''"
+                :title="
+                  !isVerified ? 'Verifikasi email Anda terlebih dahulu.' : ''
+                "
               >
                 Apply Project Ini
               </AtomicButton>
@@ -806,8 +775,7 @@ definePageMeta({
 
 const route = useRoute()
 const { getProjectBySlug, getMyApplications } = useProjects()
-const { isVerified } = useAuth()
-const user = useSupabaseUser()
+const { user, isVerified, currentUserId } = useAuth()
 
 const projectSlug = route.params.slug as string
 
@@ -832,14 +800,17 @@ const { data: myApps, refresh: refreshApps } = await useAsyncData<
   user.value ? getMyApplications() : Promise.resolve([])
 )
 
-const currentApplication = computed(() =>
-  myApps.value?.find((app) => app.project_id === project.value?.id)
-)
+const currentApplication = computed(() => {
+  const projectApps =
+    myApps.value?.filter((app) => app.project_id === project.value?.id) ?? []
+  return projectApps[0] || null
+})
 
 const hasApplied = computed(() => !!currentApplication.value)
 
 const isOwner = computed(
-  () => !!user.value && user.value.id === project.value?.creator_id
+  () =>
+    !!currentUserId.value && currentUserId.value === project.value?.creator_id
 )
 
 const members = computed(
@@ -856,16 +827,32 @@ const openSlots = computed(() => {
   return Math.max(0, project.value.max_slots - filledSlots.value)
 })
 
+const canReapply = computed(() => {
+  if (!currentApplication.value) return false
+  const status = currentApplication.value.status
+  if (status === 'withdrawn') return true
+  if (status === 'rejected') {
+    const appliedDate = new Date(currentApplication.value.applied_at)
+    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000
+    return Date.now() - appliedDate.getTime() >= threeDaysInMs
+  }
+  return false
+})
+
+const hasActiveApplication = computed(() => {
+  if (!currentApplication.value) return false
+  return !canReapply.value
+})
+
 const canApply = computed(() => {
   if (!user.value) return false
   if (isOwner.value) return false
-  if (hasApplied.value) return false
   const alreadyMember = members.value.some(
-    (member) => member.profile_id === user.value?.id
+    (member) => member.profile_id === currentUserId.value
   )
-  return (
-    !alreadyMember && project.value?.status === 'open' && openSlots.value > 0
-  )
+  if (alreadyMember) return false
+  if (project.value?.status !== 'open' || openSlots.value <= 0) return false
+  return !hasApplied.value || canReapply.value
 })
 
 const isClosedForApplication = computed(
@@ -897,7 +884,7 @@ const typeLabel: Record<string, string> = {
 }
 
 const coverLabel = computed(() =>
-  project.value ? typeLabel[project.value.type] : 'Project'
+  project.value ? typeLabel[project.value.type] : '-'
 )
 
 const creatorName = computed(
@@ -996,8 +983,27 @@ const descriptionParagraphs = computed(() => {
     .filter(Boolean)
 })
 
+const statusConfig = computed(() => {
+  const configs: Record<
+    string,
+    {
+      label: string
+      variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'
+    }
+  > = {
+    draft: { label: 'Draft', variant: 'default' },
+    open: { label: 'Terbuka', variant: 'primary' },
+    in_progress: { label: 'Sedang Berjalan', variant: 'warning' },
+    completed: { label: 'Selesai', variant: 'success' },
+    archived: { label: 'Diarsipkan', variant: 'danger' }
+  }
+  return configs[project.value?.status ?? ''] ?? configs.draft
+})
+
 const applicationMessage = computed(() => {
-  switch (currentApplication.value?.status) {
+  if (!currentApplication.value) return null
+
+  switch (currentApplication.value.status) {
     case 'pending':
       return {
         title: 'Lamaranmu sedang ditinjau',
@@ -1008,11 +1014,37 @@ const applicationMessage = computed(() => {
         title: 'Lamaranmu diterima',
         body: 'Kamu sudah masuk ke alur kolaborasi project ini.'
       }
-    case 'rejected':
+    case 'rejected': {
+      const appliedDate = new Date(currentApplication.value.applied_at)
+      const waitingPeriod = 3 * 24 * 60 * 60 * 1000
+      const timePassed = Date.now() - appliedDate.getTime()
+      if (timePassed < waitingPeriod) {
+        const timeLeft = waitingPeriod - timePassed
+        const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000))
+        const hours = Math.floor(
+          (timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+        )
+        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000))
+
+        let timeLeftText = ''
+        if (days > 0) {
+          timeLeftText = `${days} hari ${hours} jam`
+        } else if (hours > 0) {
+          timeLeftText = `${hours} jam ${minutes} menit`
+        } else {
+          timeLeftText = `${minutes} menit`
+        }
+
+        return {
+          title: 'Lamaranmu belum diterima',
+          body: `Kamu dapat melamar kembali setelah masa tunggu berakhir (sisa waktu: ${timeLeftText}).`
+        }
+      }
       return {
         title: 'Lamaranmu belum diterima',
         body: 'Kamu tetap bisa mengeksplor project lain yang lebih cocok.'
       }
+    }
     case 'withdrawn':
       return {
         title: 'Lamaran ditarik kembali',

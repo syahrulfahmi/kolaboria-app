@@ -110,11 +110,11 @@ export const WithSubtitle: Story = {
       `
     <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Nama</label>
+        <label class="text-xs text-body tracking-wide uppercase text-neutral-500">Nama</label>
         <input type="text" class="w-full rounded-lg border border-neutral-300 px-4 py-2" value="Fahmi Rahman" />
       </div>
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Email</label>
+        <label class="text-xs text-body tracking-wide uppercase text-neutral-500">Email</label>
         <input type="email" class="w-full rounded-lg border border-neutral-300 px-4 py-2" value="fahmi@example.com" />
       </div>
     </div>

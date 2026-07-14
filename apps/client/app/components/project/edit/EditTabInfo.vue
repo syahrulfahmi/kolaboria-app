@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import type { CreateProjectPayload } from '~/types/project'
+import { sanitizeSlug } from '~/utils/slug'
+
+const props = defineProps<{
+  currentSlug?: string
+}>()
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
-const emit = defineEmits<{ (e: 'save'): void }>()
 
 const typeOptions = [
   { value: 'web_app', label: 'Web App' },
@@ -19,15 +24,43 @@ const visibilityOptions = [
   { value: 'invite_only', label: 'Invite Only' }
 ]
 
-const isValid = computed(() => {
-  return form.value.title.trim().length > 0 && form.value.summary.trim().length > 0
+const isEditingSlug = ref(false)
+const slugError = ref('')
+
+onMounted(() => {
+  if (props.currentSlug) {
+    form.value.slug = props.currentSlug
+  }
 })
+
+const onSlugInput = (val: string) => {
+  form.value.slug = sanitizeSlug(val)
+  if (form.value.slug.length < 3) {
+    slugError.value = 'Slug harus minimal 3 karakter'
+  } else {
+    slugError.value = ''
+  }
+}
+
+const startEditingSlug = () => {
+  isEditingSlug.value = true
+  if (!form.value.slug) {
+    form.value.slug = props.currentSlug
+  }
+}
+
+const cancelEditingSlug = () => {
+  isEditingSlug.value = false
+  form.value.slug = props.currentSlug
+}
 </script>
 
 <template>
   <div class="space-y-8 animate-fade-in">
     <!-- Section: Identitas Utama -->
-    <div class="space-y-5 rounded-2xl bg-neutral-50/50 p-5 ring-1 ring-inset ring-neutral-100">
+    <div
+      class="space-y-5 rounded-2xl bg-neutral-50/50 p-5 ring-1 ring-inset ring-neutral-100"
+    >
       <MoleculeInputField
         v-model="form.title"
         label="Judul Project"
@@ -36,60 +69,105 @@ const isValid = computed(() => {
         required
       />
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">
-          Ringkasan Singkat <span class="text-primary-400 text-base leading-none">*</span>
-        </label>
-        <textarea
-          v-model="form.summary"
-          rows="3"
-          placeholder="Deskripsikan project dalam 1-2 kalimat. Apa masalah yang dipecahkan?"
-          class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-body text-neutral-900 outline-none transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 resize-none hover:border-primary-300 shadow-sm"
+      <!-- Section: Slug Project -->
+      <div
+        v-if="isEditingSlug"
+        class="flex flex-col gap-2 rounded-xl bg-amber-50/50 p-4 ring-1 ring-amber-100"
+      >
+        <div class="flex items-center justify-between">
+          <label class="font-label-1"> Slug URL Baru </label>
+          <button
+            type="button"
+            class="text-xs text-body text-neutral-500 hover:text-neutral-700"
+            @click="cancelEditingSlug"
+          >
+            Batal
+          </button>
+        </div>
+        <MoleculeInputField
+          :model-value="form.slug"
+          @update:model-value="onSlugInput"
+          placeholder="cth: platform-edukasi-bahasa-daerah"
+          :error="slugError"
+          hint="Peringatan: Mengubah slug akan mematikan tautan proyek lama yang
+          telah dibagikan."
+          required
         />
-        <span class="text-caption text-neutral-500">Akan ditampilkan di halaman pencarian project.</span>
+        <span class="font-label-2">
+          Preview URL:
+          <span class="font-label-2">
+            kolaboria.com/projects/{{ form.slug || '***' }}
+          </span>
+        </span>
+      </div>
+      <div
+        v-else
+        class="flex items-center justify-between rounded-xl bg-neutral-100/50 p-4 ring-1 ring-neutral-200/50"
+      >
+        <div class="flex flex-col">
+          <span class="font-label-1">Tautan Proyek</span>
+          <span class="font-mono text-sm text-neutral-700 mt-1">
+            kolaboria.com/projects/<span class="font-bold text-neutral-900">{{
+              form.slug || currentSlug
+            }}</span>
+          </span>
+        </div>
+        <AtomicIconButton
+          variant="outline"
+          size="sm"
+          shape="square"
+          title="Ubah Slug"
+          @click="startEditingSlug"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
+          </svg>
+        </AtomicIconButton>
       </div>
 
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">
-          Deskripsi Lengkap
-        </label>
-        <textarea
-          v-model="form.description"
-          rows="5"
-          placeholder="Jelaskan lebih detail tentang latar belakang, tujuan, dan ruang lingkup project ini..."
-          class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-body text-neutral-900 outline-none transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 resize-none hover:border-primary-300 shadow-sm"
-        />
-      </div>
+      <MoleculeTextarea
+        v-model="form.summary"
+        label="Ringkasan Singkat"
+        placeholder="Jelaskan secara singkat apa tujuan atau masalah yang ingin diselesaikan oleh proyek ini?"
+        :max-length="200"
+        show-counter
+        required
+        hint="Akan ditampilkan di halaman pencarian project."
+      />
+
+      <MoleculeTextarea
+        v-model="form.description"
+        label="Deskripsi Lengkap"
+        placeholder="Jelaskan lebih detail tentang latar belakang, tujuan, dan ruang lingkup project ini..."
+        hint="Deskripsi yang detail akan meningkatkan kemungkinan talenta untuk tertarik bergabung."
+      />
     </div>
 
     <!-- Section: Kategori & Visibilitas -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-      <div class="flex flex-col gap-2">
-        <MoleculeDropdown
-          v-model="form.type"
-          label="Kategori Project"
-          :options="typeOptions"
-        />
-      </div>
-      
-      <div class="flex flex-col gap-2">
-        <MoleculeDropdown
-          v-model="form.visibility"
-          label="Visibilitas"
-          :options="visibilityOptions"
-        />
-      </div>
-    </div>
+      <MoleculeDropdown
+        v-model="form.type"
+        label="Kategori Project"
+        :options="typeOptions"
+        hint="Kategori membantu sistem merekomendasikan project ke talenta yang tepat."
+      />
 
-    <!-- Save Button -->
-    <div class="flex justify-end pt-4 border-t border-neutral-100">
-      <AtomicButton
-        variant="primary"
-        :disabled="!isValid"
-        @click="emit('save')"
-      >
-        Simpan Perubahan
-      </AtomicButton>
+      <MoleculeDropdown
+        v-model="form.visibility"
+        label="Visibilitas"
+        :options="visibilityOptions"
+        hint="Project privat (Invite Only) tidak akan muncul di halaman pencarian."
+      />
     </div>
   </div>
 </template>

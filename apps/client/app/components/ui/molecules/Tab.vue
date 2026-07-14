@@ -115,7 +115,7 @@ const getTabClass = (tab) => {
       base,
       'rounded-md',
       isActive
-        ? 'text-primary-400 font-semibold'
+        ? 'text-primary-400 text-body'
         : 'text-neutral-500 hover:text-primary-400 hover:bg-neutral-50/50',
       isDisabled && disabled
     ]
@@ -126,7 +126,7 @@ const getTabClass = (tab) => {
       base,
       'rounded-full',
       isActive
-        ? 'bg-primary-400 text-white shadow-md font-semibold'
+        ? 'bg-primary-400 text-white shadow-md text-body'
         : 'bg-transparent text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700',
       isDisabled && disabled
     ]

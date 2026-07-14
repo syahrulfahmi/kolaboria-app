@@ -40,22 +40,31 @@
       </div>
 
       <div class="flex items-center gap-2.5">
-        <NuxtLink
-          to="/login"
-          :class="[
-            'hidden sm:inline-flex text-sm font-semibold px-4 py-2 rounded-lg transition-colors duration-300',
-            isScrolled
-              ? 'text-primary-400 hover:text-primary-500'
-              : 'text-white/80 hover:text-white'
-          ]"
-        >
-          Masuk
-        </NuxtLink>
-        <NuxtLink to="/register" class="inline-flex">
-          <AtomicButton variant="primary" size="sm" rounded="lg">
-            Daftar Gratis
-          </AtomicButton>
-        </NuxtLink>
+        <template v-if="!isAuthenticated">
+          <NuxtLink
+            to="/login"
+            :class="[
+              'hidden sm:inline-flex text-sm text-body px-4 py-2 rounded-lg transition-colors duration-300',
+              isScrolled
+                ? 'text-primary-400 hover:text-primary-500'
+                : 'text-white/80 hover:text-white'
+            ]"
+          >
+            Masuk
+          </NuxtLink>
+          <NuxtLink to="/register" class="inline-flex">
+            <AtomicButton variant="primary" size="sm" rounded="lg">
+              Daftar Gratis
+            </AtomicButton>
+          </NuxtLink>
+        </template>
+        <template v-else>
+          <NuxtLink to="/home" class="inline-flex">
+            <AtomicButton variant="primary" size="sm" rounded="lg">
+              Ke Dashboard
+            </AtomicButton>
+          </NuxtLink>
+        </template>
 
         <button
           @click="mobileOpen = !mobileOpen"
@@ -112,22 +121,46 @@
           >
             {{ link.label }}
           </a>
-          <div class="k-rule mt-2 mb-3"></div>
-          <NuxtLink
-            to="/login"
-            class="px-3 py-2.5 text-sm font-medium text-secondary-400 hover:bg-gray-50 rounded-lg"
-            >Masuk</NuxtLink
-          >
-          <NuxtLink to="/register" class="inline-flex">
-            <AtomicButton
-              variant="primary"
-              size="sm"
-              rounded="lg"
-              class="w-full"
+          <template v-if="!isAuthenticated">
+            <div class="k-rule mt-2 mb-3"></div>
+            <NuxtLink
+              to="/login"
+              class="px-3 py-2.5 text-sm font-medium text-secondary-400 hover:bg-gray-50 rounded-lg"
+              @click="mobileOpen = false"
+              >Masuk</NuxtLink
             >
-              Daftar Gratis
-            </AtomicButton>
-          </NuxtLink>
+            <NuxtLink
+              to="/register"
+              class="inline-flex"
+              @click="mobileOpen = false"
+            >
+              <AtomicButton
+                variant="primary"
+                size="sm"
+                rounded="lg"
+                class="w-full"
+              >
+                Daftar Gratis
+              </AtomicButton>
+            </NuxtLink>
+          </template>
+          <template v-else>
+            <div class="k-rule mt-2 mb-3"></div>
+            <NuxtLink
+              to="/home"
+              class="inline-flex"
+              @click="mobileOpen = false"
+            >
+              <AtomicButton
+                variant="primary"
+                size="sm"
+                rounded="lg"
+                class="w-full"
+              >
+                Ke Dashboard
+              </AtomicButton>
+            </NuxtLink>
+          </template>
         </div>
       </div>
     </transition>
@@ -137,6 +170,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+const { isAuthenticated } = useAuth()
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
 

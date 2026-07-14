@@ -43,7 +43,7 @@
                 >{{ p.icon }}</span
               >
               <div>
-                <p class="text-secondary-500 font-semibold text-sm">
+                <p class="text-secondary-500 text-body text-sm">
                   {{ p.title }}
                 </p>
                 <p class="text-secondary-400/70 font-body-sm mt-0.5">
@@ -85,7 +85,7 @@
                   </svg>
                 </span>
                 <div>
-                  <p class="text-secondary-500 font-semibold text-sm">
+                  <p class="text-secondary-500 text-body text-sm">
                     {{ s.title }}
                   </p>
                   <p class="text-secondary-400/70 font-body-sm mt-0.5">

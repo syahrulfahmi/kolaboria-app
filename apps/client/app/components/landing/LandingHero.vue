@@ -200,7 +200,7 @@
               class="reveal-scale flex items-center gap-2 bg-accent-400 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 600ms"
             >
-              <span class="text-secondary-800 text-xs font-semibold"
+              <span class="text-secondary-800 text-xs text-body"
                 >Proyek Diterbitkan</span
               >
             </div>
@@ -215,9 +215,7 @@
               class="reveal-scale flex items-center gap-2 bg-secondary-500 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 700ms"
             >
-              <span class="text-white text-xs font-semibold"
-                >Slot FE Terisi</span
-              >
+              <span class="text-white text-xs text-body">Slot FE Terisi</span>
             </div>
           </div>
 
@@ -230,9 +228,7 @@
               class="reveal-scale flex items-center gap-2 bg-success-500 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 800ms"
             >
-              <span class="text-white text-xs font-semibold"
-                >Mentor Bergabung</span
-              >
+              <span class="text-white text-xs text-body">Mentor Bergabung</span>
             </div>
           </div>
 
@@ -324,7 +320,7 @@
                   />
                   <div class="flex-1 min-w-0">
                     <p class="text-gray-700 text-xs truncate">
-                      <span class="font-semibold text-gray-900">Ahmad</span>
+                      <span class="text-body text-gray-900">Ahmad</span>
                       melakukan commit: setup auth
                     </p>
                   </div>
@@ -338,7 +334,7 @@
                   />
                   <div class="flex-1 min-w-0">
                     <p class="text-gray-700 text-xs truncate">
-                      <span class="font-semibold text-gray-900">Sinta</span>
+                      <span class="text-body text-gray-900">Sinta</span>
                       mengunggah desain Figma
                     </p>
                   </div>
@@ -353,7 +349,7 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-gray-700 text-xs truncate">
-                      <span class="font-semibold text-gray-900">Deri</span>
+                      <span class="text-body text-gray-900">Deri</span>
                       bergabung sebagai Backend
                     </p>
                   </div>

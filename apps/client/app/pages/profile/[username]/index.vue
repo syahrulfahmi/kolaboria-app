@@ -8,10 +8,12 @@ definePageMeta({
 const route = useRoute()
 const username = route.params.username as string
 
-const { getProfileByUsername, getTalentProfile } = useProfile()
-const { getUserSkills } = useSkill()
-const { getUserTools } = useTool()
-const currentUser = useSupabaseUser()
+const { getProfileWithRelations } = useProfile()
+const { currentUserId, currentUsername } = useAuth()
+
+if (currentUsername.value && username === currentUsername.value) {
+  await navigateTo('/profile/me', { replace: true })
+}
 
 const profile = ref<any>(null)
 const skills = ref<any[]>([])
@@ -24,31 +26,25 @@ const stats = ref<any>({
 const talentProfile = ref<any>(null)
 
 const isOwner = computed(() => {
-  return (
-    currentUser.value &&
+  return !!(
+    currentUserId.value &&
     profile.value &&
-    currentUser.value.id === profile.value.id
+    currentUserId.value === profile.value.id
   )
 })
 
 const { data, pending, error } = await useAsyncData(
   `profile-${username}`,
   async () => {
-    const p = await getProfileByUsername(username)
-    if (!p)
+    const res = await getProfileWithRelations(username)
+    if (!res)
       throw createError({
         statusCode: 404,
         statusMessage: 'Profile not found',
         fatal: true
       })
 
-    const [s, t, tp] = await Promise.all([
-      getUserSkills(p.id),
-      getUserTools(p.id),
-      getTalentProfile(p.id)
-    ])
-
-    return { profile: p, skills: s, tools: t, talentProfile: tp }
+    return res
   }
 )
 

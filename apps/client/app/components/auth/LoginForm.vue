@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { getApiErrorMessage } from '../../utils/error'
 
 // ── Zod Schema ──────────────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -58,8 +59,8 @@ const handleLogin = async () => {
   try {
     await login(result.data.email, result.data.password)
     router.push('/home')
-  } catch (err: any) {
-    authError.value = err?.message || 'Email atau password salah. Coba lagi.'
+  } catch (err: unknown) {
+    authError.value = 'Email atau password salah. Coba lagi'
   } finally {
     isLoading.value = false
   }
@@ -88,11 +89,15 @@ const handleForgotPassword = async () => {
     addToast({
       variant: 'success',
       title: 'Email Terkirim',
-      message: 'Link reset password telah dikirim. Silakan cek kotak masuk email kamu.',
+      message:
+        'Link reset password telah dikirim. Silakan cek kotak masuk email kamu.',
       duration: 6000
     })
-  } catch (err: any) {
-    forgotEmailError.value = err?.message || 'Gagal mengirim link reset. Coba lagi.'
+  } catch (err: unknown) {
+    forgotEmailError.value = getApiErrorMessage(
+      err,
+      'Gagal mengirim link reset. Coba lagi.'
+    )
   } finally {
     isSendingReset.value = false
   }
@@ -178,14 +183,14 @@ const closeForgotModal = () => {
         v-model="showForgotModal"
         title="Reset Password"
         subtitle="Masukkan emailmu, kami akan kirimkan link untuk reset password."
-        primary-label="Kirim Link Reset"
+        primary-label="Kirim Link"
         secondary-label="Batal"
         :primary-loading="isSendingReset"
         :primary-disabled="isSendingReset"
         :persistent="isSendingReset"
         :show-close="!isSendingReset"
-        @primary="handleForgotPassword"
-        @secondary="closeForgotModal"
+        @on-primary-click="handleForgotPassword"
+        @on-secondary-click="closeForgotModal"
         @close="closeForgotModal"
       >
         <form

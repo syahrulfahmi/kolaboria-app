@@ -1,12 +1,8 @@
 <template>
   <div>
-    <p
-      class="text-caption font-semibold tracking-widest uppercase text-primary-500 mb-1"
-    >
-      Satu Langkah Lagi
-    </p>
-    <h2 class="text-heading text-secondary-500 mb-2">Lengkapi Profil Kamu</h2>
-    <p class="text-body text-neutral-500 mb-8">
+    <p class="font-title-3 text-primary-600 mb-1">Satu Langkah Lagi</p>
+    <h2 class="font-title-1 text-secondary-500 mb-2">Lengkapi Profil Kamu</h2>
+    <p class="font-body-1 text-secondary mb-8">
       Bantu kami mengenal kamu lebih baik agar kami bisa mencarikan proyek & tim
       yang tepat.
     </p>
@@ -18,7 +14,7 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'auth',
-  middleware: ['auth']
+  middleware: ['auth', 'onboarding-guard']
 })
 
 useHead({
@@ -29,17 +25,5 @@ useHead({
       content: 'Lengkapi profil Kolaboria kamu untuk memulai berkolaborasi.'
     }
   ]
-})
-
-// Guard: if already onboarded, redirect to /home
-const { checkOnboardingStatus } = useProfile()
-const router = useRouter()
-
-onMounted(async () => {
-  const isOnboarded = await checkOnboardingStatus()
-
-  if (isOnboarded) {
-    router.push('/home')
-  }
 })
 </script>

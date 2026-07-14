@@ -146,7 +146,7 @@ const handleSubmit = () => {
       <div class="sm:col-span-2 flex flex-col gap-1.5">
         <label
           for="description"
-          class="text-xs font-semibold tracking-wide uppercase text-neutral-500"
+          class="text-xs text-body tracking-wide uppercase text-neutral-500"
         >
           Deskripsi (Opsional)
         </label>
@@ -154,7 +154,7 @@ const handleSubmit = () => {
           id="description"
           v-model="description"
           rows="4"
-          placeholder="Ceritakan peran, tanggung jawab, dan pencapaian kamu di sini..."
+          placeholder="Ceritakan peran, tanggung jawab, dan pencapaian kamu di sini"
           class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-body text-neutral-900 transition-all duration-150 focus:border-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
         ></textarea>
       </div>

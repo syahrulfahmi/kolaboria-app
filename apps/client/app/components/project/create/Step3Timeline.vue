@@ -1,31 +1,33 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import type { CreateProjectPayload } from '~/types/project'
+import { useSkill } from '~/composables/useSkill'
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
 
-const techInput = ref('')
+const { tools: availableTools, loadTools, isLoadingTools } = useSkill()
 
-const addTech = () => {
-  if (techInput.value.trim()) {
-    if (!form.value.tech_stack) form.value.tech_stack = []
-    if (!form.value.tech_stack.includes(techInput.value.trim())) {
-      form.value.tech_stack.push(techInput.value.trim())
-    }
-    techInput.value = ''
+onMounted(async () => {
+  if (availableTools.value.length === 0) {
+    await loadTools()
   }
+})
+
+if (!form.value.tech_stack) {
+  form.value.tech_stack = []
 }
 
-const removeTech = (tech: string) => {
-  if (form.value.tech_stack) {
-    form.value.tech_stack = form.value.tech_stack.filter(t => t !== tech)
-  }
-}
+const techOptions = computed(() => {
+  return availableTools.value.map((t) => ({
+    label: t.name,
+    value: t.name
+  }))
+})
 
 // Convert YYYY-MM-DD string to Date object and back for MoleculeDatePicker
 const startDateObj = computed({
-  get: () => form.value.start_date ? new Date(form.value.start_date) : null,
-  set: (val: Date | null | { start: Date | null, end: Date | null }) => {
+  get: () => (form.value.start_date ? new Date(form.value.start_date) : null),
+  set: (val: Date | null | { start: Date | null; end: Date | null }) => {
     if (val instanceof Date) {
       const d = new Date(val)
       d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
@@ -37,8 +39,8 @@ const startDateObj = computed({
 })
 
 const deadlineObj = computed({
-  get: () => form.value.deadline ? new Date(form.value.deadline) : null,
-  set: (val: Date | null | { start: Date | null, end: Date | null }) => {
+  get: () => (form.value.deadline ? new Date(form.value.deadline) : null),
+  set: (val: Date | null | { start: Date | null; end: Date | null }) => {
     if (val instanceof Date) {
       const d = new Date(val)
       d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
@@ -51,93 +53,61 @@ const deadlineObj = computed({
 </script>
 
 <template>
-  <OrganismCard variant="elevated" class="animate-fade-in border-0 shadow-lg shadow-neutral-200/50">
+  <OrganismCard
+    variant="elevated"
+    class="animate-fade-in border-0 shadow-lg shadow-neutral-200/50"
+  >
     <div class="mb-6 border-b border-neutral-100 pb-5">
-      <h3 class="text-title text-secondary-900">3. Timeline & Komitmen</h3>
-      <p class="mt-1.5 text-body text-neutral-500">Atur jadwal, ekspektasi teknis, dan apa yang bisa didapatkan oleh kontributor saat bergabung di project ini.</p>
+      <h3 class="font-title-2">Timeline & Komitmen</h3>
+      <p class="mt-1 font-paragraph-2 text-secondary">
+        Atur jadwal, ekspektasi teknis, dan apa yang bisa didapatkan oleh
+        kontributor saat bergabung di project ini.
+      </p>
     </div>
 
     <div class="space-y-8">
       <!-- Section: Jadwal -->
-      <div class="space-y-5 rounded-2xl bg-neutral-50/50 p-5 ring-1 ring-inset ring-neutral-100">
-        <h4 class="text-sm font-semibold text-secondary-900">Perkiraan Waktu</h4>
+      <div
+        class="space-y-5 rounded-2xl bg-neutral-50/50 p-5 ring-1 ring-inset ring-neutral-100"
+      >
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-2">
-          <div class="flex flex-col gap-1">
-            <MoleculeDatePicker
-              v-model="startDateObj"
-              label="Tanggal Mulai"
-              placeholder="Pilih tanggal mulai"
-            />
-            <span class="text-[13px] text-neutral-500">Kapan project ini akan resmi dimulai?</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <MoleculeDatePicker
-              v-model="deadlineObj"
-              label="Deadline (Opsional)"
-              placeholder="Pilih deadline"
-            />
-            <span class="text-[13px] text-neutral-500">Kapan project ini ditargetkan selesai?</span>
-          </div>
+          <MoleculeDatePicker
+            v-model="startDateObj"
+            label="Tanggal Mulai"
+            placeholder="Pilih tanggal mulai"
+            hint="Kapan project ini akan resmi dimulai?"
+          />
+          <MoleculeDatePicker
+            v-model="deadlineObj"
+            label="Deadline (Opsional)"
+            placeholder="Pilih deadline"
+            hint="Kapan project ini ditargetkan selesai?"
+          />
         </div>
       </div>
 
       <!-- Section: Tech Stack -->
       <div class="space-y-5">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">
-            Tech Stack / Tools
-          </label>
-          <div class="flex gap-2 mt-1">
-            <input
-              v-model="techInput"
-              type="text"
-              placeholder="Cth: Vue.js, Figma, Node.js, dll"
-              class="h-11 flex-1 rounded-xl border border-neutral-300 bg-white px-4 text-body text-neutral-900 outline-none transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 hover:border-primary-300 shadow-sm"
-              @keydown.enter.prevent="addTech"
-            />
-            <AtomicButton type="button" variant="outline" @click="addTech" class="h-11 px-6 font-medium whitespace-nowrap bg-white hover:bg-neutral-50">
-              Tambah
-            </AtomicButton>
-          </div>
-          <span class="text-caption text-neutral-500">Sebutkan teknologi atau tools yang akan digunakan. Tekan Enter untuk menambahkan.</span>
-          
-          <div
-            v-if="form.tech_stack && form.tech_stack.length > 0"
-            class="mt-3 flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-50 border border-neutral-100 min-h-[3rem]"
-          >
-            <span
-              v-for="tech in form.tech_stack"
-              :key="tech"
-              class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-secondary-700 ring-1 ring-inset ring-neutral-200 shadow-sm"
-            >
-              {{ tech }}
-              <button
-                type="button"
-                class="group -mr-1.5 flex h-5 w-5 items-center justify-center rounded-md hover:bg-danger-50 transition-colors"
-                @click="removeTech(tech)"
-              >
-                <svg class="h-3.5 w-3.5 text-neutral-400 group-hover:text-danger-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                </svg>
-              </button>
-            </span>
-          </div>
-        </div>
+        <MoleculeDropdown
+          v-model="form.tech_stack"
+          label="Tech Stack / Tools"
+          placeholder="Cari dan pilih teknologi/tools..."
+          :options="techOptions"
+          searchable
+          multiple
+          :loading="isLoadingTools"
+          hint="Pilih teknologi, library, atau tools utama yang akan digunakan dalam project ini."
+        />
       </div>
 
       <!-- Section: Benefits -->
       <div class="space-y-5">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold tracking-wide uppercase text-neutral-500">
-            Kenapa Bergabung? (Value Proposition)
-          </label>
-          <textarea
-            v-model="form.why_join"
-            rows="4"
-            placeholder="Jelaskan apa keuntungan yang akan didapat kontributor. Misalnya: Pembagian hasil, portfolio, networking, atau sertifikat."
-            class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-body text-neutral-900 outline-none transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 resize-none hover:border-primary-300 shadow-sm"
-          />
-        </div>
+        <MoleculeTextarea
+          v-model="form.why_join"
+          label="Kenapa Bergabung? (Value Proposition)"
+          rows="4"
+          placeholder="Jelaskan apa keuntungan yang akan didapat kontributor. Misalnya: Pembagian hasil, portfolio, networking, atau sertifikat."
+        />
       </div>
     </div>
   </OrganismCard>

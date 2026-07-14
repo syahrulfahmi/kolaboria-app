@@ -14,14 +14,14 @@
         variant === 'dashed' ? 'border-dashed' : 'border-solid'
       ]"
     ></div>
-    
+
     <span
       v-if="label && orientation === 'horizontal'"
-      class="bg-white px-3 text-[11px] font-semibold tracking-widest uppercase text-neutral-400"
+      class="bg-white px-3 text-[11px] text-body tracking-widest uppercase text-neutral-400"
     >
       {{ label }}
     </span>
-    
+
     <div
       v-if="label && orientation === 'horizontal'"
       class="flex-grow border-neutral-200 opacity-75"

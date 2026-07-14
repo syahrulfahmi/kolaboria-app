@@ -3,37 +3,42 @@
     <Transition name="modal-fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 overflow-y-auto"
+        class="fixed inset-0 z-50 overflow-hidden"
         aria-labelledby="modal-title"
         role="dialog"
         aria-modal="true"
       >
-        <!-- Backdrop -->
+        <!-- Backdrop: no blur, solid dark overlay -->
         <div
-          class="fixed inset-0 bg-secondary-900/70 transition-opacity backdrop-blur-sm"
+          class="fixed inset-0 bg-neutral-950/60 transition-opacity"
           @click="handleBackdropClick"
         ></div>
 
+        <!-- On mobile: align to bottom; on desktop: center -->
         <div
-          class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0"
+          class="flex min-h-screen items-end justify-center sm:items-center p-0 sm:p-4 text-center"
         >
           <div
-            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl w-full sm:my-8"
+            class="modal-panel relative flex flex-col transform overflow-hidden rounded-t-2xl sm:rounded-xl bg-white text-left shadow-xl w-full sm:my-8"
             :class="sizeClass"
             @click.stop
           >
+            <!-- Mobile drag handle -->
+            <div
+              class="mx-auto w-12 h-1.5 bg-neutral-200 rounded-full mt-3 mb-1 shrink-0 sm:hidden"
+            />
             <!-- Header -->
             <div class="py-3 px-5 flex items-start justify-between gap-4">
               <div class="w-full">
                 <h3
-                  class="text-lg font-semibold text-secondary-900 leading-snug"
+                  class="font-title-3 leading-snug"
                   id="modal-title"
                   v-if="title"
                 >
                   {{ title }}
                 </h3>
                 <div
-                  class="mt-1 text-sm text-neutral-500"
+                  class="font-paragraph-2 text-secondary mt-1"
                   v-if="subtitle || $slots.description"
                 >
                   <slot name="description">
@@ -65,10 +70,10 @@
               </button>
             </div>
 
-            <hr class="border-neutral-200" />
+            <hr class="border-neutral-200" v-if="showClose" />
 
             <!-- Body -->
-            <div class="p-5 max-h-[60vh] overflow-y-auto">
+            <div class="p-5 max-h-[60vh] sm:max-h-[60vh] overflow-y-auto">
               <slot></slot>
             </div>
 
@@ -87,7 +92,7 @@
                   <!-- Secondary Action -->
                   <AtomicButton
                     v-if="secondaryLabel"
-                    @click="$emit('secondary')"
+                    @click="$emit('onSecondaryClick')"
                     variant="outline"
                     class="w-full sm:w-auto"
                   >
@@ -97,7 +102,7 @@
                   <!-- Primary Action -->
                   <AtomicButton
                     v-if="primaryLabel"
-                    @click="$emit('primary')"
+                    @click="$emit('onPrimaryClick')"
                     :variant="primaryVariant"
                     :loading="primaryLoading"
                     :disabled="primaryLoading || primaryDisabled"
@@ -169,7 +174,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'primary', 'secondary'])
+const emit = defineEmits(['update:modelValue', 'close', 'onPrimaryClick', 'onSecondaryClick'])
 
 const sizeClass = computed(() => {
   switch (props.size) {
@@ -192,7 +197,7 @@ const close = () => {
 }
 
 const handleBackdropClick = () => {
-  if (!props.persistent) {
+  if (!props.persistent && props.showClose) {
     close()
   }
 }
@@ -220,23 +225,38 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Backdrop fade */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: all 0.2s ease;
+  transition: opacity 0.25s ease;
 }
-
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
 }
 
-.modal-fade-enter-active .relative,
-.modal-fade-leave-active .relative {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* Mobile (default): slide up from bottom */
+.modal-fade-enter-active .modal-panel,
+.modal-fade-leave-active .modal-panel {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-fade-enter-from .modal-panel,
+.modal-fade-leave-to .modal-panel {
+  transform: translateY(100%);
 }
 
-.modal-fade-enter-from .relative,
-.modal-fade-leave-to .relative {
-  transform: scale(0.95) translateY(10px);
+/* Desktop (sm+): zoom + slight translateY */
+@media (min-width: 640px) {
+  .modal-fade-enter-active .modal-panel,
+  .modal-fade-leave-active .modal-panel {
+    transition:
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s ease;
+  }
+  .modal-fade-enter-from .modal-panel,
+  .modal-fade-leave-to .modal-panel {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
 }
 </style>

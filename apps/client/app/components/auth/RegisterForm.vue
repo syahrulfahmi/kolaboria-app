@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { getApiErrorMessage } from '../../utils/error'
 
 // ── Zod Schema ──────────────────────────────────────────────────────────────
 const registerSchema = z
@@ -65,30 +66,29 @@ const handleRegister = async () => {
   // Submit
   isLoading.value = true
   try {
-    const data = await register(
+    await register(
       result.data.email,
       result.data.password,
       result.data.fullName
     )
-    
-    if (data?.session) {
-      addToast({
-        variant: 'success',
-        title: 'Pendaftaran Berhasil',
-        message: 'Selamat datang! Silakan lengkapi profil Anda.'
-      })
-      router.push('/after-register')
+
+    addToast({
+      variant: 'info',
+      title: 'Verifikasi Email',
+      message:
+        'Pendaftaran berhasil! Silakan cek kotak masuk email Anda untuk verifikasi akun sebelum login.',
+      duration: 8000
+    })
+    router.push({
+      path: '/verify-email-notice',
+      query: { email: form.value.email }
+    })
+  } catch (err: unknown) {
+    if (getApiErrorMessage(err) === 'email already registered') {
+      authError.value = 'Email sudah terdaftar'
     } else {
-      addToast({
-        variant: 'info',
-        title: 'Verifikasi Email',
-        message: 'Silakan cek kotak masuk email Anda untuk verifikasi akun sebelum login.',
-        duration: 8000
-      })
-      router.push('/login')
+      authError.value = getApiErrorMessage(err)
     }
-  } catch (err: any) {
-    authError.value = err?.message || 'Gagal mendaftar. Silakan coba lagi.'
   } finally {
     isLoading.value = false
   }

@@ -29,32 +29,12 @@
       <div
         class="relative z-10 p-8 md:p-12 text-white flex flex-col items-start pl-8 md:pl-14 border-l-[3px] border-white/20 ml-4 md:ml-8 my-8"
       >
-        <p
-          class="font-label-sm text-white/80 mb-3 tracking-[0.2em] uppercase text-xs font-semibold flex items-center gap-2"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-          Dashboard Aplikasi
-        </p>
         <h1
           class="text-3xl md:text-[2.75rem] font-black mb-5 leading-[1.15] tracking-tight drop-shadow-sm"
         >
           Lamaran Saya
         </h1>
-        <p
-          class="font-paragraph-lg text-white/80 max-w-2xl text-[1.1rem] leading-[1.7] mb-0"
-        >
+        <p class="font-paragraph-1 text-white max-w-2xl leading-[1.7] mb-0">
           Pantau dan kelola seluruh perjalanan aplikasi proyekmu dengan mudah di
           satu tempat.
         </p>
@@ -84,18 +64,14 @@
             <div
               class="absolute right-0 top-0 w-24 h-24 bg-gray-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
             ></div>
-            <h3
-              class="font-label-sm text-gray-400 uppercase tracking-wider mb-2 relative z-10 text-xs font-bold"
-            >
+            <h3 class="font-body-1 tracking-wider mb-2 relative z-10">
               Total Terkirim
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-gray-900 leading-none">{{
-                userStats.total
-              }}</span>
-              <span class="text-sm font-semibold text-gray-500 mb-1"
-                >Lamaran</span
+              <span class="text-4xl font-black text-gray-900 leading-none">
+                {{ userStats.total }}</span
               >
+              <span class="font-label-1 text-gray-500 mb-1">Lamaran</span>
             </div>
           </div>
 
@@ -106,18 +82,14 @@
             <div
               class="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
             ></div>
-            <h3
-              class="font-label-sm text-amber-500/70 uppercase tracking-wider mb-2 relative z-10 text-xs font-bold"
-            >
+            <h3 class="font-body-1 text-amber-500/70 mb-2 relative z-10">
               Menunggu Review
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-amber-600 leading-none">{{
-                userStats.pending
-              }}</span>
-              <span class="text-sm font-semibold text-amber-500 mb-1"
-                >Proses</span
-              >
+              <span class="text-4xl font-black text-amber-600 leading-none">
+                {{ userStats.pending }}
+              </span>
+              <span class="font-label-1 text-amber-500 mb-1">Proses</span>
             </div>
           </div>
 
@@ -128,18 +100,14 @@
             <div
               class="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-full translate-x-1/3 -translate-y-1/3 transition-transform group-hover:scale-110"
             ></div>
-            <h3
-              class="font-label-sm text-emerald-500/70 uppercase tracking-wider mb-2 relative z-10 text-xs font-bold"
-            >
+            <h3 class="font-body-1 text-emerald-500/70 mb-2 relative z-10">
               Diterima
             </h3>
             <div class="flex items-end gap-3 relative z-10">
-              <span class="text-4xl font-black text-emerald-600 leading-none">{{
-                userStats.accepted
-              }}</span>
-              <span class="text-sm font-semibold text-emerald-500 mb-1"
-                >Sukses</span
-              >
+              <span class="text-4xl font-black text-emerald-600 leading-none">
+                {{ userStats.accepted }}
+              </span>
+              <span class="font-label-1 text-emerald-500 mb-1"> Sukses </span>
             </div>
           </div>
         </div>
@@ -189,28 +157,23 @@
 
                     <div class="min-w-0">
                       <h3
-                        class="text-lg font-bold text-gray-900 mb-1 truncate group-hover/timeline:text-primary-600 transition-colors"
+                        class="font-title-2 text-gray-900 mb-1 truncate group-hover/timeline:text-primary-600 transition-colors"
                       >
                         {{ app.projects?.title ?? 'Project Tidak Tersedia' }}
                       </h3>
-                      <p
-                        class="text-[0.65rem] font-bold tracking-widest uppercase text-gray-400 mt-1.5"
-                      >
+                      <p class="font-label-2 text-gray-400 mt-1.5">
                         Diajukan {{ relativeDate(app.applied_at) }}
                       </p>
                     </div>
                   </div>
 
                   <div class="shrink-0 flex items-center">
-                      <span
+                    <AtomicTag
                       v-if="statusConfig[app.status]"
-                      :class="[
-                        'inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset uppercase tracking-wide',
-                        statusConfig[app.status]?.classes
-                      ]"
+                      :variant="getTagVariant(app.status)"
                     >
                       {{ statusConfig[app.status]?.label }}
-                    </span>
+                    </AtomicTag>
                   </div>
                 </div>
 
@@ -218,12 +181,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <!-- Motivation -->
                   <div>
-                    <p
-                      class="font-label-sm text-gray-400 uppercase tracking-widest mb-2 text-[10px] font-bold"
-                    >
-                      Motivasi
-                    </p>
-                    <p class="text-sm text-gray-600 italic line-clamp-2">
+                    <p class="font-label-1 mb-2">Motivasi</p>
+                    <p class="font-body-2 text-secondary italic line-clamp-2">
                       "{{
                         app.motivation.length > 120
                           ? app.motivation.substring(0, 120) + '...'
@@ -233,12 +192,8 @@
                   </div>
                   <!-- Availability -->
                   <div>
-                    <p
-                      class="font-label-sm text-gray-400 uppercase tracking-widest mb-2 text-[10px] font-bold"
-                    >
-                      Ketersediaan
-                    </p>
-                    <p class="text-sm font-semibold text-gray-700">
+                    <p class="font-label-1 mb-2">Ketersediaan</p>
+                    <p class="font-body-2 text-secondary">
                       {{
                         availabilityLabel[app.availability] || app.availability
                       }}
@@ -255,7 +210,7 @@
                   "
                   class="mb-6 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
-                  <div class="flex gap-3">
+                  <div class="flex gap-3 items-center">
                     <svg
                       class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"
                       fill="currentColor"
@@ -268,11 +223,11 @@
                       />
                     </svg>
                     <div>
-                      <h4 class="text-sm font-bold text-emerald-800 mb-0.5">
+                      <h4 class="font-label-1 text-emerald-800 mb-1">
                         Kamu bagian dari tim ini!
                       </h4>
                       <p
-                        class="text-xs font-medium text-emerald-600/90 leading-relaxed"
+                        class="font-body-2 text-emerald-600/90 leading-relaxed"
                       >
                         Project sedang berjalan. Buka workspace untuk melihat
                         task dan berkolaborasi.
@@ -286,7 +241,7 @@
                   v-else-if="
                     app.status === 'accepted' && app.projects?.status === 'open'
                   "
-                  class="mb-6 bg-amber-50/60 border border-amber-100 rounded-xl p-4 flex gap-3"
+                  class="items-center mb-6 bg-amber-50/60 border border-amber-100 rounded-xl p-4 flex gap-3"
                 >
                   <svg
                     class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"
@@ -302,12 +257,10 @@
                     />
                   </svg>
                   <div>
-                    <h4 class="text-sm font-bold text-amber-800 mb-0.5">
-                      Lamaran Diterima — Menunggu Project Dimulai
+                    <h4 class="font-label-1 text-amber-800 mb-1">
+                      Lamaran Diterima
                     </h4>
-                    <p
-                      class="text-xs font-medium text-amber-700/80 leading-relaxed"
-                    >
+                    <p class="font-body-2 text-amber-700/80 leading-relaxed">
                       Kamu sudah bergabung sebagai collaborator. Workspace akan
                       aktif setelah owner memulai project.
                     </p>
@@ -317,7 +270,7 @@
                 <!-- Accepted + status lain (completed/archived) -->
                 <div
                   v-else-if="app.status === 'accepted'"
-                  class="mb-6 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex gap-3"
+                  class="items-center mb-6 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 flex gap-3"
                 >
                   <svg
                     class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"
@@ -331,12 +284,10 @@
                     />
                   </svg>
                   <div>
-                    <h4 class="text-sm font-bold text-emerald-800 mb-0.5">
+                    <h4 class="font-label-1 text-emerald-800 mb-1">
                       Lamaran Diterima!
                     </h4>
-                    <p
-                      class="text-xs font-medium text-emerald-600/90 leading-relaxed"
-                    >
+                    <p class="font-body-2 text-emerald-600/90 leading-relaxed">
                       Keren, kamu berhasil masuk ke alur kolaborasi proyek ini!
                     </p>
                   </div>
@@ -347,12 +298,8 @@
                   v-if="app.reviewer_note && app.status !== 'accepted'"
                   class="mb-6 bg-gray-50 border border-gray-100 rounded-xl p-4"
                 >
-                  <h4
-                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5"
-                  >
-                    Catatan Reviewer
-                  </h4>
-                  <p class="text-sm font-medium text-gray-700 leading-relaxed">
+                  <h4 class="font-label-1 mb-2">Catatan Reviewer</h4>
+                  <p class="font-body-2 text-secondary">
                     {{ app.reviewer_note }}
                   </p>
                 </div>
@@ -369,22 +316,7 @@
                     :to="`/projects/${app.projects.slug}/workspace`"
                   >
                     <AtomicButton variant="primary" size="sm" class="font-bold">
-                      <span class="flex items-center gap-1.5">
-                        <svg
-                          class="w-3.5 h-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10m0-10a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2"
-                          />
-                        </svg>
-                        Open Workspace
-                      </span>
+                      Buka Workspace
                     </AtomicButton>
                   </NuxtLink>
 
@@ -592,19 +524,46 @@ const relativeDate = (dateString: string) => {
 
 // Actions
 const isWithdrawing = ref(false)
+const { show: showPopup } = usePopup()
+const toast = useToast()
 
-const handleWithdraw = async (applicationId: string) => {
-  if (!confirm('Yakin ingin membatalkan lamaran ini?')) return
-
-  isWithdrawing.value = true
-  try {
-    await withdrawApplication(applicationId)
-    await refresh()
-  } catch (err: any) {
-    alert(err?.message || 'Gagal membatalkan lamaran.')
-  } finally {
-    isWithdrawing.value = false
+const getTagVariant = (
+  status: string
+): 'default' | 'primary' | 'success' | 'warning' | 'danger' => {
+  switch (status) {
+    case 'accepted':
+      return 'success'
+    case 'pending':
+      return 'warning'
+    case 'rejected':
+      return 'danger'
+    case 'withdrawn':
+    default:
+      return 'default'
   }
+}
+
+const handleWithdraw = (applicationId: string) => {
+  showPopup({
+    title: 'Tarik Lamaran?',
+    description:
+      'Apakah Anda yakin ingin membatalkan lamaran ini? Tindakan ini tidak dapat dibatalkan.',
+    type: 'danger',
+    positiveLabel: 'Ya, Tarik Lamaran',
+    negativeLabel: 'Batal',
+    onPositive: async () => {
+      isWithdrawing.value = true
+      try {
+        await withdrawApplication(applicationId)
+        toast.success('Lamaran berhasil ditarik.')
+        await refresh()
+      } catch (err: any) {
+        toast.error(err?.message || 'Gagal membatalkan lamaran.')
+      } finally {
+        isWithdrawing.value = false
+      }
+    }
+  })
 }
 </script>
 

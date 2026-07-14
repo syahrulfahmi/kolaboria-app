@@ -1,64 +1,73 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
-  show: boolean;
-  action: "open" | "archived" | "completed" | "in_progress";
-  projectTitle: string;
-  hasActiveApplicants?: boolean;
-}>();
+  show: boolean
+  action: 'open' | 'archived' | 'completed' | 'in_progress'
+  projectTitle: string
+  hasActiveApplicants?: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: "close"): void;
-  (e: "confirm"): void;
-}>();
+  (e: 'close'): void
+  (e: 'confirm'): void
+}>()
 
 const modalContent = computed(() => {
   switch (props.action) {
-    case "open":
+    case 'open':
       return {
-        title: "Publikasikan Project?",
+        title: 'Publikasikan Project?',
         message:
-          "Project akan langsung terlihat publik dan bisa dilamar. Pastikan semua informasi sudah lengkap.",
-        confirmText: "Ya, Publikasikan",
-        confirmVariant: "primary" as const,
-      };
-    case "in_progress":
+          'Project akan langsung terlihat publik dan bisa dilamar. Pastikan semua informasi sudah lengkap.',
+        confirmText: 'Ya, Publikasikan',
+        confirmVariant: 'primary' as const
+      }
+    case 'in_progress':
       return {
-        title: "Tandai Sedang Berjalan?",
-        message: "Project tidak akan menerima pelamar baru setelah ini.",
-        confirmText: "Ya, Tandai Berjalan",
-        confirmVariant: "primary" as const,
-      };
-    case "completed":
+        title: 'Tandai Sedang Berjalan?',
+        message: 'Project tidak akan menerima pelamar baru setelah ini.',
+        confirmText: 'Ya, Tandai Berjalan',
+        confirmVariant: 'primary' as const
+      }
+    case 'completed':
       return {
-        title: "Tandai Selesai?",
-        message: "Project akan ditutup. Aksi ini tidak bisa dibatalkan.",
-        confirmText: "Ya, Tandai Selesai",
-        confirmVariant: "primary" as const,
-      };
-    case "archived":
+        title: 'Tandai Selesai?',
+        message: 'Project akan ditutup. Aksi ini tidak bisa dibatalkan.',
+        confirmText: 'Ya, Tandai Selesai',
+        confirmVariant: 'primary' as const
+      }
+    case 'archived':
       return {
-        title: "Arsipkan Project?",
+        title: 'Arsipkan Project?',
         message: props.hasActiveApplicants
-          ? "Project akan disembunyikan. Peringatan: Ada pelamar aktif yang lamarannya akan dibatalkan."
-          : "Project akan disembunyikan dari publik. Kamu tetap bisa melihatnya di daftar project.",
-        confirmText: "Ya, Arsipkan",
-        confirmVariant: "danger" as const,
-      };
+          ? 'Project akan disembunyikan. Peringatan: Ada pelamar aktif yang lamarannya akan dibatalkan.'
+          : 'Project akan disembunyikan dari publik. Kamu tetap bisa melihatnya di daftar project.',
+        confirmText: 'Ya, Arsipkan',
+        confirmVariant: 'danger' as const
+      }
     default:
       return {
-        title: "Konfirmasi",
-        message: "Apakah kamu yakin?",
-        confirmText: "Konfirmasi",
-        confirmVariant: "primary" as const,
-      };
+        title: 'Konfirmasi',
+        message: 'Apakah kamu yakin?',
+        confirmText: 'Konfirmasi',
+        confirmVariant: 'primary' as const
+      }
   }
-});
+})
 </script>
 
 <template>
-  <OrganismModal :modelValue="show" @update:modelValue="emit('close')">
+  <OrganismModal
+    :modelValue="show"
+    @update:modelValue="emit('close')"
+    :show-close="false"
+    secondary-label="Batal"
+    :primary-label="modalContent.confirmText"
+    :primary-variant="modalContent.confirmVariant"
+    @on-secondary-click="emit('close')"
+    @on-primary-click="emit('confirm')"
+  >
     <div class="text-center">
       <!-- Icon -->
       <div
@@ -113,29 +122,17 @@ const modalContent = computed(() => {
         </svg>
       </div>
 
-      <h3 class="text-title text-secondary-900">{{ modalContent.title }}</h3>
+      <h3 class="font-body-1">{{ modalContent.title }}</h3>
 
-      <p class="mt-2 text-body text-neutral-600">
+      <p class="mt-2 font-paragraph-2 text-secondary">
         {{ modalContent.message }}
       </p>
 
       <div class="mt-4 rounded-lg bg-neutral-50 p-3">
-        <p class="text-caption font-medium text-neutral-500 line-clamp-1">
+        <p class="font-body-2 line-clamp-1">
           Project:
-          <span class="font-bold text-secondary-900">{{ projectTitle }}</span>
+          <span class="text-secondary-900">{{ projectTitle }}</span>
         </p>
-      </div>
-
-      <div class="mt-8 flex items-center justify-end gap-3">
-        <AtomicButton variant="outline" @click="emit('close')">
-          Batal
-        </AtomicButton>
-        <AtomicButton
-          :variant="modalContent.confirmVariant"
-          @click="emit('confirm')"
-        >
-          {{ modalContent.confirmText }}
-        </AtomicButton>
       </div>
     </div>
   </OrganismModal>

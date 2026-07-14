@@ -9,7 +9,7 @@ const handleGoogleLogin = async () => {
   isLoading.value = true
   errorMessage.value = ''
   try {
-    await loginWithGoogle()
+    loginWithGoogle()
   } catch (err: any) {
     errorMessage.value = err?.message || 'Gagal masuk dengan Google.'
   } finally {

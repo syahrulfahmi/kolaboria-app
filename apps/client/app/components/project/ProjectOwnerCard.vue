@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import type { Project } from "../../types/project";
+import type { Project } from '../../types/project'
 
 const props = defineProps<{
-  project: Project;
-  pendingApplicantsCount?: number;
-}>();
+  project: Project
+  pendingApplicantsCount?: number
+}>()
 
-const { startProject } = useProjects();
-const toast = useToast();
-const starting = ref(false);
+const { startProject } = useProjects()
+const toast = useToast()
+const starting = ref(false)
 
 const openSlots = computed(() => {
   const memberCount =
-    props.project.project_members?.filter((m) => m.role === "contributor")
-      .length ?? 0;
-  return Math.max(0, props.project.max_slots - memberCount);
-});
+    props.project.project_members?.filter((m) => m.role === 'contributor')
+      .length ?? 0
+  return Math.max(0, props.project.max_slots - memberCount)
+})
 
 const memberCount = computed(() => {
   return (
-    props.project.project_members?.filter((m) => m.role === "contributor")
+    props.project.project_members?.filter((m) => m.role === 'contributor')
       .length ?? 0
-  );
-});
+  )
+})
 
-const isFull = computed(() => memberCount.value >= props.project.max_slots);
+const isFull = computed(() => memberCount.value >= props.project.max_slots)
 
 const skills = computed(
   () =>
@@ -32,39 +32,67 @@ const skills = computed(
       ?.map((ps) => ps.skill_tags?.name)
       .filter(Boolean)
       .slice(0, 3) ?? []
-);
+)
 
 const extraSkillCount = computed(() => {
-  const total = props.project.project_skills?.length ?? 0;
-  return total > 3 ? total - 3 : 0;
-});
+  const total = props.project.project_skills?.length ?? 0
+  return total > 3 ? total - 3 : 0
+})
 
 const typeLabel: Record<string, string> = {
-  web_app: "Web App",
-  mobile_app: "Mobile App",
-  ui_ux: "UI/UX",
-  backend: "Backend",
-  data_analytics: "Data & Analytics",
-  devops: "DevOps",
-  other: "Lainnya",
-};
+  web_app: 'Web App',
+  mobile_app: 'Mobile App',
+  ui_ux: 'UI/UX',
+  backend: 'Backend',
+  data_analytics: 'Data & Analytics',
+  devops: 'DevOps',
+  other: 'Lainnya'
+}
 
-const handleStartProject = async () => {
-  if (starting.value) return;
-  starting.value = true;
-
-  try {
-    await startProject(props.project.id);
-    toast.success("Project berhasil dimulai.");
-    await navigateTo(`/projects/${props.project.slug}/workspace`);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Gagal memulai project.";
-    toast.error(message);
-  } finally {
-    starting.value = false;
+const statusConfig = computed(() => {
+  const configs: Record<
+    string,
+    {
+      label: string
+      variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'
+    }
+  > = {
+    draft: { label: 'Draft', variant: 'default' },
+    open: { label: 'Terbuka', variant: 'primary' },
+    in_progress: { label: 'Sedang Berjalan', variant: 'warning' },
+    completed: { label: 'Selesai', variant: 'success' },
+    archived: { label: 'Diarsipkan', variant: 'danger' }
   }
-};
+  return configs[props.project.status] ?? configs.draft
+})
+
+const { show: showPopup } = usePopup()
+
+const handleStartProject = () => {
+  if (starting.value) return
+
+  showPopup({
+    title: 'Mulai Project?',
+    description: `Project "<b>${props.project.title}</b>" akan segera dimulai. Project tidak akan menerima pelamar baru setelah status berubah menjadi Sedang Berjalan.`,
+    type: 'warning',
+    positiveLabel: 'Ya, Mulai Project',
+    negativeLabel: 'Batal',
+    onPositive: async () => {
+      starting.value = true
+      try {
+        await startProject(props.project.id)
+        toast.success('Project berhasil dimulai.')
+        await navigateTo(`/projects/${props.project.slug}/workspace`)
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Gagal memulai project.'
+        toast.error(message)
+      } finally {
+        starting.value = false
+      }
+    }
+  })
+}
 </script>
 
 <template>
@@ -74,38 +102,42 @@ const handleStartProject = async () => {
     <!-- Header -->
     <div>
       <div class="mb-4 flex items-center justify-between gap-3">
-        <ProjectStatusBadge :status="project.status" size="sm" />
-        <span class="text-caption font-semibold uppercase text-neutral-400">
-          {{ typeLabel[project.type] ?? "Lainnya" }}
+        <AtomicTag :variant="statusConfig?.variant">
+          {{ statusConfig?.label }}
+        </AtomicTag>
+
+        <span class="font-label-2 text-secondary">
+          {{ typeLabel[project.type] ?? 'Lainnya' }}
         </span>
       </div>
 
       <NuxtLink
         :to="`/projects/${project.slug}`"
-        class="text-title text-secondary-900 transition-colors hover:text-primary-700 line-clamp-2"
+        class="font-body-1 text-secondary-900 transition-colors hover:text-primary-700 line-clamp-2"
       >
         {{ project.title }}
       </NuxtLink>
 
-      <p class="mt-2 text-body text-neutral-600 line-clamp-2">
+      <p class="mt-2 font-paragraph-2 text-secondary line-clamp-2">
         {{ project.summary }}
       </p>
 
       <!-- Skills -->
       <div v-if="skills.length > 0" class="mt-4 flex flex-wrap gap-2">
-        <span
+        <AtomicTagCategory
           v-for="skill in skills"
           :key="skill"
-          class="rounded-md bg-neutral-50 px-2 py-1 text-caption text-neutral-600 ring-1 ring-inset ring-neutral-200"
+          variant="default"
         >
           {{ skill }}
-        </span>
-        <span
+        </AtomicTagCategory>
+        <AtomicTagCategory
           v-if="extraSkillCount > 0"
-          class="rounded-md bg-neutral-50 px-2 py-1 text-caption text-neutral-500 ring-1 ring-inset ring-neutral-200"
+          variant="default"
+          class="!text-neutral-500"
         >
           +{{ extraSkillCount }}
-        </span>
+        </AtomicTagCategory>
       </div>
     </div>
 
@@ -114,43 +146,33 @@ const handleStartProject = async () => {
       <div class="mb-5 grid grid-cols-2 gap-4">
         <!-- Applicants Count -->
         <div class="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-          <p
-            class="text-[10px] font-semibold uppercase tracking-wider text-neutral-400"
-          >
-            Pelamar Baru
-          </p>
+          <p class="font-label-1">Pelamar Baru</p>
           <div class="mt-1 flex items-baseline gap-1.5">
             <span
-              class="text-xl font-bold"
+              class="font-body-1"
               :class="
                 pendingApplicantsCount && pendingApplicantsCount > 0
                   ? 'text-primary-600'
-                  : 'text-secondary-900'
+                  : 'text-primary'
               "
             >
               {{ pendingApplicantsCount || 0 }}
             </span>
-            <span class="text-caption font-medium text-neutral-500">Orang</span>
+            <span class="font-body-2">Orang</span>
           </div>
         </div>
 
         <!-- Slot Progress -->
         <div class="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-          <p
-            class="text-[10px] font-semibold uppercase tracking-wider text-neutral-400"
-          >
-            Slot Terisi
-          </p>
+          <p class="font-label-1">Slot Terisi</p>
           <div class="mt-1 flex items-baseline gap-1.5">
             <span
-              class="text-xl font-bold"
-              :class="isFull ? 'text-success-600' : 'text-secondary-900'"
+              class="font-body-1"
+              :class="isFull ? 'text-success-600' : 'text-primary'"
             >
               {{ memberCount }}
             </span>
-            <span class="text-caption font-medium text-neutral-500"
-              >/ {{ project.max_slots }}</span
-            >
+            <span class="font-body-2">/ {{ project.max_slots }}</span>
           </div>
         </div>
       </div>

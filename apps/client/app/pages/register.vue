@@ -9,11 +9,11 @@
 
     <AuthRegisterForm />
 
-    <div class="mt-6 text-center text-body text-gray-600">
+    <div class="mt-6 text-center font-body-1">
       Sudah punya akun?
       <NuxtLink
         to="/login"
-        class="text-body text-primary-600 hover:text-primary-700"
+        class="font-body-1 text-primary-600 hover:text-primary-700"
       >
         Masuk di sini
       </NuxtLink>
@@ -25,7 +25,7 @@
         <div class="w-full border-t border-secondary-100"></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="px-4 font-label-sm bg-white text-secondary-300"
+        <span class="px-4 font-label-2 bg-white text-secondary"
           >Atau masuk pakai</span
         >
       </div>

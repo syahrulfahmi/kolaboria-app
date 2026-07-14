@@ -2,6 +2,7 @@
 defineProps<{
   name: string
   isVerified: boolean
+  avatar?: string | null
   headline?: string | null
   completionScore?: number
   primarySkillName?: string | null
@@ -26,15 +27,16 @@ defineProps<{
         </AtomicTag>
 
         <div class="flex items-center gap-4 fade-in-up">
-          <div
-            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-primary-100 text-title font-bold text-primary-700 shadow-sm"
-          >
-            {{ name.charAt(0).toUpperCase() }}
-          </div>
-          <h1 class="text-heading text-secondary-900">Halo, {{ name }}</h1>
+          <AtomicAvatar
+            :src="avatar"
+            :name="name"
+            size="lg"
+            :is-verified="isVerified"
+          />
+          <h1 class="font-title-1 text-secondary-900">Halo, {{ name }}</h1>
         </div>
 
-        <p class="mt-4 text-body text-neutral-600">
+        <p class="mt-4 font-body-1 text-neutral-600">
           {{
             isVerified
               ? 'Profilmu sudah bisa dipakai untuk mulai mencari kolaborasi yang relevan.'
@@ -47,20 +49,16 @@ defineProps<{
         <div
           class="rounded-xl border border-primary-100 bg-white/80 p-4 backdrop-blur-sm"
         >
-          <p class="text-caption font-semibold uppercase text-primary-700">
-            Readiness
-          </p>
-          <p class="mt-1 text-title text-primary-900">
+          <p class="font-body-1 text-primary-700">Readiness</p>
+          <p class="mt-1 font-label-1 text-primary-900">
             {{ completionScore ?? 0 }}%
           </p>
         </div>
         <div
           class="rounded-xl border border-neutral-200 bg-white/80 p-4 backdrop-blur-sm"
         >
-          <p class="text-caption font-semibold uppercase text-neutral-600">
-            Fokus
-          </p>
-          <p class="mt-1 truncate text-title text-secondary-900">
+          <p class="font-body-1">Fokus</p>
+          <p class="mt-1 truncate font-label-1 text-secondary">
             {{ primarySkillName || headline || 'Belum diatur' }}
           </p>
         </div>

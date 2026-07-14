@@ -1,24 +1,24 @@
 <template>
   <div class="flex flex-col gap-1.5">
     <!-- Label -->
-    <label v-if="label" class="text-xs font-semibold tracking-wide uppercase text-neutral-500">
+    <label v-if="label" class="font-label-1">
       {{ label }}
-      <span v-if="required" class="text-primary-400 text-base leading-none">*</span>
+      <span v-if="required" class="text-danger-500 leading-none">*</span>
     </label>
 
     <!-- Input Trigger -->
-    <div class="relative" ref="containerRef">
+    <div class="relative" ref="triggerRef">
       <button
         type="button"
-        class="flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-sm text-left transition-all duration-200 focus:outline-none"
+        class="flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm text-left transition-all duration-150 focus:outline-none"
         :class="[
           disabled
             ? 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed'
             : error
-              ? 'border-danger-400 bg-white text-neutral-800 focus:ring-2 focus:ring-danger-200'
+              ? 'border-red-300 focus:border-red-500 bg-white text-neutral-800'
               : isOpen
-                ? 'border-primary-400 bg-white ring-2 ring-primary-200 shadow-md text-neutral-800'
-                : 'border-neutral-300 bg-white text-neutral-800 hover:border-primary-300 shadow-sm'
+                ? 'border-primary-500 bg-white text-neutral-800'
+                : 'border-neutral-300 bg-white text-neutral-800 hover:border-primary-300'
         ]"
         :disabled="disabled"
         @click="toggleCalendar"
@@ -30,7 +30,7 @@
         <!-- Calendar icon -->
         <svg
           class="h-5 w-5 text-neutral-400 shrink-0 transition-colors"
-          :class="{ 'text-primary-400': isOpen }"
+          :class="{ 'text-primary-500': isOpen }"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -45,105 +45,151 @@
         </svg>
       </button>
 
-      <!-- Calendar Panel -->
-      <transition
-        enter-active-class="transition-all ease-out duration-200"
-        enter-from-class="opacity-0 -translate-y-2"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all ease-in duration-150"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 -translate-y-2"
-      >
-        <div
-          v-if="isOpen"
-          class="absolute left-0 z-20 mt-2 w-full min-w-[300px] rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/5 focus:outline-none"
+      <!-- Calendar Panel (Teleported to body) -->
+      <Teleport to="body">
+        <transition
+          enter-active-class="transition-all ease-out duration-200"
+          :enter-from-class="
+            openUpward
+              ? 'opacity-0 translate-y-2'
+              : 'opacity-0 -translate-y-2'
+          "
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all ease-in duration-150"
+          leave-from-class="opacity-100 translate-y-0"
+          :leave-to-class="
+            openUpward
+              ? 'opacity-0 translate-y-2'
+              : 'opacity-0 -translate-y-2'
+          "
         >
-          <!-- Calendar Header: Month/Year Navigation -->
-          <div class="flex items-center justify-between mb-4">
-            <button
-              type="button"
-              class="rounded-lg p-1.5 hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-800"
-              @click="prevMonth"
-            >
-              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
+          <div
+            v-if="isOpen"
+            ref="panelRef"
+            class="fixed z-[9999] rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/5 focus:outline-none"
+            :style="panelStyle"
+          >
+            <!-- Calendar Header: Month/Year Navigation -->
+            <div class="flex items-center justify-between mb-4">
+              <button
+                type="button"
+                class="rounded-lg p-1.5 hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-800"
+                @click="prevMonth"
+              >
+                <svg
+                  class="h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
 
-            <span class="text-sm font-bold text-neutral-800">
-              {{ monthNames[viewMonth] }} {{ viewYear }}
-            </span>
+              <span class="text-sm font-bold text-neutral-800">
+                {{ monthNames[viewMonth] }} {{ viewYear }}
+              </span>
 
-            <button
-              type="button"
-              class="rounded-lg p-1.5 hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-800"
-              @click="nextMonth"
-            >
-              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </div>
+              <button
+                type="button"
+                class="rounded-lg p-1.5 hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-800"
+                @click="nextMonth"
+              >
+                <svg
+                  class="h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
 
-          <!-- Day Headers -->
-          <div class="grid grid-cols-7 mb-2">
+            <!-- Day Headers -->
+            <div class="grid grid-cols-7 mb-2">
+              <div
+                v-for="day in dayHeaders"
+                :key="day"
+                class="text-center font-label-3 py-1"
+              >
+                {{ day }}
+              </div>
+            </div>
+
+            <!-- Day Grid -->
+            <div class="grid grid-cols-7 gap-y-1">
+              <!-- Empty cells for offset -->
+              <div v-for="n in firstDayOffset" :key="`empty-${n}`" />
+
+              <!-- Day cells -->
+              <button
+                v-for="day in daysInMonth"
+                :key="day"
+                type="button"
+                class="flex items-center justify-center h-8 w-full rounded-lg font-label-3 text-secondary transition-all duration-150 focus:outline-none"
+                :class="getDayClass(day)"
+                :disabled="isDayDisabled(day)"
+                @click="selectDay(day)"
+                @mouseenter="hoverDay = day"
+                @mouseleave="hoverDay = null"
+              >
+                {{ day }}
+              </button>
+            </div>
+
+            <!-- Footer: Today + Clear buttons -->
             <div
-              v-for="day in dayHeaders"
-              :key="day"
-              class="text-center text-[10px] font-bold uppercase tracking-wider text-neutral-400 py-1"
+              class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100"
             >
-              {{ day }}
+              <button
+                type="button"
+                class="font-label-3 text-primary-600 hover:text-primary-700 transition-colors"
+                @click="selectToday"
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                v-if="hasValue"
+                class="font-label-3 text-neutral-400 hover:text-neutral-600 transition-colors"
+                @click="clearValue"
+              >
+                Hapus
+              </button>
             </div>
           </div>
-
-          <!-- Day Grid -->
-          <div class="grid grid-cols-7 gap-y-1">
-            <!-- Empty cells for offset -->
-            <div v-for="n in firstDayOffset" :key="`empty-${n}`" />
-
-            <!-- Day cells -->
-            <button
-              v-for="day in daysInMonth"
-              :key="day"
-              type="button"
-              class="flex items-center justify-center h-8 w-full rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none"
-              :class="getDayClass(day)"
-              :disabled="isDayDisabled(day)"
-              @click="selectDay(day)"
-            >
-              {{ day }}
-            </button>
-          </div>
-
-          <!-- Footer: Today + Clear buttons -->
-          <div class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100">
-            <button
-              type="button"
-              class="text-xs font-semibold text-primary-500 hover:text-primary-700 transition-colors"
-              @click="selectToday"
-            >
-              Hari Ini
-            </button>
-            <button
-              v-if="hasValue"
-              type="button"
-              class="text-xs font-semibold text-neutral-400 hover:text-neutral-600 transition-colors"
-              @click="clearValue"
-            >
-              Hapus
-            </button>
-          </div>
-        </div>
-      </transition>
+        </transition>
+      </Teleport>
     </div>
 
     <!-- Error message -->
     <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
-      <svg class="h-3.5 w-3.5 text-danger-500 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+      <svg
+        class="h-3.5 w-3.5 text-danger-500 shrink-0"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
+          clip-rule="evenodd"
+        />
       </svg>
-      <span class="text-caption text-danger-500">{{ error }}</span>
+      <span class="font-body-3 text-red-500">{{ error }}</span>
     </div>
+    <span v-else-if="hint" class="font-body-3 text-secondary mt-1">{{
+      hint
+    }}</span>
   </div>
 </template>
 
@@ -166,6 +212,7 @@ interface Props {
   required?: boolean
   disabled?: boolean
   error?: string
+  hint?: string
 }
 
 // ─── Props & Emits ───────────────────────────────────────────────────────────
@@ -182,7 +229,8 @@ const emit = defineEmits<{
 // ─── State ───────────────────────────────────────────────────────────────────
 
 const isOpen = ref(false)
-const containerRef = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
+const panelRef = ref<HTMLElement | null>(null)
 const today = new Date()
 
 // Calendar navigation state
@@ -192,11 +240,27 @@ const viewMonth = ref(today.getMonth())
 // Range mode hover tracking
 const hoverDay = ref<number | null>(null)
 
+// Panel positioning
+const openUpward = ref(false)
+const panelStyle = ref<Record<string, string>>({})
+
+const PANEL_MIN_HEIGHT = 340
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const monthNames = [
-  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember'
 ]
 
 const dayHeaders = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
@@ -227,7 +291,8 @@ const singleValue = computed<DateValue>(() => {
 
 // Range mode values
 const rangeValue = computed<RangeValue>(() => {
-  if (props.mode === 'range') return props.modelValue as RangeValue || { start: null, end: null }
+  if (props.mode === 'range')
+    return (props.modelValue as RangeValue) || { start: null, end: null }
   return { start: null, end: null }
 })
 
@@ -284,7 +349,8 @@ const getDayClass = (day: number) => {
   if (props.mode === 'single') {
     const selected = singleValue.value && isSameDay(d, singleValue.value)
     if (selected) return 'bg-primary-500 text-white font-bold shadow-sm'
-    if (isToday) return 'ring-1 ring-primary-300 text-primary-600 font-semibold hover:bg-primary-50'
+    if (isToday)
+      return 'ring-1 ring-primary-300 text-primary-600 text-body hover:bg-primary-50'
     return 'text-neutral-700 hover:bg-primary-50 hover:text-primary-600 cursor-pointer'
   }
 
@@ -298,16 +364,45 @@ const getDayClass = (day: number) => {
 
   const inRange = start && rangeEnd && d > start && d < rangeEnd
 
-  if (isStart || isEnd) return 'bg-primary-500 text-white font-bold shadow-sm z-10 relative'
-  if (inRange) return 'bg-primary-100 text-primary-700 rounded-none cursor-pointer'
-  if (isToday) return 'ring-1 ring-primary-300 text-primary-600 font-semibold hover:bg-primary-50'
+  if (isStart || isEnd)
+    return 'bg-primary-500 text-white font-bold shadow-sm z-10 relative'
+  if (inRange)
+    return 'bg-primary-100 text-primary-700 rounded-none cursor-pointer'
+  if (isToday)
+    return 'ring-1 ring-primary-300 text-primary-600 text-body hover:bg-primary-50'
   return 'text-neutral-700 hover:bg-primary-50 hover:text-primary-600 cursor-pointer'
+}
+
+// ─── Position ────────────────────────────────────────────────────────────────
+
+const calculatePosition = () => {
+  if (!triggerRef.value) return
+
+  const rect = triggerRef.value.getBoundingClientRect()
+  const spaceBelow = window.innerHeight - rect.bottom
+  const spaceAbove = rect.top
+
+  openUpward.value = spaceBelow < PANEL_MIN_HEIGHT && spaceAbove > spaceBelow
+
+  panelStyle.value = {
+    position: 'fixed',
+    left: `${rect.left}px`,
+    width: `${Math.max(rect.width, 300)}px`,
+    zIndex: '9999',
+    ...(openUpward.value
+      ? { bottom: `${window.innerHeight - rect.top + 4}px` }
+      : { top: `${rect.bottom + 4}px` })
+  }
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
 const toggleCalendar = () => {
-  if (!props.disabled) isOpen.value = !isOpen.value
+  if (props.disabled) return
+  isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    calculatePosition()
+  }
 }
 
 const prevMonth = () => {
@@ -370,14 +465,30 @@ const clearValue = () => {
   }
 }
 
-// ─── Click Outside ───────────────────────────────────────────────────────────
+// ─── Click Outside & Scroll/Resize ───────────────────────────────────────────
 
 const handleClickOutside = (e: MouseEvent) => {
-  if (containerRef.value && !containerRef.value.contains(e.target as Node)) {
+  const t = e.target as Node
+  const outsideTrigger = triggerRef.value && !triggerRef.value.contains(t)
+  const outsidePanel = panelRef.value && !panelRef.value.contains(t)
+  if (outsideTrigger && outsidePanel) {
     isOpen.value = false
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
+const handleScrollOrResize = () => {
+  if (isOpen.value) calculatePosition()
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+  window.addEventListener('scroll', handleScrollOrResize, true)
+  window.addEventListener('resize', handleScrollOrResize)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+  window.removeEventListener('scroll', handleScrollOrResize, true)
+  window.removeEventListener('resize', handleScrollOrResize)
+})
 </script>

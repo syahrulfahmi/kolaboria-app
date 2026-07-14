@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { CareerService } from '../services/career.service'
 
 export interface CareerHistory {
   id?: string
@@ -11,21 +12,20 @@ export interface CareerHistory {
 }
 
 export const useCareer = () => {
-  const client = useSupabaseClient<any>()
-  const user = useSupabaseUser()
   const isCareerLoading = ref(false)
 
-  const getCareerHistories = async (userId: string) => {
+  const getCareerHistories = async (userId?: string) => {
     isCareerLoading.value = true
     try {
-      const { data, error } = await client
-        .from('career_histories')
-        .select('*')
-        .eq('user_id', userId)
-        .order('start_year', { ascending: false })
-
-      if (error) throw error
-      return data as CareerHistory[]
+      const res = await CareerService.getMyCareerHistories()
+      return (res.data || []).map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        company: c.company,
+        start_year: c.startYear,
+        end_year: c.endYear || null,
+        description: c.description || null
+      })) as CareerHistory[]
     } catch (error) {
       console.error('Error fetching career histories:', error)
       return []
@@ -35,49 +35,39 @@ export const useCareer = () => {
   }
 
   const addCareerHistory = async (payload: CareerHistory) => {
-    if (!user.value) throw new Error('Kamu harus login.')
     isCareerLoading.value = true
     try {
-      const { error } = await client
-        .from('career_histories')
-        .insert({
-          ...payload,
-          user_id: user.value.id
-        })
-
-      if (error) throw error
+      await CareerService.createCareerHistory({
+        title: payload.title,
+        company: payload.company,
+        startYear: payload.start_year,
+        endYear: payload.end_year,
+        description: payload.description
+      })
     } finally {
       isCareerLoading.value = false
     }
   }
 
   const updateCareerHistory = async (id: string, payload: Partial<CareerHistory>) => {
-    if (!user.value) throw new Error('Kamu harus login.')
     isCareerLoading.value = true
     try {
-      const { error } = await client
-        .from('career_histories')
-        .update(payload)
-        .eq('id', id)
-        .eq('user_id', user.value.id)
-
-      if (error) throw error
+      await CareerService.updateCareerHistory(id, {
+        title: payload.title!,
+        company: payload.company!,
+        startYear: payload.start_year!,
+        endYear: payload.end_year,
+        description: payload.description
+      })
     } finally {
       isCareerLoading.value = false
     }
   }
 
   const deleteCareerHistory = async (id: string) => {
-    if (!user.value) throw new Error('Kamu harus login.')
     isCareerLoading.value = true
     try {
-      const { error } = await client
-        .from('career_histories')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.value.id)
-
-      if (error) throw error
+      await CareerService.deleteCareerHistory(id)
     } finally {
       isCareerLoading.value = false
     }

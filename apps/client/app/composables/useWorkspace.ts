@@ -16,8 +16,7 @@ import { WorkspaceService } from '../services/workspace.service'
 const statuses: TaskStatus[] = ['todo', 'in_progress', 'review', 'done']
 
 export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
-  const client = useSupabaseClient<any>()
-  const user = useSupabaseUser()
+  const { user, currentUserId } = useAuth()
   const toast = useToast()
 
   const tasks = ref<Task[]>([])
@@ -50,8 +49,8 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
   }
 
   const requireUserId = () => {
-    if (!user.value) throw new Error('Kamu harus login.')
-    return user.value.id
+    if (!currentUserId.value) throw new Error('Kamu harus login.')
+    return currentUserId.value
   }
 
   const buildOverview = (): WorkspaceOverview => {
@@ -82,7 +81,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     error.value = null
 
     try {
-      tasks.value = await WorkspaceService.getTasks(client, requireProjectId())
+      tasks.value = await WorkspaceService.getTasks(requireProjectId())
       refreshOverview()
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Gagal memuat task.'
@@ -95,7 +94,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
 
   const fetchActivities = async (limit = 20) => {
     activities.value = await WorkspaceService.getActivityLogs(
-      client,
       requireProjectId(),
       limit
     )
@@ -103,7 +101,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
 
   const fetchMembers = async (creatorId: string) => {
     members.value = await WorkspaceService.getWorkspaceMembers(
-      client,
       requireProjectId(),
       creatorId
     )
@@ -114,8 +111,10 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     refreshOverview()
   }
 
-  const logActivity = async (payload: Omit<LogActivityPayload, 'project_id' | 'actor_id'>) => {
-    await WorkspaceService.logActivity(client, {
+  const logActivity = async (
+    payload: Omit<LogActivityPayload, 'project_id' | 'actor_id'>
+  ) => {
+    await WorkspaceService.logActivity({
       project_id: requireProjectId(),
       actor_id: requireUserId(),
       ...payload
@@ -125,12 +124,11 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
   const createTask = async (payload: CreateWorkspaceTaskPayload) => {
     const userId = requireUserId()
     const status = payload.status ?? 'todo'
-    const position =
-      payload.position ?? tasksByStatus.value[status].length + 1
+    const position = payload.position ?? tasksByStatus.value[status].length + 1
 
     saving.value = true
     try {
-      const created = await WorkspaceService.createTask(client, {
+      const created = await WorkspaceService.createTask({
         ...payload,
         created_by: userId,
         status,
@@ -166,10 +164,11 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     saving.value = true
 
     try {
-      const updated = await WorkspaceService.updateTask(client, taskId, payload)
+      const updated = await WorkspaceService.updateTask(taskId, payload)
       tasks.value[index] = updated
       await logActivity({
-        action: payload.assignee_id !== undefined ? 'task.assigned' : 'task.updated',
+        action:
+          payload.assignee_id !== undefined ? 'task.assigned' : 'task.updated',
         entity_type: 'task',
         entity_id: taskId,
         metadata: { title: updated.title }
@@ -212,7 +211,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     saving.value = true
 
     try {
-      await WorkspaceService.reorderTasks(client, changedUpdates)
+      await WorkspaceService.reorderTasks(changedUpdates)
       const moved = changedUpdates.find((update) => {
         const oldTask = previous.find((task) => task.id === update.id)
         return oldTask && oldTask.status !== update.status
@@ -247,7 +246,9 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     newStatus: TaskStatus,
     newPosition: number
   ) => {
-    await reorderTasks([{ id: taskId, status: newStatus, position: newPosition }])
+    await reorderTasks([
+      { id: taskId, status: newStatus, position: newPosition }
+    ])
   }
 
   const deleteTask = async (taskId: string) => {
@@ -259,7 +260,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     saving.value = true
 
     try {
-      await WorkspaceService.deleteTask(client, taskId)
+      await WorkspaceService.deleteTask(taskId)
       await logActivity({
         action: 'task.deleted',
         entity_type: 'task',
@@ -280,7 +281,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
   const fetchTaskComments = async (taskId: string) => {
     commentsLoading.value = true
     try {
-      comments.value = await WorkspaceService.getTaskComments(client, taskId)
+      comments.value = await WorkspaceService.getTaskComments(taskId)
     } finally {
       commentsLoading.value = false
     }
@@ -294,7 +295,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     saving.value = true
     try {
       const comment = await WorkspaceService.addComment(
-        client,
         taskId,
         userId,
         trimmedBody
@@ -317,10 +317,12 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
 
   const deleteComment = async (commentId: string) => {
     const previous = [...comments.value]
-    comments.value = comments.value.filter((comment) => comment.id !== commentId)
+    comments.value = comments.value.filter(
+      (comment) => comment.id !== commentId
+    )
 
     try {
-      await WorkspaceService.deleteComment(client, commentId)
+      await WorkspaceService.deleteComment(commentId)
     } catch (err) {
       comments.value = previous
       toast.error('Gagal menghapus komentar.')
@@ -328,10 +330,40 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     }
   }
 
+  const updateComment = async (commentId: string, body: string) => {
+    const trimmedBody = body.trim()
+    if (!trimmedBody) return
+
+    const previous = [...comments.value]
+    const index = comments.value.findIndex((c) => c.id === commentId)
+    if (index !== -1) {
+      comments.value[index] = { ...comments.value[index], body: trimmedBody }
+    }
+
+    saving.value = true
+    try {
+      const updated = await WorkspaceService.updateComment(commentId, trimmedBody)
+      if (index !== -1) {
+        comments.value[index] = updated
+      }
+    } catch (err) {
+      comments.value = previous
+      toast.error('Gagal memperbarui komentar.')
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
+
+
   const refreshWorkspace = async (creatorId: string) => {
     loading.value = true
     try {
-      await Promise.all([fetchTasks(), fetchMembers(creatorId), fetchActivities()])
+      await Promise.all([
+        fetchTasks(),
+        fetchMembers(creatorId),
+        fetchActivities()
+      ])
       refreshOverview()
     } finally {
       loading.value = false
@@ -361,6 +393,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     fetchTaskComments,
     addComment,
     deleteComment,
+    updateComment,
     refreshWorkspace
   }
 }

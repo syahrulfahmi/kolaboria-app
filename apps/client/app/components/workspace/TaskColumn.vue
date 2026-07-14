@@ -13,22 +13,29 @@ defineEmits<{
   'task-create': [status: TaskStatus]
 }>()
 
-const statusMeta: Record<TaskStatus, { label: string; class: string }> = {
+const statusMeta: Record<
+  TaskStatus,
+  { label: string; class: string; badgeClass: string }
+> = {
   todo: {
     label: 'Todo',
-    class: 'border-neutral-300 bg-neutral-50 text-neutral-700'
+    class: 'text-neutral-700',
+    badgeClass: 'bg-neutral-200/80 text-neutral-600'
   },
   in_progress: {
     label: 'In Progress',
-    class: 'border-primary-200 bg-primary-50 text-primary-700'
+    class: 'text-neutral-700',
+    badgeClass: 'bg-blue-100 text-blue-700'
   },
   review: {
     label: 'Review',
-    class: 'border-accent-200 bg-accent-50 text-accent-700'
+    class: 'text-neutral-700',
+    badgeClass: 'bg-accent-100 text-accent-800'
   },
   done: {
     label: 'Done',
-    class: 'border-success-200 bg-success-50 text-success-700'
+    class: 'text-neutral-700',
+    badgeClass: 'bg-success-100 text-success-800'
   }
 }
 
@@ -36,35 +43,66 @@ const meta = computed(() => statusMeta[props.status])
 </script>
 
 <template>
-  <section class="flex min-h-96 flex-col rounded-lg border border-neutral-200 bg-white">
-    <header
-      class="flex items-center justify-between gap-3 border-b px-4 py-3"
-      :class="meta.class"
-    >
-      <div>
-        <h3 class="text-body font-semibold">{{ meta.label }}</h3>
-        <p class="text-caption">{{ tasks.length }} task</p>
+  <section
+    class="w-full md:flex-1 md:min-w-0 bg-neutral-100/60 rounded-xl flex flex-col p-3 border border-neutral-200/40"
+  >
+    <!-- Column Header -->
+    <div class="flex items-center justify-between mb-3.5 px-1">
+      <div class="flex items-center gap-2">
+        <h3 class="font-bold text-sm text-neutral-700">{{ meta.label }}</h3>
+        <span
+          class="text-xs px-2 py-0.5 rounded-full text-body"
+          :class="meta.badgeClass"
+        >
+          {{ tasks.length }}
+        </span>
       </div>
 
-      <AtomicButton
+      <!-- Add Task Button Header Shortcut -->
+      <button
         v-if="isOwner"
-        variant="ghost-primary"
-        size="sm"
+        class="text-neutral-400 hover:text-neutral-600 focus:outline-none transition p-1 hover:bg-neutral-200/50 rounded-md"
         @click="$emit('task-create', status)"
+        title="Tambah Tugas"
       >
-        + Task
-      </AtomicButton>
-    </header>
+        <svg
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </button>
+    </div>
 
-    <div class="flex flex-1 flex-col p-3">
+    <!-- Draggable Task Cards Slot -->
+    <div
+      class="flex-1 min-h-32 flex flex-col overflow-y-auto pr-0.5 space-y-3 scrollbar-thin"
+    >
       <slot />
 
       <div
         v-if="tasks.length === 0"
-        class="mt-3 rounded-lg border border-dashed border-neutral-200 bg-neutral-50 p-6 text-center text-caption text-neutral-500"
+        class="rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50 py-8 px-4 text-center text-caption text-neutral-400 text-body"
       >
-        Belum ada task di sini
+        Belum ada tugas
       </div>
     </div>
+
+    <!-- Dash button at bottom of column -->
+    <button
+      v-if="isOwner"
+      type="button"
+      class="mt-3.5 w-full border border-dashed border-neutral-300 rounded-lg py-2.5 text-xs text-body text-neutral-500 hover:bg-white hover:border-neutral-400 hover:text-neutral-700 transition-all shadow-xs"
+      @click="$emit('task-create', status)"
+    >
+      + Tambah Tugas
+    </button>
   </section>
 </template>

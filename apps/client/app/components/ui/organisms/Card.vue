@@ -3,7 +3,9 @@
     class="flex flex-col overflow-hidden rounded-2xl bg-white transition-all duration-200"
     :class="[
       variantClasses,
-      hoverable ? 'cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:shadow-secondary-900/10' : ''
+      hoverable
+        ? 'cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:shadow-secondary-900/10'
+        : ''
     ]"
   >
     <!-- Media Slot (Full width at top) -->
@@ -16,8 +18,18 @@
       <!-- Header -->
       <div v-if="$slots.header || title || description" class="mb-5">
         <slot name="header">
-          <h3 v-if="title" class="text-title font-semibold tracking-tight text-neutral-900">{{ title }}</h3>
-          <p v-if="description" class="mt-1.5 text-sm leading-relaxed text-neutral-500">{{ description }}</p>
+          <h3
+            v-if="title"
+            class="text-title text-body tracking-tight text-neutral-900"
+          >
+            {{ title }}
+          </h3>
+          <p
+            v-if="description"
+            class="mt-1.5 text-sm leading-relaxed text-neutral-500"
+          >
+            {{ description }}
+          </p>
         </slot>
       </div>
 
@@ -59,11 +71,15 @@ const variantClasses = computed(() => {
 
 const paddingClass = computed(() => {
   switch (props.padding) {
-    case 'none': return 'p-0'
-    case 'sm': return 'p-5'
-    case 'lg': return 'p-10'
+    case 'none':
+      return 'p-0'
+    case 'sm':
+      return 'p-5'
+    case 'lg':
+      return 'p-10'
     case 'md':
-    default: return 'p-7'
+    default:
+      return 'p-7'
   }
 })
 </script>

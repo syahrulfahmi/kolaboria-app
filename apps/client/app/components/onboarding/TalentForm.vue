@@ -148,8 +148,8 @@ const handleSubmit = async () => {
       <!-- Primary Skill -->
       <MoleculeDropdown
         v-model="form.primarySkillId"
-        label="Skill Utama"
-        placeholder="Pilih skill utama kamu"
+        label="Keahlian Utama"
+        placeholder="Pilih keahlian utama kamu"
         :options="skillOptions"
         required
         :error="fieldErrors.primarySkillId"
@@ -159,9 +159,7 @@ const handleSubmit = async () => {
 
       <!-- Experience Level -->
       <div class="flex flex-col gap-1.5">
-        <label
-          class="text-xs font-semibold tracking-wide uppercase text-neutral-500"
-        >
+        <label class="font-label-1">
           Level Pengalaman
           <span class="text-primary-400 text-base leading-none">*</span>
         </label>
@@ -178,15 +176,15 @@ const handleSubmit = async () => {
                 : 'border-neutral-200 bg-white text-neutral-600 hover:border-primary-300 hover:bg-primary-50/50'
             "
           >
-            <span class="text-sm font-semibold">{{ level.label }}</span>
-            <span class="text-[10px] text-current opacity-70 mt-0.5">{{
+            <span class="font-body-2 text-primary">{{ level.label }}</span>
+            <span class="font-body-3 text-secondary mt-1">{{
               level.desc
             }}</span>
           </button>
         </div>
         <span
           v-if="fieldErrors.experienceLevel"
-          class="text-caption text-red-500 flex items-center gap-1"
+          class="font-body-3 text-red-500 flex items-center gap-1"
         >
           <svg
             class="h-3.5 w-3.5 shrink-0"
@@ -207,7 +205,7 @@ const handleSubmit = async () => {
       <!-- Tools Multi-select -->
       <MoleculeDropdown
         v-model="form.toolIds"
-        label="Tools"
+        label="Tools yang kamu kuasai"
         placeholder="Cari tools yang kamu gunakan..."
         multiple
         searchable
@@ -239,36 +237,15 @@ const handleSubmit = async () => {
       />
 
       <!-- Bio -->
-      <div class="flex flex-col gap-1.5">
-        <label
-          class="text-xs font-semibold tracking-wide uppercase text-neutral-500"
-        >
-          Bio
-          <span class="normal-case font-normal text-neutral-400 ml-1"
-            >(opsional)</span
-          >
-        </label>
-        <div class="relative">
-          <textarea
-            v-model="form.bio"
-            rows="3"
-            maxlength="300"
-            placeholder="Ceritakan sedikit tentang dirimu..."
-            class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-body text-neutral-900 transition-all duration-150 focus:outline-none focus:border-primary-500 resize-none"
-            :class="
-              fieldErrors.bio ? 'border-red-300 focus:border-red-500' : ''
-            "
-          />
-          <span
-            class="absolute bottom-2.5 right-3 text-[10px] text-neutral-400"
-          >
-            {{ form.bio.length }}/300
-          </span>
-        </div>
-        <span v-if="fieldErrors.bio" class="text-caption text-red-500">{{
-          fieldErrors.bio
-        }}</span>
-      </div>
+      <MoleculeTextarea
+        v-model="form.bio"
+        label="Bio (opsional)"
+        placeholder="Ceritakan sedikit tentang dirimu"
+        :rows="3"
+        max-length="300"
+        show-counter
+        :error="fieldErrors.bio"
+      />
 
       <!-- Submit -->
       <AtomicButton
@@ -278,7 +255,7 @@ const handleSubmit = async () => {
         block
         class="mt-2"
       >
-        Mulai Berkolaborasi 🚀
+        Mulai Berkolaborasi
       </AtomicButton>
     </form>
   </div>

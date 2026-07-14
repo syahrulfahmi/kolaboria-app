@@ -49,12 +49,14 @@ const metadataTitle = (log: ActivityLog) => {
     <template #header>
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-caption font-semibold uppercase text-neutral-500">
+          <p class="text-caption text-body uppercase text-neutral-500">
             Activity
           </p>
           <h2 class="mt-1 text-title text-secondary-900">Riwayat terbaru</h2>
         </div>
-        <span class="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1 text-caption text-neutral-600">
+        <span
+          class="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1 text-caption text-neutral-600"
+        >
           {{ logs.length }}
         </span>
       </div>
@@ -70,23 +72,19 @@ const metadataTitle = (log: ActivityLog) => {
     />
 
     <div v-else class="flex flex-col divide-y divide-neutral-100">
-      <div
-        v-for="log in visibleLogs"
-        :key="log.id"
-        class="flex gap-3 py-4"
-      >
+      <div v-for="log in visibleLogs" :key="log.id" class="flex gap-3 py-4">
         <div
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-caption font-semibold text-primary-700 ring-1 ring-primary-100"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-caption text-body text-primary-700 ring-1 ring-primary-100"
         >
           {{ actorName(log).slice(0, 1).toUpperCase() }}
         </div>
         <div class="min-w-0 flex-1">
           <p class="text-body text-neutral-700">
-            <span class="font-semibold text-secondary-900">
+            <span class="text-body text-secondary-900">
               {{ actorName(log) }}
             </span>
             {{ activityLabel(log.action) }}
-            <span class="font-semibold text-secondary-900">
+            <span class="text-body text-secondary-900">
               {{ metadataTitle(log) }}
             </span>
           </p>

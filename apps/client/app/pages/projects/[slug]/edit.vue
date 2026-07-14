@@ -1,206 +1,225 @@
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, computed, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import type {
   Project,
   CreateProjectPayload,
-  ProjectStatus,
-} from "~/types/project";
+  ProjectStatus
+} from '~/types/project'
 
-import EditTabInfo from "~/components/project/edit/EditTabInfo.vue";
-import EditTabRequirements from "~/components/project/edit/EditTabRequirements.vue";
-import EditTabTimeline from "~/components/project/edit/EditTabTimeline.vue";
-import EditTabStatus from "~/components/project/edit/EditTabStatus.vue";
-import ProjectStatusConfirmModal from "~/components/project/ProjectStatusConfirmModal.vue";
+import EditTabInfo from '~/components/project/edit/EditTabInfo.vue'
+import EditTabRequirements from '~/components/project/edit/EditTabRequirements.vue'
+import EditTabTimeline from '~/components/project/edit/EditTabTimeline.vue'
+import EditTabStatus from '~/components/project/edit/EditTabStatus.vue'
+import ProjectStatusConfirmModal from '~/components/project/ProjectStatusConfirmModal.vue'
 
-definePageMeta({ layout: "home", middleware: ["auth", "onboarding-guard"] });
+definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 const {
   getProjectBySlug,
   updateProjectFull,
   updateProjectStatus,
   publishProject,
   getSkillTags,
-  getProjectApplicants,
-} = useProjects();
-const user = useSupabaseUser();
-const { add: addToast } = useToast();
+  getProjectApplicants
+} = useProjects()
+const { user, currentUserId } = useAuth()
+const { add: addToast } = useToast()
 
-const projectSlug = route.params.slug as string;
-const project = ref<Project | null>(null);
-const skillTags = ref<{ id: string; name: string }[]>([]);
-const pending = ref(true);
-const isSubmitting = ref(false);
+const projectSlug = route.params.slug as string
+const project = ref<Project | null>(null)
+const skillTags = ref<{ id: string; name: string }[]>([])
+const pending = ref(true)
+const isSubmitting = ref(false)
 
 // Tab state
-const activeTab = ref(0);
+const activeTab = ref(0)
 const tabs = [
-  { label: "Informasi Dasar" },
-  { label: "Kebutuhan & Skill" },
-  { label: "Timeline" },
-  { label: "Status & Publikasi" },
-];
+  { label: 'Informasi Dasar' },
+  { label: 'Kebutuhan & Keahlian' },
+  { label: 'Timeline' },
+  { label: 'Status & Publikasi' }
+]
 
 // Form state
 const form = reactive<CreateProjectPayload>({
-  title: "",
-  summary: "",
-  description: "",
-  type: "web_app",
-  visibility: "public",
+  title: '',
+  summary: '',
+  description: '',
+  type: 'web_app',
+  visibility: 'public',
   max_slots: 3,
   start_date: undefined,
   deadline: undefined,
   tech_stack: [],
-  why_join: "",
-  skill_tag_ids: [],
-});
+  why_join: '',
+  skill_tag_ids: []
+})
 
 // Modal state
-const showConfirmModal = ref(false);
-const confirmAction = ref<"open" | "archived" | "completed" | "in_progress">(
-  "open",
-);
-const hasActiveApplicants = ref(false);
+const showConfirmModal = ref(false)
+const confirmAction = ref<'open' | 'archived' | 'completed' | 'in_progress'>(
+  'open'
+)
+const hasActiveApplicants = ref(false)
 
 onMounted(async () => {
   try {
     const [p, tags] = await Promise.all([
       getProjectBySlug(projectSlug),
-      getSkillTags(),
-    ]);
+      getSkillTags()
+    ])
 
     if (!p) {
-      addToast({ variant: "danger", message: "Project tidak ditemukan." });
-      router.push("/projects");
-      return;
+      addToast({ variant: 'danger', message: 'Project tidak ditemukan.' })
+      router.push('/projects')
+      return
     }
 
-    if (!user.value || user.value.id !== p.creator_id) {
+    if (!currentUserId.value || currentUserId.value !== p.creator_id) {
       addToast({
-        variant: "danger",
-        message: "Anda tidak memiliki akses untuk mengedit project ini.",
-      });
-      router.push(`/projects/${projectSlug}`);
-      return;
+        variant: 'danger',
+        message: 'Anda tidak memiliki akses untuk mengedit project ini.'
+      })
+      router.push(`/projects/${projectSlug}`)
+      return
     }
 
-    project.value = p;
-    skillTags.value = tags;
+    project.value = p
+    skillTags.value = tags
 
     // Init form
-    form.title = p.title;
-    form.summary = p.summary;
-    form.description = p.description || "";
-    form.type = p.type;
-    form.visibility = p.visibility;
-    form.max_slots = p.max_slots;
-    form.start_date = p.start_date;
-    form.deadline = p.deadline;
-    form.tech_stack = p.tech_stack || [];
-    form.why_join = p.why_join || "";
-    form.skill_tag_ids = p.project_skills?.map((s) => s.skill_tag_id) || [];
+    form.title = p.title
+    form.summary = p.summary
+    form.description = p.description || ''
+    form.type = p.type
+    form.visibility = p.visibility
+    form.max_slots = p.max_slots
+    form.start_date = p.start_date
+    form.deadline = p.deadline
+    form.tech_stack = p.tech_stack || []
+    form.why_join = p.why_join || ''
+    form.skill_tag_ids = p.project_skills?.map((s) => s.skill_tag_id) || []
 
     // Check active applicants for archive warning
-    if (p.status !== "draft" && p.status !== "archived") {
-      const applicants = await getProjectApplicants(p.id);
+    if (p.status !== 'draft' && p.status !== 'archived') {
+      const applicants = await getProjectApplicants(p.id)
       hasActiveApplicants.value = applicants.some(
-        (a) => a.status === "pending" || a.status === "accepted",
-      );
+        (a) => a.status === 'pending' || a.status === 'accepted'
+      )
     }
   } catch (error: any) {
     addToast({
-      variant: "danger",
-      message: error.message || "Gagal memuat project.",
-    });
+      variant: 'danger',
+      message: error.message || 'Gagal memuat project.'
+    })
   } finally {
-    pending.value = false;
+    pending.value = false
   }
-});
+})
 
 useHead({
   title: computed(() =>
     project.value
       ? `Edit ${project.value.title} - Kolaboria`
-      : "Edit Project - Kolaboria",
-  ),
-});
+      : 'Edit Project - Kolaboria'
+  )
+})
 
 const handleSave = async () => {
-  if (!project.value) return;
-  isSubmitting.value = true;
+  if (!project.value) return
+  isSubmitting.value = true
 
   try {
-    await updateProjectFull(project.value.id, form);
+    await updateProjectFull(project.value.id, form)
+
+    const hasSlugChanged = form.slug && form.slug !== projectSlug
 
     // Update local project state to reflect changes without full reload
-    project.value = { ...project.value, ...form } as unknown as Project;
+    project.value = { ...project.value, ...form } as unknown as Project
 
-    if (project.value.status === "draft") {
+    if (hasSlugChanged) {
       addToast({
-        variant: "warning",
+        variant: 'success',
+        message: 'Slug berhasil diperbarui! Redirecting...'
+      })
+      router.replace(`/projects/${form.slug}/edit`)
+      return
+    }
+
+    if (project.value.status === 'draft') {
+      addToast({
+        variant: 'warning',
         message:
-          "Perubahanmu tersimpan, tapi project belum bisa dilihat publik karena masih Draft. Publikasikan untuk membuatnya aktif.",
-      });
+          'Perubahanmu tersimpan, tapi project belum bisa dilihat publik karena masih Draft. Publikasikan untuk membuatnya aktif.'
+      })
     } else {
-      addToast({ variant: "success", message: "Perubahan berhasil disimpan!" });
+      addToast({ variant: 'success', message: 'Perubahan berhasil disimpan!' })
     }
   } catch (error: any) {
     addToast({
-      variant: "danger",
-      message: error.message || "Gagal menyimpan perubahan.",
-    });
+      variant: 'danger',
+      message: error.message || 'Gagal menyimpan perubahan.'
+    })
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 
 const triggerStatusAction = (
-  action: "open" | "archived" | "completed" | "in_progress",
+  action: 'open' | 'archived' | 'completed' | 'in_progress'
 ) => {
-  console.log(action);
-  confirmAction.value = action;
-  showConfirmModal.value = true;
-};
+  console.log(action)
+  confirmAction.value = action
+  showConfirmModal.value = true
+}
 
 const handleStatusConfirm = async () => {
-  if (!project.value) return;
-  isSubmitting.value = true;
-  showConfirmModal.value = false;
+  if (!project.value) return
+  isSubmitting.value = true
+  showConfirmModal.value = false
 
   try {
-    if (confirmAction.value === "open") {
+    if (confirmAction.value === 'open') {
       // Pastikan data terakhir tersimpan sebelum publish
-      await updateProjectFull(project.value.id, form);
-      await publishProject(project.value.id);
+      await updateProjectFull(project.value.id, form)
+      await publishProject(project.value.id)
       addToast({
-        variant: "success",
-        message: "Project berhasil dipublikasikan!",
-      });
-      router.push(`/projects/${project.value.slug}`);
+        variant: 'success',
+        message: 'Project berhasil dipublikasikan!'
+      })
+      router.push(`/projects/${project.value.slug}`)
     } else {
-      await updateProjectStatus(project.value.id, confirmAction?.value);
+      await updateProjectStatus(project.value.id, confirmAction?.value)
       addToast({
-        variant: "success",
-        message: "Status project berhasil diperbarui!",
-      });
-      router.push("/projects/my-projects");
+        variant: 'success',
+        message: 'Status project berhasil diperbarui!'
+      })
+      router.push('/projects/my-projects')
     }
   } catch (error: any) {
     addToast({
-      variant: "danger",
-      message: error.message || "Gagal memperbarui status.",
-    });
-    isSubmitting.value = false;
+      variant: 'danger',
+      message: error.message || 'Gagal memperbarui status.'
+    })
+    isSubmitting.value = false
   }
-};
+}
+
+const isValid = computed(() => {
+  return form.title.trim().length > 0 && form.summary.trim().length > 0
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-neutral-50 pb-20">
-    <MoleculeLoading v-if="pending" type="fullscreen" label="Memuat data project..." />
+    <MoleculeLoading
+      v-if="pending"
+      type="fullscreen"
+      label="Memuat data project..."
+    />
 
     <div v-else-if="project" class="mx-auto w-full max-w-7xl py-8">
       <!-- Header -->
@@ -228,12 +247,10 @@ const handleStatusConfirm = async () => {
           class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div>
-            <h1 class="text-heading text-secondary-900">Edit Project</h1>
-            <p class="mt-2 text-body text-neutral-600">
+            <h1 class="font-title-2">Edit Project</h1>
+            <p class="mt-2 font-paragraph-2 text-secondary">
               Perbarui informasi atau kelola status project
-              <span class="font-bold text-secondary-900">{{
-                project.title
-              }}</span
+              <span class="font-bold text-secondary">{{ project.title }}</span
               >.
             </p>
           </div>
@@ -254,7 +271,7 @@ const handleStatusConfirm = async () => {
             class="border-0 shadow-lg shadow-neutral-200/50 p-6 sm:p-8"
           >
             <div class="mb-6 border-b border-neutral-100 pb-5">
-              <h2 class="text-xl font-bold text-secondary-900">
+              <h2 class="font-title-2">
                 {{ tabs[activeTab].label }}
               </h2>
             </div>
@@ -264,18 +281,16 @@ const handleStatusConfirm = async () => {
               <EditTabInfo
                 v-if="activeTab === 0"
                 v-model:form="form"
-                @save="handleSave"
+                :current-slug="project?.slug"
               />
               <EditTabRequirements
                 v-else-if="activeTab === 1"
                 v-model:form="form"
                 :skill-tags="skillTags"
-                @save="handleSave"
               />
               <EditTabTimeline
                 v-else-if="activeTab === 2"
                 v-model:form="form"
-                @save="handleSave"
               />
               <EditTabStatus
                 v-else-if="activeTab === 3"
@@ -285,6 +300,32 @@ const handleStatusConfirm = async () => {
               />
             </KeepAlive>
           </OrganismCard>
+
+          <!-- Navigation - Sticky Floating Bar -->
+          <div
+            v-if="activeTab !== 3"
+            class="sticky bottom-6 z-30 mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end bg-white/95 backdrop-blur-sm p-4 rounded-2xl border border-neutral-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-fade-in"
+          >
+            <NuxtLink
+              :to="`/projects/${project.slug}`"
+              class="w-full sm:w-auto"
+            >
+              <AtomicButton
+                variant="outline"
+                class="w-full hover:bg-neutral-50"
+              >
+                Batal
+              </AtomicButton>
+            </NuxtLink>
+            <AtomicButton
+              variant="primary"
+              class="w-full sm:w-auto"
+              :disabled="isSubmitting || !isValid"
+              @click="handleSave"
+            >
+              {{ isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan' }}
+            </AtomicButton>
+          </div>
         </div>
       </div>
     </div>
@@ -297,6 +338,12 @@ const handleStatusConfirm = async () => {
       :has-active-applicants="hasActiveApplicants"
       @close="showConfirmModal = false"
       @confirm="handleStatusConfirm"
+    />
+
+    <MoleculeLoading
+      v-if="isSubmitting"
+      type="fullscreen"
+      label="Menyimpan Perubahan..."
     />
   </div>
 </template>

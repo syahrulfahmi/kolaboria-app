@@ -96,7 +96,7 @@ const variantClasses = computed(() => {
     <div class="flex-1">
       <h4
         v-if="title"
-        class="text-sm font-semibold mb-0.5"
+        class="text-sm text-body mb-0.5"
         :class="variantClasses.title"
       >
         {{ title }}

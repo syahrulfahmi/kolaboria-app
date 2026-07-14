@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import type { Profile, UserSkill, UserTool } from '../types/profile'
+import type { Project, Application } from '../types/project'
 
 definePageMeta({
   layout: 'home',
@@ -12,18 +13,15 @@ useHead({
 })
 
 const { getProfile, getChecklist } = useProfile()
-const { getUserSkills } = useSkill()
-const { getUserTools } = useTool()
-const { resendVerification } = useAuth()
-const { success, error: showError } = useToast()
-const user = useSupabaseUser()
-
-const isResending = ref(false)
+const { getUserSkills, getUserTools } = useSkill()
+const { getMyProjects, getMyApplications } = useProjects()
 
 const profile = ref<Profile | null>(null)
 const skills = ref<UserSkill[]>([])
 const tools = ref<UserTool[]>([])
 const checklist = ref<ReturnType<typeof getChecklist>>([])
+const myProjects = ref<Project[]>([])
+const myApplications = ref<Application[]>([])
 const isLoading = ref(true)
 const loadError = ref('')
 
@@ -38,14 +36,18 @@ const fetchAllData = async () => {
   try {
     profile.value = await getProfile()
 
-    if (user.value) {
-      const [userSkills, userTools] = await Promise.all([
-        getUserSkills(user.value.id),
-        getUserTools(user.value.id)
+    if (profile.value) {
+      const [userSkills, userTools, projects, applications] = await Promise.all([
+        getUserSkills(profile.value.id),
+        getUserTools(profile.value.id),
+        getMyProjects(),
+        getMyApplications()
       ])
 
       skills.value = userSkills
       tools.value = userTools
+      myProjects.value = projects
+      myApplications.value = applications
       checklist.value = getChecklist(profile.value, userSkills, userTools)
     }
   } catch (error: any) {
@@ -56,23 +58,6 @@ const fetchAllData = async () => {
 }
 
 onMounted(fetchAllData)
-
-const handleResendEmail = async () => {
-  if (isResending.value) return
-  isResending.value = true
-  
-  try {
-    await resendVerification()
-    success('Email verifikasi telah dikirim ulang. Silakan periksa inbox Anda.')
-    // Cooldown 60 detik
-    setTimeout(() => {
-      isResending.value = false
-    }, 60000)
-  } catch (err: any) {
-    showError(err.message || 'Gagal mengirim ulang email.')
-    isResending.value = false
-  }
-}
 </script>
 
 <template>
@@ -109,12 +94,12 @@ const handleResendEmail = async () => {
         <HomeVerificationBanner
           v-if="!profile.is_verified"
           :is-verified="profile.is_verified"
-          @resend="handleResendEmail"
         />
 
         <HomeGreeting
           :name="profile.full_name || profile.username"
           :is-verified="profile.is_verified"
+          :avatar="profile.avatar"
           :headline="profile.headline"
           :completion-score="profile.completion_score"
           :primary-skill-name="primarySkill?.skills?.name"
@@ -128,13 +113,17 @@ const handleResendEmail = async () => {
           :score="profile.completion_score"
           :completed-items="checklist"
           :username="profile.username"
+          :skills="skills"
+          :tools="tools"
         />
 
         <HomeActionButtons
           :is-verified="profile.is_verified"
           :completion-score="profile.completion_score"
           :username="profile.username"
-          @resend="handleResendEmail"
+          :availability-status="profile.availability_status"
+          :my-projects="myProjects"
+          :my-applications="myApplications"
         />
       </div>
 

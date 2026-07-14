@@ -42,16 +42,15 @@
     <!-- Input -->
     <input
       type="text"
-      :value="modelValue"
-      @input="handleInput"
+      v-model="localValue"
       :placeholder="placeholder"
-      class="w-full rounded-full border border-neutral-200 bg-white py-2.5 pl-11 pr-10 text-body text-neutral-900 transition-all duration-200 placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:ring-offset-1 focus:shadow-md focus:shadow-primary-100/50"
+      class="w-full bg-white border border-neutral-200 rounded-lg pl-9 pr-3.5 py-1.5 font-body-2 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all placeholder-neutral-400 text-neutral-800"
       v-bind="$attrs"
     />
 
     <!-- Clear Button -->
     <div
-      v-if="modelValue && !loading"
+      v-if="localValue && !loading"
       class="absolute right-3 text-neutral-400"
     >
       <button
@@ -76,22 +75,69 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  modelValue?: string
-  placeholder?: string
-  loading?: boolean
-}>()
+import { ref, watch, onUnmounted } from 'vue'
+
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    placeholder?: string
+    loading?: boolean
+    debounceMs?: number
+  }>(),
+  {
+    modelValue: '',
+    placeholder: '',
+    loading: false,
+    debounceMs: 300
+  }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
-}
+const localValue = ref(props.modelValue)
+
+// Keep localValue updated when prop changes from outside
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal !== localValue.value) {
+      localValue.value = newVal || ''
+    }
+  }
+)
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+// Watch localValue changes and emit update:modelValue with debounce
+watch(localValue, (newVal) => {
+  // If the change matches the current prop value, do not emit again
+  if (newVal === props.modelValue) return
+
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+
+  // If the input is cleared, emit immediately for responsiveness
+  if (!newVal) {
+    emit('update:modelValue', '')
+    return
+  }
+
+  debounceTimer = setTimeout(() => {
+    emit('update:modelValue', newVal)
+  }, props.debounceMs)
+})
+
+// Clean up timer on component unmount
+onUnmounted(() => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+})
 
 const clear = () => {
-  emit('update:modelValue', '')
+  localValue.value = ''
 }
 </script>

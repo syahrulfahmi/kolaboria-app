@@ -35,7 +35,7 @@
 
       <slot name="icon-left" v-else />
 
-      <span>
+      <span class="font-label-2">
         <slot>{{ label }}</slot>
       </span>
 
@@ -103,69 +103,34 @@ const handleClick = (e) => {
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return `
-        bg-secondary-500 text-white
-        hover:bg-secondary-600
-        active:bg-secondary-800
-        hover:cursor-pointer
+      return `bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-800 hover:cursor-pointer
       `
     case 'secondary':
-      return `
-        bg-accent-400 text-secondary-800
-        hover:bg-accent-700
-        active:bg-accent-800
-        hover:cursor-pointer
+      return `bg-accent-400 text-secondary-800 hover:bg-accent-700 active:bg-accent-800 hover:cursor-pointer
       `
 
     case 'outline':
-      return `
-        border border-secondary-400 text-secondary-400 bg-transparent
-        hover:bg-secondary-100
-        active:bg-secondary-200
-        hover:cursor-pointer
+      return `border border-secondary-400 text-secondary-400 bg-transparent hover:bg-secondary-100 active:bg-secondary-200 hover:cursor-pointer
       `
 
     case 'outline-danger':
-      return `
-        border border-danger-500 text-danger-500 bg-transparent
-        hover:bg-danger-50
-        active:bg-danger-100
-        hover:cursor-pointer
+      return `border border-danger-500 text-danger-500 bg-transparent hover:bg-danger-50 active:bg-danger-100 hover:cursor-pointer
       `
 
     case 'danger':
-      return `
-        bg-danger-500 text-white
-        hover:bg-danger-700
-        active:bg-danger-900
-        hover:cursor-pointer
+      return `bg-danger-500 text-white hover:bg-danger-700 active:bg-danger-900 hover:cursor-pointer
       `
 
     case 'ghost-primary':
-      return `
-        text-primary-500 bg-transparent
-        hover:bg-primary-50
-        active:text-primary-700
-        hover:cursor-pointer
-        px-0! py-0!
+      return `text-primary-500 bg-transparent hover:text-primary-700 active:text-primary-700 hover:cursor-pointer px-0! py-0!
       `
 
     case 'ghost-secondary':
-      return `
-        text-accent-500 bg-transparent
-        hover:bg-accent-50
-        active:text-accent-700
-        hover:cursor-pointer
-        px-0! py-0!
+      return `text-accent-500 bg-transparent hover:bg-accent-50 active:text-accent-700 hover:cursor-pointer px-0! py-0!
       `
 
     case 'ghost-danger':
-      return `
-        text-danger-500 bg-transparent
-        hover:bg-danger-50
-        active:bg-danger-100
-        hover:cursor-pointer
-        px-0! py-0!
+      return `text-danger-500 bg-transparent hover:bg-danger-50 active:bg-danger-100 hover:cursor-pointer px-0! py-0!
       `
     case 'google':
       return `bg-white text-gray-700 border-1 border-secondary-500 hover:bg-gray-50 hover:cursor-pointer`
@@ -178,11 +143,11 @@ const variantClasses = computed(() => {
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'sm':
-      return 'px-4 py-2 text-sm'
+      return 'px-4 py-2 font-label-1'
     case 'md':
-      return 'px-5 py-2.5 text-sm'
+      return 'px-5 py-2.5 font-label-1'
     case 'lg':
-      return 'px-6 py-3 text-base'
+      return 'px-6 py-3 font-label-1'
   }
 })
 
@@ -190,19 +155,13 @@ const sizeClasses = computed(() => {
  * 🎨 BASE STYLE
  */
 const baseClass = `
-  inline-flex items-center justify-center
-  font-medium
-  rounded-lg
-  transition-all duration-200
-  focus:outline-none
+  inline-flex items-center justify-center font-body-2 rounded-lg transition-all duration-200 focus:outline-none
 `
 
 /**
  * 🚫 DISABLED STATE
  */
-const disabledClass = `
-  bg-neutral-300 text-neutral-500
-  cursor-not-allowed
+const disabledClass = `bg-neutral-300 text-neutral-500 cursor-not-allowed
 `
 
 const buttonClass = computed(() => [

@@ -1,3 +1,4 @@
+import { ProjectService } from '../services/project.service'
 import type {
   Project,
   CreateProjectPayload,
@@ -7,9 +8,6 @@ import type {
 } from '../types/project'
 
 export const useProjects = () => {
-  const client = useSupabaseClient<any>()
-  const user = useSupabaseUser()
-
   // ============================================================
   // Phase 1 — Listing & Detail
   // ============================================================
@@ -17,75 +15,45 @@ export const useProjects = () => {
   const getProjects = async (
     filters: ProjectFilters = {}
   ): Promise<Project[]> => {
-    const { search, status, type, limit = 12 } = filters
-
-    let query = client
-      .from('projects')
-      .select(
-        `
-        id, creator_id, title, slug, summary, type, status, max_slots, deadline, tech_stack, created_at,
-        profiles:profiles!projects_creator_id_fkey(username, full_name, avatar),
-        project_skills(skill_tag_id, is_required, skill_tags(id, name)),
-        project_members(profile_id, role)
-      `
-      )
-      .in('status', status ? [status] : ['open'])
-      .eq('visibility', 'public')
-      .order('created_at', { ascending: false })
-      .limit(limit)
-
-    if (search) {
-      query = query.ilike('title', `%${search}%`)
+    try {
+      const res = await ProjectService.getProjects(filters)
+      const list = res.data ?? []
+      return list.map((p: any) => ({
+        ...p,
+        profiles: p.creator
+      }))
+    } catch (err) {
+      console.error('Failed to get projects:', err)
+      return []
     }
-    if (type) {
-      query = query.eq('type', type)
-    }
-
-    const { data, error } = await query
-    if (error) throw error
-    return data ?? []
   }
 
   const getProjectById = async (id: string): Promise<Project | null> => {
-    const { data, error } = await client
-      .from('projects')
-      .select(
-        `
-        *,
-        profiles:profiles!projects_creator_id_fkey(username, full_name, avatar),
-        project_skills(skill_tag_id, is_required, skill_tags(id, name)),
-        project_members(project_id, profile_id, role, joined_at, profiles(username, full_name, avatar))
-      `
-      )
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') return null
-      throw error
+    try {
+      const res = await ProjectService.getProjectById(id)
+      if (!res.data) return null
+      return {
+        ...res.data,
+        profiles: res.data.creator
+      }
+    } catch (err) {
+      console.error(`Failed to get project by ID ${id}:`, err)
+      return null
     }
-    return data
   }
 
   const getProjectBySlug = async (slug: string): Promise<Project | null> => {
-    const { data, error } = await client
-      .from('projects')
-      .select(
-        `
-        *,
-        profiles:profiles!projects_creator_id_fkey(username, full_name, avatar),
-        project_skills(skill_tag_id, is_required, skill_tags(id, name)),
-        project_members(project_id, profile_id, role, joined_at, profiles(username, full_name, avatar))
-      `
-      )
-      .eq('slug', slug)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') return null
-      throw error
+    try {
+      const res = await ProjectService.getProjectBySlug(slug)
+      if (!res.data) return null
+      return {
+        ...res.data,
+        profiles: res.data.creator
+      }
+    } catch (err) {
+      console.error(`Failed to get project by slug ${slug}:`, err)
+      return null
     }
-    return data
   }
 
   const getRecentProjects = async (limit = 3): Promise<Project[]> => {
@@ -99,114 +67,40 @@ export const useProjects = () => {
   const createProject = async (
     payload: CreateProjectPayload
   ): Promise<Project> => {
-    if (!user.value) throw new Error('Kamu harus login untuk membuat project.')
-    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk membuat project.')
-
-    const { skill_tag_ids, ...projectData } = payload
-
-    const { data: project, error } = await client
-      .from('projects')
-      .insert({ ...projectData, creator_id: user.value.id, status: 'draft' })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    const { error: ownerMemberError } = await client
-      .from('project_members')
-      .upsert(
-        {
-          project_id: project.id,
-          profile_id: user.value.id,
-          role: 'owner'
-        },
-        { onConflict: 'project_id,profile_id', ignoreDuplicates: true }
-      )
-
-    if (ownerMemberError) throw ownerMemberError
-
-    // Insert project skills jika ada
-    if (skill_tag_ids && skill_tag_ids.length > 0) {
-      const skillInserts = skill_tag_ids.map((id) => ({
-        project_id: project.id,
-        skill_tag_id: id,
-        is_required: true
-      }))
-      const { error: skillError } = await client
-        .from('project_skills')
-        .insert(skillInserts)
-      if (skillError) throw skillError
+    const res = await ProjectService.createProject(payload)
+    if (!res.data) {
+      throw new Error(res.message || 'Gagal membuat project.')
     }
-
-    return project
+    return {
+      ...res.data,
+      profiles: res.data.creator
+    }
   }
 
   const publishProject = async (projectId: string): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { error } = await client
-      .from('projects')
-      .update({ status: 'open', published_at: new Date().toISOString() })
-      .eq('id', projectId)
-      .eq('creator_id', user.value.id)
-
-    if (error) throw error
+    const res = await ProjectService.publishProject(projectId)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal mempublikasikan project.')
+    }
   }
 
   const updateProject = async (
     projectId: string,
     payload: Partial<CreateProjectPayload>
   ): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { skill_tag_ids, ...projectData } = payload
-
-    const { error } = await client
-      .from('projects')
-      .update(projectData)
-      .eq('id', projectId)
-      .eq('creator_id', user.value.id)
-
-    if (error) throw error
+    const res = await ProjectService.updateProject(projectId, payload)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal memperbarui project.')
+    }
   }
 
   const updateProjectFull = async (
     projectId: string,
     payload: Partial<CreateProjectPayload>
   ): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { skill_tag_ids, ...projectData } = payload
-
-    const { error } = await client
-      .from('projects')
-      .update(projectData)
-      .eq('id', projectId)
-      .eq('creator_id', user.value.id)
-
-    if (error) throw error
-
-    if (skill_tag_ids !== undefined) {
-      // Delete existing skills
-      const { error: deleteError } = await client
-        .from('project_skills')
-        .delete()
-        .eq('project_id', projectId)
-
-      if (deleteError) throw deleteError
-
-      // Insert new skills
-      if (skill_tag_ids.length > 0) {
-        const skillInserts = skill_tag_ids.map((id) => ({
-          project_id: projectId,
-          skill_tag_id: id,
-          is_required: true
-        }))
-        const { error: skillError } = await client
-          .from('project_skills')
-          .insert(skillInserts)
-        if (skillError) throw skillError
-      }
+    const res = await ProjectService.updateProjectFull(projectId, payload)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal memperbarui project.')
     }
   }
 
@@ -214,90 +108,50 @@ export const useProjects = () => {
     projectId: string,
     status: 'open' | 'in_progress' | 'completed' | 'archived'
   ): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { error } = await client
-      .from('projects')
-      .update({ status })
-      .eq('id', projectId)
-      .eq('creator_id', user.value.id)
-
-    if (error) throw error
+    const res = await ProjectService.updateProjectStatus(projectId, status)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal memperbarui status project.')
+    }
   }
 
   const startProject = async (projectId: string): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { data: members, error: membersError } = await client
-      .from('project_members')
-      .select('profile_id')
-      .eq('project_id', projectId)
-      .eq('role', 'contributor')
-
-    if (membersError) throw membersError
-
-    if (!members || members.length === 0) {
-      throw new Error('Tambahkan minimal 1 collaborator sebelum memulai project.')
+    const res = await ProjectService.startProject(projectId)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal memulai project.')
     }
-
-    const { error } = await client
-      .from('projects')
-      .update({ status: 'in_progress' })
-      .eq('id', projectId)
-      .eq('creator_id', user.value.id)
-      .eq('status', 'open')
-
-    if (error) throw error
   }
 
   const getMyProjects = async (): Promise<Project[]> => {
-    if (!user.value) return []
-
-    const { data, error } = await client
-      .from('projects')
-      .select(
-        `
-        id, creator_id, title, slug, summary, type, status, max_slots, deadline, created_at, published_at,
-        project_members(profile_id, role),
-        project_skills(skill_tag_id, is_required, skill_tags(id, name))
-      `
-      )
-      .eq('creator_id', user.value.id)
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    return data ?? []
+    try {
+      const res = await ProjectService.getMyProjects()
+      const list = res.data ?? []
+      return list.map((p: any) => ({
+        ...p,
+        profiles: p.creator
+      }))
+    } catch (err) {
+      console.error('Failed to get my projects:', err)
+      return []
+    }
   }
 
   const getMyApplications = async (): Promise<Application[]> => {
-    if (!user.value) return []
-
-    const { data, error } = await client
-      .from('applications')
-      .select(
-        `
-        *,
-        projects(id, title, slug, status)
-      `
-      )
-      .eq('applicant_id', user.value.id)
-      .order('applied_at', { ascending: false })
-
-    if (error) throw error
-    return data ?? []
+    try {
+      const res = await ProjectService.getMyApplications()
+      return res.data ?? []
+    } catch (err) {
+      console.error('Failed to get my applications:', err)
+      return []
+    }
   }
 
   const applyToProject = async (
     payload: ApplyProjectPayload
   ): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login untuk melamar project.')
-    if (!user.value.email_confirmed_at) throw new Error('Verifikasi email Anda terlebih dahulu untuk melamar project.')
-
-    const { error } = await client
-      .from('applications')
-      .insert({ ...payload, applicant_id: user.value.id })
-
-    if (error) throw error
+    const res = await ProjectService.applyToProject(payload.project_id, payload)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal melamar ke project.')
+    }
   }
 
   // ============================================================
@@ -307,21 +161,13 @@ export const useProjects = () => {
   const getProjectApplicants = async (
     projectId: string
   ): Promise<Application[]> => {
-    if (!user.value) return []
-
-    const { data, error } = await client
-      .from('applications')
-      .select(
-        `
-        *,
-        profiles(username, full_name, avatar, headline, completion_score)
-      `
-      )
-      .eq('project_id', projectId)
-      .order('applied_at', { ascending: false })
-
-    if (error) throw error
-    return data ?? []
+    try {
+      const res = await ProjectService.getProjectApplicants(projectId)
+      return res.data ?? []
+    } catch (err) {
+      console.error(`Failed to get applicants for project ${projectId}:`, err)
+      return []
+    }
   }
 
   const reviewApplication = async (
@@ -329,60 +175,27 @@ export const useProjects = () => {
     status: 'accepted' | 'rejected',
     reviewerNote?: string
   ): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { data: application, error: fetchError } = await client
-      .from('applications')
-      .select('project_id, applicant_id')
-      .eq('id', applicationId)
-      .single()
-
-    if (fetchError) throw fetchError
-
-    const { error: updateError } = await client
-      .from('applications')
-      .update({ status, reviewer_note: reviewerNote })
-      .eq('id', applicationId)
-
-    if (updateError) throw updateError
-
-    // Jika diterima, tambahkan ke project_members
-    if (status === 'accepted') {
-      const { error: memberError } = await client
-        .from('project_members')
-        .upsert(
-          {
-            project_id: application.project_id,
-            profile_id: application.applicant_id,
-            role: 'contributor'
-          },
-          { onConflict: 'project_id,profile_id', ignoreDuplicates: true }
-        )
-      if (memberError) throw memberError
+    const res = await ProjectService.reviewApplication(applicationId, status, reviewerNote)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal meninjau lamaran.')
     }
   }
 
   const withdrawApplication = async (applicationId: string): Promise<void> => {
-    if (!user.value) throw new Error('Kamu harus login.')
-
-    const { error } = await client
-      .from('applications')
-      .update({ status: 'withdrawn' })
-      .eq('id', applicationId)
-      .eq('applicant_id', user.value.id)
-      .eq('status', 'pending')
-
-    if (error) throw error
+    const res = await ProjectService.withdrawApplication(applicationId)
+    if (res.error) {
+      throw new Error(res.message || 'Gagal menarik lamaran.')
+    }
   }
 
   const getSkillTags = async () => {
-    const { data, error } = await client
-      .from('skill_tags')
-      .select('id, name')
-      .order('name')
-
-    if (error) throw error
-    return data ?? []
+    try {
+      const res = await ProjectService.getSkillTags()
+      return res.data ?? []
+    } catch (err) {
+      console.error('Failed to get skill tags:', err)
+      return []
+    }
   }
 
   return {

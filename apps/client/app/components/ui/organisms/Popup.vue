@@ -114,7 +114,7 @@
 
           <!-- Content -->
           <h3
-            class="text-xl font-semibold tracking-tight text-secondary-900 leading-snug"
+            class="text-xl text-body tracking-tight text-secondary-900 leading-snug"
           >
             {{ title }}
           </h3>
@@ -163,6 +163,9 @@
 
 <script setup lang="ts">
 import { computed, watch, onUnmounted } from 'vue'
+import { buildVueDompurifyHTMLDirective } from 'vue-dompurify-html'
+
+const vDompurifyHtml = buildVueDompurifyHTMLDirective()
 
 const props = withDefaults(
   defineProps<{

@@ -37,7 +37,7 @@
         />
       </svg>
     </div>
-    <span v-if="label" class="text-sm font-medium text-neutral-800 select-none">
+    <span v-if="label" class="font-body-2 select-none">
       {{ label }}
     </span>
   </label>
