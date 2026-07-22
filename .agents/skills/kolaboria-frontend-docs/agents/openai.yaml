@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kolaboria Frontend Docs"
+  short_description: "Use frontend docs as implementation guardrails."
+  default_prompt: "Use $kolaboria-frontend-docs to implement this Kolaboria frontend task according to the local documentation."
