@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { CreateProjectPayload } from '~/types/project'
+import { SkillService } from '~/services/skill.service'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 useHead({ title: 'Buat Project — Kolaboria' })
 
-const { createProject, publishProject, getSkillTags } = useProjects()
+const { createProject, publishProject } = useProjects()
 const { getProfile } = useProfile()
 const { isVerified } = useAuth()
+const { tools, loadTools } = useSkill()
 const router = useRouter()
 
 const currentStep = ref(1)
@@ -24,13 +26,19 @@ const stepperSteps = [
 // Load data awal
 const profile = ref<any>(null)
 const skillTags = ref<{ id: string; name: string }[]>([])
+const contributionRoles = ref<
+  { id: string; name: string; slug: string; category?: string | null }[]
+>([])
 
 onMounted(async () => {
   profile.value = await getProfile()
   try {
-    skillTags.value = await getSkillTags()
+    const skills = await SkillService.getSkills()
+    skillTags.value = skills
+    contributionRoles.value = skills
+    await loadTools()
   } catch (err) {
-    console.error('Failed to get skill tags:', err)
+    console.error('Failed to load project reference data:', err)
   }
 })
 
@@ -41,14 +49,15 @@ const form = reactive<CreateProjectPayload>({
   title: '',
   summary: '',
   description: '',
-  type: 'web_app',
+  project_category: 'product',
   visibility: 'public',
   max_slots: 3,
   start_date: undefined,
   deadline: undefined,
-  tech_stack: [],
+  tool_ids: [],
   why_join: '',
-  skill_tag_ids: []
+  skill_ids: [],
+  roles: []
 })
 
 const stepValid = computed(() => {
@@ -73,7 +82,7 @@ const saveDraft = async () => {
   submitError.value = ''
   try {
     const project = await createProject(form)
-    router.push(`/projects/${project.id}`)
+    router.push(`/projects/${project.slug}`)
   } catch (e: any) {
     submitError.value = e?.message || 'Gagal menyimpan draft.'
   } finally {
@@ -201,6 +210,7 @@ const confirmSaveAndPublish = () => {
           v-else-if="currentStep === 2"
           v-model:form="form"
           :skill-tags="skillTags"
+          :contribution-roles="contributionRoles"
         />
 
         <!-- Step 3: Timeline -->
@@ -218,6 +228,8 @@ const confirmSaveAndPublish = () => {
           :submit-error="submitError"
           :is-submitting="isSubmitting"
           :skill-tags="skillTags"
+          :tools="tools"
+          :contribution-roles="contributionRoles"
         />
 
         <!-- Navigation - Sticky Floating Bar -->

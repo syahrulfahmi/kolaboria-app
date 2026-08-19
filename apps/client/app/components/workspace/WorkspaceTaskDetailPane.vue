@@ -16,6 +16,7 @@ const props = defineProps<{
   commentsLoading?: boolean
   saving?: boolean
   isOwner: boolean
+  readOnly?: boolean
   currentUserId: string
 }>()
 
@@ -91,7 +92,7 @@ const submitChanges = () => {
   if (!props.task) return
   if (!draft.title.trim()) return
 
-  const payload: UpdateTaskPayload = props.isOwner
+  const payload: UpdateTaskPayload = canEditFields.value
     ? {
         title: draft.title.trim(),
         description: draft.description.trim() || null,
@@ -143,7 +144,7 @@ const draftDueDateAsDate = computed({
     if (val instanceof Date) {
       const d = new Date(val)
       d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
-      draft.due_date = d.toISOString().split('T')[0]
+      draft.due_date = d.toISOString().split('T')[0] ?? null
     } else {
       draft.due_date = null
     }
@@ -151,6 +152,8 @@ const draftDueDateAsDate = computed({
 })
 
 const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
+const canEditFields = computed(() => props.isOwner && !props.readOnly)
+const canEditStatus = computed(() => !props.readOnly)
 </script>
 
 <template>
@@ -194,9 +197,10 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
       <!-- Action buttons in header -->
       <div class="flex items-center gap-1 shrink-0">
         <button
-          v-if="isOwner"
-          class="p-1.5 text-red-400 hover:text-red-600 rounded-md hover:bg-neutral-100 transition"
-          title="Hapus Task"
+          v-if="canEditFields"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-danger-600 transition hover:bg-danger-50 hover:text-danger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-danger-400"
+          title="Hapus task"
+          aria-label="Hapus task"
           @click="deleteTask"
         >
           <svg
@@ -215,7 +219,8 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
         </button>
         <div class="w-px h-4 bg-neutral-200 mx-1" />
         <button
-          class="p-1.5 text-neutral-400 hover:text-neutral-600 rounded-md hover:bg-neutral-100 transition"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          aria-label="Tutup detail task"
           @click="$emit('close')"
         >
           <svg
@@ -242,7 +247,7 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
         <!-- Title Field -->
         <div class="space-y-1">
           <MoleculeInputField
-            v-if="isOwner"
+            v-if="canEditFields"
             v-model="draft.title"
             label="Judul Tugas"
             placeholder="Judul tugas..."
@@ -258,7 +263,7 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
         <!-- Description Field -->
         <div class="space-y-1">
           <MoleculeTextarea
-            v-if="isOwner"
+            v-if="canEditFields"
             v-model="draft.description"
             label="Deskripsi"
             rows="4"
@@ -283,7 +288,7 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
         <div class="flex items-center gap-4 min-h-[44px]">
           <span class="w-24 shrink-0 font-body-2">Assignee</span>
           <div class="flex-1 min-w-0">
-            <div v-if="isOwner" class="w-full">
+            <div v-if="canEditFields" class="w-full">
               <MoleculeDropdown
                 v-model="draft.assignee_id"
                 :options="assigneeOptions"
@@ -313,7 +318,7 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
         <div class="flex items-center gap-4 min-h-[44px]">
           <span class="w-24 shrink-0 font-body-2">Tenggat</span>
           <div class="flex-1 min-w-0">
-            <div v-if="isOwner" class="w-full">
+            <div v-if="canEditFields" class="w-full">
               <MoleculeDatePicker
                 v-model="draftDueDateAsDate"
                 placeholder="Pilih tenggat waktu"
@@ -348,11 +353,15 @@ const isDrawerOpen = computed(() => props.isOpen && props.task !== null)
           <span class="w-24 shrink-0 font-body-2">Status</span>
           <div class="flex-1 min-w-0">
             <MoleculeDropdown
+              v-if="canEditStatus"
               v-model="draft.status"
               :options="statusOptions"
               :disabled="saving"
               class="w-full"
             />
+            <div v-else class="rounded-lg border border-neutral-200 bg-white px-3 py-2 font-label-2 text-neutral-700">
+              {{ statusOptions.find((option) => option.value === draft.status)?.label || draft.status }}
+            </div>
           </div>
         </div>
 

@@ -113,7 +113,7 @@ const handleSubmit = async () => {
       message: 'Selamat bergabung di Kolaboria. Mari mulai berkolaborasi!'
     })
 
-    router.push('/home')
+    await router.replace('/home')
   } catch (err: any) {
     submitError.value =
       err?.message || 'Gagal menyimpan profil. Silakan coba lagi.'

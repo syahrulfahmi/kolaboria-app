@@ -74,7 +74,7 @@ const filteredProjects = computed(() => {
   <div class="min-h-screen bg-neutral-50 pb-20 overflow-x-hidden">
     <!-- ─── HEADER ─── -->
     <OrganismCard>
-      <div class="max-w-7xl mx-auto relative z-10">
+      <div class="mx-auto relative z-10">
         <div
           class="flex flex-col md:flex-row md:items-end justify-between gap-6"
         >
@@ -123,7 +123,7 @@ const filteredProjects = computed(() => {
     </OrganismCard>
 
     <!-- ─── MAIN CONTENT ─── -->
-    <main class="max-w-7xl mx-auto py-8">
+    <main class="mx-auto py-8">
       <!-- ─── LOADING STATE ─── -->
       <MoleculeLoading v-if="pending" label="Memuat project..." class="py-16" />
 

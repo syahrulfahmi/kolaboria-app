@@ -16,47 +16,8 @@ const initials = computed(() =>
     .toUpperCase()
 )
 
-const availabilityLabel = computed(() => {
-  switch (props.profile.availability_status) {
-    case 'available':
-      return 'Available'
-    case 'busy':
-      return 'Busy'
-    case 'unavailable':
-      return 'Unavailable'
-    default:
-      return 'Status belum diatur'
-  }
-})
-
-const availabilityVariant = computed(() => {
-  switch (props.profile.availability_status) {
-    case 'available':
-      return 'success'
-    case 'busy':
-      return 'primary'
-    case 'unavailable':
-      return 'danger'
-    default:
-      return 'default'
-  }
-})
-
 const isTopRated = computed(() => {
   return props.profile.is_verified || props.profile.rating >= 4.5
-})
-
-const dotClass = computed(() => {
-  switch (availabilityVariant.value) {
-    case 'success':
-      return 'bg-success-500 animate-pulse'
-    case 'primary':
-      return 'bg-primary-500'
-    case 'danger':
-      return 'bg-danger-500'
-    default:
-      return 'bg-neutral-400'
-  }
 })
 
 const handleCoverClick = () => {
@@ -209,16 +170,6 @@ const handleCoverClick = () => {
               />
             </svg>
             {{ profile.location }}
-          </AtomicTag>
-
-          <!-- Availability Pill "Available for New Projects" with status dot -->
-          <AtomicTag :variant="availabilityVariant">
-            <span class="h-1.5 w-1.5 rounded-full" :class="dotClass" />
-            {{
-              availabilityVariant === 'success'
-                ? 'Available for New Projects'
-                : availabilityLabel
-            }}
           </AtomicTag>
         </div>
       </div>

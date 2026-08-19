@@ -210,7 +210,7 @@
                 <p
                   v-for="(paragraph, idx) in descriptionParagraphs"
                   :key="idx"
-                  class="text-gray-700 leading-[1.85] font-paragraph-2"
+                  class="text-secondary leading-[1.85] font-paragraph-2"
                 >
                   {{ paragraph }}
                 </p>
@@ -267,6 +267,52 @@
                   </span>
                 </div>
 
+                <!-- Contribution roles -->
+                <div v-if="project.project_roles?.length">
+                  <p class="text-secondary mb-4 font-paragraph-2">
+                    Peran yang Dibutuhkan
+                  </p>
+                  <div class="space-y-3">
+                    <div
+                      v-for="role in project.project_roles"
+                      :key="role.id"
+                      class="rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+                    >
+                      <div class="flex items-center justify-between gap-4">
+                        <span class="font-body-1">
+                          {{
+                            role.custom_title ||
+                            role.contribution_role?.name ||
+                            'Project Role'
+                          }}
+                        </span>
+                        <span class="text-xs text-secondary">
+                          {{ role.remaining_capacity ?? role.capacity }} /
+                          {{ role.capacity }} tersisa
+                        </span>
+                      </div>
+                      <p
+                        v-if="role.description"
+                        class="mt-1 text-sm text-secondary"
+                      >
+                        {{ role.description }}
+                      </p>
+                      <div
+                        v-if="role.required_skills?.length"
+                        class="mt-2 flex flex-wrap gap-1.5"
+                      >
+                        <AtomicTagCategory
+                          v-for="skill in role.required_skills"
+                          :key="skill.id"
+                          variant="default"
+                        >
+                          {{ skill.name }}
+                        </AtomicTagCategory>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Category + Capacity inline -->
                 <div class="grid grid-cols-2 gap-6">
                   <div>
@@ -282,7 +328,7 @@
                       Kapasitas Tim
                     </p>
                     <p class="font-label-2">
-                      {{ members.length }} / {{ project.max_slots }} kontributor
+                      {{ members.length }} / {{ totalRoleCapacity }} kontributor
                     </p>
                   </div>
                 </div>
@@ -339,7 +385,7 @@
               <hr class="border-gray-200" />
               <section id="section-why-join" class="scroll-mt-20">
                 <AtomicSectionTitle> Kenapa Bergabung </AtomicSectionTitle>
-                <p class="font-paragraph-2 whitespace-pre-line">
+                <p class="font-paragraph-2 text-secondary whitespace-pre-line">
                   {{ project.why_join }}
                 </p>
               </section>
@@ -378,7 +424,15 @@
                         member.profiles?.full_name || member.profiles?.username
                       }}
                     </NuxtLink>
-                    <div class="text-xs text-gray-500">Kontributor</div>
+                    <div class="text-xs text-gray-500">
+                      {{
+                        member.contribution_role?.name ||
+                        member.custom_role_title ||
+                        (member.role === 'owner'
+                          ? 'Project Owner'
+                          : 'Kontributor')
+                      }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -757,6 +811,7 @@
     <ProjectApplyModal
       v-if="project"
       :project-id="project.id"
+      :roles="project.project_roles || []"
       :show="showApplyModal"
       @close="showApplyModal = false"
       @applied="handleApplied"
@@ -766,6 +821,7 @@
 
 <script setup lang="ts">
 import type { Application, Project } from '~/types/project'
+import { getProjectCategoryLabel } from '~/constants/projectCategory'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -797,7 +853,8 @@ useHead({
 const { data: myApps, refresh: refreshApps } = await useAsyncData<
   Application[]
 >(`my-apps-${projectSlug}`, () =>
-  user.value ? getMyApplications() : Promise.resolve([])
+  user.value ? getMyApplications() : Promise.resolve([]),
+  { server: false }
 )
 
 const currentApplication = computed(() => {
@@ -822,10 +879,31 @@ const members = computed(
 
 const filledSlots = computed(() => members.value.length)
 
+const totalRoleCapacity = computed(
+  () =>
+    project.value?.project_roles?.reduce(
+      (total, role) => total + role.capacity,
+      0
+    ) ??
+    project.value?.max_slots ??
+    0
+)
+
 const openSlots = computed(() => {
-  if (!project.value) return 0
-  return Math.max(0, project.value.max_slots - filledSlots.value)
+  return (
+    project.value?.project_roles?.reduce(
+      (total, role) => total + role.remaining_capacity,
+      0
+    ) ?? 0
+  )
 })
+
+const availableRoles = computed(
+  () =>
+    project.value?.project_roles?.filter(
+      (role) => role.status === 'open' && role.remaining_capacity > 0
+    ) ?? []
+)
 
 const canReapply = computed(() => {
   if (!currentApplication.value) return false
@@ -848,10 +926,12 @@ const canApply = computed(() => {
   if (!user.value) return false
   if (isOwner.value) return false
   const alreadyMember = members.value.some(
-    (member) => member.profile_id === currentUserId.value
+    (member) =>
+      member.profile_id === currentUserId.value && member.status === 'active'
   )
   if (alreadyMember) return false
-  if (project.value?.status !== 'open' || openSlots.value <= 0) return false
+  if (project.value?.status !== 'open' || availableRoles.value.length === 0)
+    return false
   return !hasApplied.value || canReapply.value
 })
 
@@ -873,18 +953,8 @@ const formatDate = (date: string | null | undefined) => {
 const formattedDeadline = computed(() => formatDate(project.value?.deadline))
 const formattedStartDate = computed(() => formatDate(project.value?.start_date))
 
-const typeLabel: Record<string, string> = {
-  web_app: 'Web App',
-  mobile_app: 'Mobile App',
-  ui_ux: 'UI/UX Design',
-  backend: 'Backend',
-  data_analytics: 'Data & Analytics',
-  devops: 'DevOps',
-  other: 'Lainnya'
-}
-
 const coverLabel = computed(() =>
-  project.value ? typeLabel[project.value.type] : '-'
+  project.value ? getProjectCategoryLabel(project.value.project_category) : '-'
 )
 
 const creatorName = computed(
@@ -931,44 +1001,62 @@ const timelineStatusLabel = computed(() =>
         : 'Belum Membuka Lamaran'
 )
 
-const heroStats = computed(() => [
-  {
-    label: 'Slot Tersedia',
-    value: openSlots.value,
-    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
-    pathAttrs: {
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      'stroke-width': '2',
-      d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197'
-    }
-  },
-  {
-    label: 'Kontributor',
-    value: members.value.length,
-    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
-    pathAttrs: {
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      'stroke-width': '2',
-      d: 'M17 20h5v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z'
-    }
-  },
-  {
-    label: 'Estimasi Waktu',
-    value: projectDurationLabel.value,
-    iconAttrs: { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
-    pathAttrs: {
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      'stroke-width': '2',
-      d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-    }
-  }
-])
+const heroStats = computed(
+  () =>
+    [
+      {
+        label: 'Slot Tersedia',
+        value: openSlots.value,
+        iconAttrs: {
+          fill: 'none',
+          stroke: 'currentColor',
+          viewBox: '0 0 24 24'
+        },
+        pathAttrs: {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'stroke-width': '2',
+          d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197'
+        }
+      },
+      {
+        label: 'Kontributor',
+        value: members.value.length,
+        iconAttrs: {
+          fill: 'none',
+          stroke: 'currentColor',
+          viewBox: '0 0 24 24'
+        },
+        pathAttrs: {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'stroke-width': '2',
+          d: 'M17 20h5v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0z'
+        }
+      },
+      {
+        label: 'Estimasi Waktu',
+        value: projectDurationLabel.value,
+        iconAttrs: {
+          fill: 'none',
+          stroke: 'currentColor',
+          viewBox: '0 0 24 24'
+        },
+        pathAttrs: {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'stroke-width': '2',
+          d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+        }
+      }
+    ] as const
+)
 
 const contentTags = computed(() => {
-  const techTags = project.value?.tech_stack ?? []
+  const techTags =
+    project.value?.project_technologies?.map(
+      (technology) => technology.tool.name
+    ) ?? []
   const skillTags =
     project.value?.project_skills?.map((skill) => skill.skill_tags.name) ?? []
   return [...new Set([...techTags, ...skillTags])].slice(0, 12)

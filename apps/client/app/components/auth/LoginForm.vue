@@ -57,8 +57,12 @@ const handleLogin = async () => {
   // Submit
   isLoading.value = true
   try {
-    await login(result.data.email, result.data.password)
-    router.push('/home')
+    const res = await login(result.data.email, result.data.password)
+    if (res?.data?.verificationResendAvailableAt) {
+      const { setAvailableAt } = useVerificationCooldown()
+      setAvailableAt(result.data.email, res.data.verificationResendAvailableAt)
+    }
+    router.replace('/home')
   } catch (err: unknown) {
     authError.value = 'Email atau password salah. Coba lagi'
   } finally {

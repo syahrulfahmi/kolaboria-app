@@ -37,40 +37,6 @@ const rejectedApps = computed(
     ) ?? []
 )
 
-// Availability
-const availabilityConfig = computed(() => {
-  switch (props.availabilityStatus) {
-    case 'available':
-      return {
-        label: 'Tersedia',
-        dotClass: 'bg-success-500',
-        textClass: 'text-success-700',
-        bgClass: 'bg-success-50 ring-1 ring-success-200'
-      }
-    case 'busy':
-      return {
-        label: 'Sibuk',
-        dotClass: 'bg-accent-500',
-        textClass: 'text-accent-700',
-        bgClass: 'bg-accent-50 ring-1 ring-accent-200'
-      }
-    case 'unavailable':
-      return {
-        label: 'Tidak Tersedia',
-        dotClass: 'bg-neutral-400',
-        textClass: 'text-neutral-600',
-        bgClass: 'bg-neutral-100 ring-1 ring-neutral-200'
-      }
-    default:
-      return {
-        label: 'Status belum diatur',
-        dotClass: 'bg-neutral-300',
-        textClass: 'text-neutral-500',
-        bgClass: 'bg-neutral-50 ring-1 ring-neutral-200'
-      }
-  }
-})
-
 // Workspaces
 const accessibleWorkspaces = computed(() => {
   const workspaces: {
@@ -123,20 +89,6 @@ const accessibleWorkspaces = computed(() => {
             Ringkasan proyek & lamaran terkini.
           </p>
         </div>
-        <!-- Availability badge -->
-        <NuxtLink
-          to="/profile/me/edit/basic"
-          class="flex items-center gap-1.5 rounded-full px-3 py-1.5 font-body-2 transition-opacity hover:opacity-80"
-          :class="availabilityConfig.bgClass"
-        >
-          <span
-            class="h-2 w-2 rounded-full"
-            :class="availabilityConfig.dotClass"
-          />
-          <span :class="availabilityConfig.textClass">{{
-            availabilityConfig.label
-          }}</span>
-        </NuxtLink>
       </div>
     </div>
 
@@ -259,9 +211,7 @@ const accessibleWorkspaces = computed(() => {
           v-else
           class="flex flex-col items-center gap-1.5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 py-4 text-center"
         >
-          <p class="font-body-2 font-medium text-neutral-500">
-            Belum ada lamaran
-          </p>
+          <p class="font-body-2">Belum ada lamaran</p>
           <NuxtLink
             to="/projects"
             class="font-label-2 text-primary-600 hover:text-primary-700"
@@ -318,10 +268,8 @@ const accessibleWorkspaces = computed(() => {
           v-else
           class="flex flex-col items-center gap-1.5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50 py-4 text-center"
         >
-          <p class="font-body-1 font-medium text-neutral-500">
-            Belum ada workspace aktif
-          </p>
-          <p class="font-body-1 text-neutral-400 px-4">
+          <p class="font-body-2">Belum ada workspace aktif</p>
+          <p class="font-paragraph-3 text-secondary px-4">
             Workspace terbuka setelah project masuk tahap pengerjaan.
           </p>
         </div>

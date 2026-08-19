@@ -64,7 +64,7 @@ export const usePortfolio = () => {
   ): Promise<WorkHistory | null> => {
     try {
       const res = await PortfolioService.getMyWorkHistory(projectId)
-      return res.data
+      return res.data ?? null
     } catch (error) {
       console.error('Error fetching work history:', error)
       return null

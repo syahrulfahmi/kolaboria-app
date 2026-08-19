@@ -2,7 +2,6 @@ import type { Ref } from 'vue'
 import type {
   ActivityLog,
   CreateWorkspaceTaskPayload,
-  LogActivityPayload,
   MemberProfile,
   ReorderTaskUpdate,
   Task,
@@ -12,6 +11,7 @@ import type {
   WorkspaceOverview
 } from '../types/workspace'
 import { WorkspaceService } from '../services/workspace.service'
+import { useProjectDeliverables } from './useProjectDeliverables'
 
 const statuses: TaskStatus[] = ['todo', 'in_progress', 'review', 'done']
 
@@ -28,6 +28,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
   const saving = ref(false)
   const commentsLoading = ref(false)
   const error = ref<string | null>(null)
+  const evidence = useProjectDeliverables(projectId)
 
   const sortByPosition = (items: Task[]) =>
     [...items].sort((a, b) => Number(a.position) - Number(b.position))
@@ -111,16 +112,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     refreshOverview()
   }
 
-  const logActivity = async (
-    payload: Omit<LogActivityPayload, 'project_id' | 'actor_id'>
-  ) => {
-    await WorkspaceService.logActivity({
-      project_id: requireProjectId(),
-      actor_id: requireUserId(),
-      ...payload
-    })
-  }
-
   const createTask = async (payload: CreateWorkspaceTaskPayload) => {
     const userId = requireUserId()
     const status = payload.status ?? 'todo'
@@ -137,12 +128,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
       })
 
       tasks.value.push(created)
-      await logActivity({
-        action: 'task.created',
-        entity_type: 'task',
-        entity_id: created.id,
-        metadata: { title: created.title, created_by: userId }
-      })
       await fetchActivities()
       refreshOverview()
       toast.success('Task berhasil dibuat.')
@@ -159,20 +144,16 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     const index = tasks.value.findIndex((task) => task.id === taskId)
     if (index === -1) return
 
-    const previous = { ...tasks.value[index] }
-    tasks.value[index] = { ...tasks.value[index], ...payload }
+    const current = tasks.value[index]
+    if (!current) return
+
+    const previous = { ...current }
+    tasks.value[index] = { ...current, ...payload }
     saving.value = true
 
     try {
       const updated = await WorkspaceService.updateTask(taskId, payload)
       tasks.value[index] = updated
-      await logActivity({
-        action:
-          payload.assignee_id !== undefined ? 'task.assigned' : 'task.updated',
-        entity_type: 'task',
-        entity_id: taskId,
-        metadata: { title: updated.title }
-      })
       await fetchActivities()
       refreshOverview()
     } catch (err) {
@@ -218,16 +199,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
       })
 
       if (moved) {
-        const oldTask = previous.find((task) => task.id === moved.id)
-        await logActivity({
-          action: 'task.moved',
-          entity_type: 'task',
-          entity_id: moved.id,
-          metadata: {
-            from_status: oldTask?.status,
-            to_status: moved.status
-          }
-        })
         await fetchActivities()
       }
 
@@ -261,12 +232,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
 
     try {
       await WorkspaceService.deleteTask(taskId)
-      await logActivity({
-        action: 'task.deleted',
-        entity_type: 'task',
-        entity_id: taskId,
-        metadata: { title: task.title }
-      })
       await fetchActivities()
       refreshOverview()
     } catch (err) {
@@ -300,12 +265,6 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
         trimmedBody
       )
       comments.value.push(comment)
-      await logActivity({
-        action: 'comment.added',
-        entity_type: 'comment',
-        entity_id: comment.id,
-        metadata: { task_id: taskId }
-      })
       await fetchActivities()
     } catch (err) {
       toast.error('Gagal mengirim komentar.')
@@ -336,8 +295,9 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
 
     const previous = [...comments.value]
     const index = comments.value.findIndex((c) => c.id === commentId)
-    if (index !== -1) {
-      comments.value[index] = { ...comments.value[index], body: trimmedBody }
+    const current = index === -1 ? undefined : comments.value[index]
+    if (current) {
+      comments.value[index] = { ...current, body: trimmedBody }
     }
 
     saving.value = true
@@ -362,7 +322,8 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
       await Promise.all([
         fetchTasks(),
         fetchMembers(creatorId),
-        fetchActivities()
+        fetchActivities(),
+        evidence.load()
       ])
       refreshOverview()
     } finally {
@@ -394,6 +355,16 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
     addComment,
     deleteComment,
     updateComment,
-    refreshWorkspace
+    refreshWorkspace,
+    deliverables: evidence.deliverables,
+    snapshots: evidence.snapshots,
+    finalizationStatus: evidence.finalizationStatus,
+    evidenceLoading: evidence.loading,
+    evidenceSaving: evidence.saving,
+    evidenceError: evidence.error,
+    createDeliverable: evidence.create,
+    updateDeliverable: evidence.update,
+    deleteDeliverable: evidence.remove,
+    refreshFinalization: evidence.refreshFinalization
   }
 }

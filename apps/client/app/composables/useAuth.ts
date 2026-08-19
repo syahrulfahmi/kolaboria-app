@@ -18,6 +18,7 @@ export const useAuth = () => {
       refreshToken.value = res.data.refreshToken
       user.value = res.data.user
     }
+    return res
   }
 
   const logout = async () => {
@@ -68,7 +69,7 @@ export const useAuth = () => {
   const resendVerification = async (email?: string) => {
     const targetEmail = email || user.value?.email
     if (!targetEmail) throw new Error('Email tidak ditemukan')
-    await AuthService.resendVerification(targetEmail)
+    return await AuthService.resendVerification(targetEmail)
   }
 
   const forgotPassword = async (email: string) => {
@@ -114,6 +115,10 @@ export const useAuth = () => {
   const currentUserId = computed(() => getDecodedToken()?.user_id || null)
   const currentUsername = computed(() => getDecodedToken()?.username || null)
 
+  const verifyEmail = async (token: string) => {
+    return await AuthService.verifyEmail(token)
+  }
+
   return {
     user,
     isAuthenticated,
@@ -124,6 +129,7 @@ export const useAuth = () => {
     loginWithGoogle,
     loginWithGoogleCallback,
     resendVerification,
+    verifyEmail,
     forgotPassword,
     resetPassword,
     fetchCurrentUser,

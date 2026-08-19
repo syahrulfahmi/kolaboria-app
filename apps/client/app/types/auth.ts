@@ -21,3 +21,23 @@ export interface User {
   createdAt: string
 }
 
+export interface VerificationCooldown {
+  verificationResendAvailableAt: string
+}
+
+export interface RegistrationResponse extends User, VerificationCooldown {}
+
+export interface ResendVerificationResponse extends VerificationCooldown {}
+
+export interface AuthResponsePayload {
+  accessToken: string
+  refreshToken: string
+  user: User
+  verificationResendAvailableAt?: string | null
+}
+
+export interface VerificationCooldownErrorDetails {
+  verificationResendAvailableAt?: string
+  retryAfterSeconds?: number
+}
+

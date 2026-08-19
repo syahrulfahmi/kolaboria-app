@@ -8,6 +8,7 @@ import type {
 } from '../types/profile'
 import { getProfileCompletionItems } from '../utils/profileCompletion'
 import type { ApiResponse } from '../types/api'
+import type { ExperienceCard } from '../types/experience'
 
 // Helper function to map camelCase REST API response properties to snake_case used by frontend components
 function mapProfile(data: any): Profile | null {
@@ -41,6 +42,7 @@ function mapProfile(data: any): Profile | null {
     last_active_at: data.lastActiveAt ?? data.last_active_at,
     created_at: data.createdAt ?? data.created_at,
     updated_at: data.updatedAt ?? data.updated_at,
+    verified_experiences: (data.verifiedExperiences ?? data.verified_experiences ?? []) as ExperienceCard[],
     address: data.address
       ? {
           id: data.address.id,
@@ -181,12 +183,12 @@ export const useProfile = () => {
   // Action: onboarding
   const submitOnboarding = async (payload: SubmitOnboardingRequest) => {
     const res = await ProfileService.submitOnboarding(payload)
-    if (res.data) {
-      isOnboarded.value = true
-      // Clear profile caches to force fresh load next time
-      profile.value = null
-      talentProfileState.value = null
-    }
+    // A successful onboarding response intentionally has no data payload.
+    // Update the client cache based on the successful request itself.
+    isOnboarded.value = true
+    // Clear profile caches to force fresh load next time
+    profile.value = null
+    talentProfileState.value = null
     return res
   }
 

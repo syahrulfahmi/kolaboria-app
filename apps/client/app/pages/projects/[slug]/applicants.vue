@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Application, Project } from '~/types/project'
+import { getProjectCategoryLabel } from '~/constants/projectCategory'
 import ApplicantDetailModal from '~/components/project/ApplicantDetailModal.vue'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
@@ -193,7 +194,7 @@ const availabilityLabels: Record<string, string> = {
                 }}</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-neutral-300"></span>
                 <span class="text-sm uppercase tracking-wider text-body">{{
-                  project?.type?.replace('_', ' ') || 'Project'
+                  project?.project_category ? getProjectCategoryLabel(project.project_category) : 'Project'
                 }}</span>
               </p>
             </div>
@@ -364,10 +365,10 @@ const availabilityLabels: Record<string, string> = {
                   v-if="statusConfig[app.status]"
                   :class="[
                     'shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset',
-                    statusConfig[app.status].classes
+                    statusConfig[app.status]?.classes
                   ]"
                 >
-                  {{ statusConfig[app.status].label }}
+                  {{ statusConfig[app.status]?.label }}
                 </span>
               </div>
               <p class="text-sm text-neutral-500 truncate mt-0.5">

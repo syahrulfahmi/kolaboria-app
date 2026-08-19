@@ -18,31 +18,28 @@ const stats = ref<any>({
 })
 const talentProfile = ref<any>(null)
 
-const { data, pending, error } = await useAsyncData(
-  'profile-me',
-  async () => {
-    // 1. Fetch current user profile first to get the username
-    const me = await getProfile()
-    if (!me || !me.username) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Username not found in profile',
-        fatal: true
-      })
-    }
-
-    // 2. Fetch full profile relations using the username
-    const res = await getProfileWithRelations(me.username)
-    if (!res)
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Profile not found',
-        fatal: true
-      })
-
-    return res
+const { data, pending, error } = await useAsyncData('profile-me', async () => {
+  // 1. Fetch current user profile first to get the username
+  const me = await getProfile()
+  if (!me || !me.username) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Username not found in profile',
+      fatal: true
+    })
   }
-)
+
+  // 2. Fetch full profile relations using the username
+  const res = await getProfileWithRelations(me.username)
+  if (!res)
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Profile not found',
+      fatal: true
+    })
+
+  return res
+})
 
 if (data.value) {
   profile.value = data.value.profile
@@ -66,15 +63,13 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 max-w-7xl">
+  <div class="min-h-screen bg-neutral-50">
     <div v-if="pending" class="flex min-h-screen items-center justify-center">
       <MoleculeLoading label="Memuat profil..." />
     </div>
 
     <div v-else-if="error" class="max-w-4xl mx-auto py-20 px-4 text-center">
-      <h1 class="text-display text-secondary-900 mb-4">
-        Gagal Memuat Profil
-      </h1>
+      <h1 class="text-display text-secondary-900 mb-4">Gagal Memuat Profil</h1>
       <p class="text-body text-neutral-500 mb-8">
         Terjadi kesalahan saat memuat profil Anda.
       </p>
@@ -88,6 +83,7 @@ useHead({
       :tools="tools"
       :stats="stats"
       :talent-profile="talentProfile"
+      :experiences="profile?.verified_experiences || []"
       :is-owner="true"
     />
   </div>

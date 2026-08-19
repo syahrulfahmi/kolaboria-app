@@ -79,7 +79,7 @@ export const useProjects = () => {
 
   const publishProject = async (projectId: string): Promise<void> => {
     const res = await ProjectService.publishProject(projectId)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal mempublikasikan project.')
     }
   }
@@ -89,7 +89,7 @@ export const useProjects = () => {
     payload: Partial<CreateProjectPayload>
   ): Promise<void> => {
     const res = await ProjectService.updateProject(projectId, payload)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal memperbarui project.')
     }
   }
@@ -99,7 +99,7 @@ export const useProjects = () => {
     payload: Partial<CreateProjectPayload>
   ): Promise<void> => {
     const res = await ProjectService.updateProjectFull(projectId, payload)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal memperbarui project.')
     }
   }
@@ -109,16 +109,27 @@ export const useProjects = () => {
     status: 'open' | 'in_progress' | 'completed' | 'archived'
   ): Promise<void> => {
     const res = await ProjectService.updateProjectStatus(projectId, status)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal memperbarui status project.')
     }
   }
 
   const startProject = async (projectId: string): Promise<void> => {
     const res = await ProjectService.startProject(projectId)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal memulai project.')
     }
+  }
+
+  const completeProject = async (projectId: string) => {
+    const res = await ProjectService.completeProject(projectId)
+    if (res.status >= 400) throw new Error(res.message || 'Gagal menyelesaikan project.')
+    return res.data
+  }
+
+  const archiveProject = async (projectId: string): Promise<void> => {
+    const res = await ProjectService.archiveProject(projectId)
+    if (res.status >= 400) throw new Error(res.message || 'Gagal mengarsipkan project.')
   }
 
   const getMyProjects = async (): Promise<Project[]> => {
@@ -149,7 +160,7 @@ export const useProjects = () => {
     payload: ApplyProjectPayload
   ): Promise<void> => {
     const res = await ProjectService.applyToProject(payload.project_id, payload)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal melamar ke project.')
     }
   }
@@ -176,14 +187,14 @@ export const useProjects = () => {
     reviewerNote?: string
   ): Promise<void> => {
     const res = await ProjectService.reviewApplication(applicationId, status, reviewerNote)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal meninjau lamaran.')
     }
   }
 
   const withdrawApplication = async (applicationId: string): Promise<void> => {
     const res = await ProjectService.withdrawApplication(applicationId)
-    if (res.error) {
+    if (res.status >= 400) {
       throw new Error(res.message || 'Gagal menarik lamaran.')
     }
   }
@@ -198,6 +209,31 @@ export const useProjects = () => {
     }
   }
 
+  const getSkills = async () => {
+    try {
+      const res = await ProjectService.getSkills()
+      return res.data ?? []
+    } catch (err) {
+      console.error('Failed to get skills:', err)
+      return []
+    }
+  }
+
+  const leaveProject = async (projectId: string) => {
+    const res = await ProjectService.leaveProject(projectId)
+    if (res.status >= 400) throw new Error(res.message || 'Gagal keluar dari project.')
+  }
+
+  const updateMemberStatus = async (projectId: string, memberId: string, status: 'active' | 'removed') => {
+    const res = await ProjectService.updateMemberStatus(projectId, memberId, status)
+    if (res.status >= 400) throw new Error(res.message || 'Gagal memperbarui status member.')
+  }
+
+  const changeMemberRole = async (projectId: string, memberId: string, projectRoleId: string) => {
+    const res = await ProjectService.changeMemberRole(projectId, memberId, projectRoleId)
+    if (res.status >= 400) throw new Error(res.message || 'Gagal mengubah role member.')
+  }
+
   return {
     getProjects,
     getProjectById,
@@ -209,12 +245,18 @@ export const useProjects = () => {
     updateProjectFull,
     updateProjectStatus,
     startProject,
+    completeProject,
+    archiveProject,
     getMyProjects,
     getMyApplications,
     applyToProject,
     getProjectApplicants,
     reviewApplication,
     withdrawApplication,
-    getSkillTags
+    getSkillTags,
+    getSkills,
+    leaveProject,
+    updateMemberStatus,
+    changeMemberRole
   }
 }

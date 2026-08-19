@@ -243,8 +243,8 @@ const contentListItems = computed(() =>
             :completedProjects="completedProjects"
             :pinnedProjectIds="pinnedProjectIds"
             :careerHistories="careerHistories"
-            @update:userSkills="(val) => (userSkills = val)"
-            @update:userTools="(val) => (userTools = val)"
+            @update:userSkills="(val: any) => (userSkills = val)"
+            @update:userTools="(val: any) => (userTools = val)"
             @refresh="refreshEditableData"
           />
         </NuxtPage>

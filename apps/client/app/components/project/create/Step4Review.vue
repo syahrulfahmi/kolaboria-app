@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CreateProjectPayload } from '~/types/project'
+import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
 const props = defineProps<{
   profile: any
@@ -7,6 +8,8 @@ const props = defineProps<{
   submitError: string
   isSubmitting: boolean
   skillTags: { id: string; name: string }[]
+  tools: { id: string; name: string }[]
+  contributionRoles: { id: string; name: string; slug: string; category?: string | null }[]
 }>()
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
@@ -14,6 +17,18 @@ const form = defineModel<CreateProjectPayload>('form', { required: true })
 const getSkillName = (id: string) => {
   return props.skillTags.find((t) => t.id === id)?.name || id
 }
+
+const getToolName = (id: string) => {
+  return props.tools.find((tool) => tool.id === id)?.name || id
+}
+
+const getRoleName = (role: { contribution_role_id?: string; custom_title?: string }) => {
+  if (role.custom_title) return role.custom_title
+  return props.contributionRoles.find((item) => item.id === role.contribution_role_id)?.name || 'Project Role'
+}
+
+const getSkillNames = (ids: string[] = []) =>
+  ids.map((id) => props.skillTags.find((skill) => skill.id === id)?.name || id)
 </script>
 
 <template>
@@ -60,8 +75,31 @@ const getSkillName = (id: string) => {
             <div>
               <dt class="font-label-1">Kategori</dt>
               <dd class="mt-1 font-body-1">
-                {{ form.type ? form.type.replace('_', ' ') : '—' }}
+                {{ form.project_category ? getProjectCategoryLabel(form.project_category) : '—' }}
               </dd>
+            </div>
+
+            <div class="sm:col-span-2 border-t border-neutral-100 pt-4">
+              <dt class="mb-2 font-label-1">Peran yang Dibutuhkan</dt>
+              <dd v-if="form.roles && form.roles.length" class="space-y-3">
+                <div
+                  v-for="role in form.roles"
+                  :key="role.id || role.custom_title"
+                  class="rounded-xl bg-neutral-50 p-3 ring-1 ring-inset ring-neutral-200"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="font-body-2">{{ getRoleName(role) }}</span>
+                    <span class="text-xs text-secondary">{{ role.capacity }} posisi</span>
+                  </div>
+                  <p v-if="role.description" class="mt-1 text-xs text-secondary">
+                    {{ role.description }}
+                  </p>
+                  <p v-if="role.skill_ids?.length" class="mt-1 text-xs text-secondary">
+                    Skills: {{ getSkillNames(role.skill_ids).join(', ') }}
+                  </p>
+                </div>
+              </dd>
+              <span v-else class="font-body-2 italic">Belum ada role</span>
             </div>
 
             <div>
@@ -98,14 +136,14 @@ const getSkillName = (id: string) => {
               <dt class="font-label-1">Tech Stack / Tools</dt>
               <dd class="mt-1.5 flex flex-wrap gap-1.5">
                 <span
-                  v-for="tech in form.tech_stack"
-                  :key="tech"
+                  v-for="toolId in form.tool_ids"
+                  :key="toolId"
                   class="inline-flex items-center rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 ring-1 ring-inset ring-neutral-200"
                 >
-                  {{ tech }}
+                  {{ getToolName(toolId) }}
                 </span>
                 <span
-                  v-if="!form.tech_stack || form.tech_stack.length === 0"
+                  v-if="!form.tool_ids || form.tool_ids.length === 0"
                   class="font-body-2 italic"
                 >
                   Tidak ada
@@ -117,11 +155,11 @@ const getSkillName = (id: string) => {
               <dt class="font-label-1 mb-2">Skill Utama yang Dicari</dt>
               <dd>
                 <div
-                  v-if="form.skill_tag_ids && form.skill_tag_ids.length > 0"
+                  v-if="form.skill_ids && form.skill_ids.length > 0"
                   class="flex flex-wrap gap-2"
                 >
                   <span
-                    v-for="skillId in form.skill_tag_ids"
+                    v-for="skillId in form.skill_ids"
                     :key="skillId"
                     class="inline-flex items-center rounded-lg bg-neutral-50 px-3 py-1.5 text-xs text-body text-secondary-700 ring-1 ring-inset ring-neutral-200 shadow-sm"
                   >

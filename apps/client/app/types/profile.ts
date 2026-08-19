@@ -43,6 +43,7 @@ export interface Profile {
   created_at: string
   updated_at: string
   address?: Address | null
+  verified_experiences?: ExperienceCard[]
 }
 
 export interface TalentProfile {
@@ -74,3 +75,4 @@ export interface ContributionStats {
   project_completed: number
   contribution_score: number
 }
+import type { ExperienceCard } from './experience'

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Project } from '../../types/project'
+import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
 const props = defineProps<{
   project: Project
@@ -44,16 +45,6 @@ const creatorName = computed(
     props.project.profiles?.username ||
     'Anonim'
 )
-
-const typeLabel: Record<string, string> = {
-  web_app: 'Web App',
-  mobile_app: 'Mobile App',
-  ui_ux: 'UI/UX',
-  backend: 'Backend',
-  data_analytics: 'Data & Analytics',
-  devops: 'DevOps',
-  other: 'Lainnya'
-}
 </script>
 
 <template>
@@ -66,7 +57,7 @@ const typeLabel: Record<string, string> = {
       <div class="mb-4 flex items-start gap-3">
         <AtomicTag v-if="!isNew" variant="success">Baru</AtomicTag>
         <span v-else class="font-label-2 text-secondary">
-          {{ typeLabel[project.type] ?? 'Lainnya' }}
+          {{ getProjectCategoryLabel(project.project_category) }}
         </span>
       </div>
 

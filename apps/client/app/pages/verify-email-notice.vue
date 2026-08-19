@@ -10,43 +10,50 @@ useHead({
 })
 
 const route = useRoute()
-const { resendVerification } = useAuth()
+const { user, resendVerification } = useAuth()
 const { add: addToast } = useToast()
 
-const email = computed(() => (route.query.email as string) || '')
-const isResending = ref(false)
-const cooldown = ref(0)
-let timer: any = null
+const email = computed(() => {
+  const q = route.query.email
+  if (typeof q === 'string' && q.trim()) return q.trim()
+  return user.value?.email || ''
+})
 
-const startCooldown = () => {
-  cooldown.value = 60
-  timer = setInterval(() => {
-    if (cooldown.value > 0) {
-      cooldown.value--
-    } else {
-      clearInterval(timer)
-    }
-  }, 1000)
-}
+const { remainingSeconds, isCoolingDown, setAvailableAt } =
+  useVerificationCooldown(email)
+
+const isResending = ref(false)
 
 const handleResend = async () => {
-  if (isResending.value || cooldown.value > 0) return
+  if (isResending.value || isCoolingDown.value || !email.value) return
   isResending.value = true
 
   try {
-    await resendVerification(email.value)
+    const res = await resendVerification(email.value)
+    if (res?.data?.verificationResendAvailableAt) {
+      setAvailableAt(res.data.verificationResendAvailableAt)
+    }
+
     addToast({
       variant: 'success',
       title: 'Email Terkirim',
       message: 'Link verifikasi baru telah dikirim ke email kamu.',
       duration: 6000
     })
-    startCooldown()
-  } catch (err: unknown) {
+  } catch (err: any) {
+    const errorData = err?.data?.errors
+    if (errorData?.verificationResendAvailableAt) {
+      setAvailableAt(errorData.verificationResendAvailableAt)
+    }
+
+    const msg =
+      err?.data?.message ||
+      err?.message ||
+      'Gagal mengirim ulang email verifikasi. Silakan coba lagi.'
     addToast({
       variant: 'danger',
       title: 'Gagal Mengirim',
-      message: 'Gagal mengirim ulang email verifikasi. Silakan coba lagi.'
+      message: msg
     })
   } finally {
     isResending.value = false
@@ -73,12 +80,10 @@ const handleResend = async () => {
         />
       </svg>
     </div>
-    <h2 class="text-heading font-black text-secondary-500 mb-2">
-      Verifikasi Email Kamu
-    </h2>
-    <p class="text-body text-neutral-500 mb-6">
+    <h2 class="font-title-2 mb-2">Verifikasi Email Kamu</h2>
+    <p class="font-paragraph-3 mb-6">
       Kami telah mengirimkan link verifikasi email ke
-      <span class="text-body text-neutral-900">{{ email }}</span
+      <span class="font-label-1">{{ email || 'email Anda' }}</span
       >. Silakan periksa inbox atau folder spam kamu.
     </p>
 
@@ -87,12 +92,12 @@ const handleResend = async () => {
         variant="primary"
         block
         :loading="isResending"
-        :disabled="cooldown > 0"
+        :disabled="isCoolingDown || !email"
         @click="handleResend"
       >
         {{
-          cooldown > 0
-            ? `Kirim Ulang (${cooldown}s)`
+          isCoolingDown
+            ? `Kirim Ulang (${remainingSeconds}s)`
             : 'Kirim Ulang Email Verifikasi'
         }}
       </AtomicButton>

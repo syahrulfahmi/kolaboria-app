@@ -6,6 +6,7 @@ const props = defineProps<{
   action: 'open' | 'archived' | 'completed' | 'in_progress'
   projectTitle: string
   hasActiveApplicants?: boolean
+  deliverableCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -33,7 +34,9 @@ const modalContent = computed(() => {
     case 'completed':
       return {
         title: 'Tandai Selesai?',
-        message: 'Project akan ditutup. Aksi ini tidak bisa dibatalkan.',
+        message: props.deliverableCount === 0
+          ? 'Project akan ditutup. Belum ada deliverable, tetapi project tetap bisa diselesaikan. Aksi ini tidak bisa dibatalkan.'
+          : 'Project akan ditutup dan workspace menjadi read-only. Aksi ini tidak bisa dibatalkan.',
         confirmText: 'Ya, Tandai Selesai',
         confirmVariant: 'primary' as const
       }

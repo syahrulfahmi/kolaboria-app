@@ -13,14 +13,14 @@ onMounted(async () => {
   }
 })
 
-if (!form.value.tech_stack) {
-  form.value.tech_stack = []
+if (!form.value.tool_ids) {
+	form.value.tool_ids = []
 }
 
 const techOptions = computed(() => {
   return availableTools.value.map((t) => ({
     label: t.name,
-    value: t.name
+    value: t.id
   }))
 })
 
@@ -77,7 +77,7 @@ const deadlineObj = computed({
     <!-- Section: Tech Stack -->
     <div class="space-y-5">
       <MoleculeDropdown
-        v-model="form.tech_stack"
+        v-model="form.tool_ids"
         label="Tech Stack / Tools"
         placeholder="Cari dan pilih teknologi/tools..."
         :options="techOptions"

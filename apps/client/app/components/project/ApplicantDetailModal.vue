@@ -162,6 +162,17 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
 
       <!-- Application Details -->
       <div class="space-y-4">
+        <div class="rounded-lg border border-primary-100 bg-primary-50/50 p-4">
+          <h4 class="text-caption text-body uppercase text-primary-700">
+            Role yang Dilamar
+          </h4>
+          <p class="mt-1 text-body font-semibold text-secondary-900">
+            {{ application.project_role?.custom_title || application.project_role?.contribution_role?.name || 'Project Role' }}
+          </p>
+          <p v-if="application.estimated_hours_per_week" class="mt-1 text-xs text-secondary">
+            Estimasi {{ application.estimated_hours_per_week }} jam/minggu
+          </p>
+        </div>
         <div>
           <h4 class="text-caption text-body uppercase text-neutral-500">
             Motivasi

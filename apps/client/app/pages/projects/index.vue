@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Project, ProjectType } from '../../types/project'
+import { ref, computed } from 'vue'
+import type { Project } from '../../types/project'
+import {
+  type ProjectCategory,
+  getProjectCategoryLabel
+} from '~/constants/projectCategory'
 
 definePageMeta({
   layout: 'home'
@@ -11,7 +15,7 @@ useHead({ title: 'Jelajahi Project — Kolaboria' })
 const { getProjects } = useProjects()
 
 const search = ref('')
-const filterType = ref<ProjectType | ''>('')
+const filterCategory = ref<ProjectCategory | ''>('')
 const isLoading = ref(false)
 const isLoadingMore = ref(false)
 const projects = ref<Project[]>([])
@@ -34,7 +38,7 @@ const fetchProjects = async (isLoadMore = false) => {
 
     const newProjects = await getProjects({
       search: search.value || undefined,
-      type: filterType.value || undefined,
+      project_category: filterCategory.value || undefined,
       limit: currentLimit
     })
 
@@ -53,8 +57,8 @@ const handleSearch = (val: string) => {
   fetchProjects(false)
 }
 
-const handleFilterType = (val: ProjectType | '') => {
-  filterType.value = val
+const handleFilterCategory = (val: ProjectCategory | '') => {
+  filterCategory.value = val
   fetchProjects(false)
 }
 
@@ -68,25 +72,17 @@ const { data: initialProjects } = await useAsyncData('projects-listing', () =>
 projects.value = initialProjects.value ?? []
 hasMore.value = projects.value.length === limit
 
-onMounted(() => {
-  fetchProjects(false)
-})
-
 const activeFiltersText = computed(() => {
   const parts = []
-  if (filterType.value) {
-    parts.push(
-      filterType.value
-        .replace('_', ' ')
-        .replace(/\b\w/g, (l) => l.toUpperCase())
-    )
+  if (filterCategory.value) {
+    parts.push(getProjectCategoryLabel(filterCategory.value))
   }
   return parts.length > 0 ? parts.join(', ') : 'Semua Project'
 })
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+  <div class="mx-auto">
     <!-- Hero Banner -->
     <div
       class="mb-10 flex flex-col items-start justify-between gap-8 rounded-3xl bg-secondary-900 px-8 py-10 text-white sm:flex-row sm:items-center sm:px-12 sm:py-16 shadow-2xl shadow-secondary-900/20 relative overflow-hidden"
@@ -129,7 +125,7 @@ const activeFiltersText = computed(() => {
     <div class="sticky top-20 z-40 mb-6">
       <ProjectFilterBar
         @search="handleSearch"
-        @filter-type="handleFilterType"
+        @filter-category="handleFilterCategory"
       />
     </div>
 
@@ -214,7 +210,7 @@ const activeFiltersText = computed(() => {
           @click="
             () => {
               search = ''
-              filterType = ''
+              filterCategory = ''
               handleSearch('')
             }
           "

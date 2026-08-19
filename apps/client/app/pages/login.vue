@@ -5,6 +5,15 @@
       Masuk ke ekosistem kolaboratif Anda untuk melanjutkan.
     </p>
 
+    <MoleculeTicker
+      v-if="isVerifiedNotice && !isNoticeDismissed"
+      variant="success"
+      title="Email Berhasil Diverifikasi"
+      message="Email kamu berhasil diverifikasi! Silakan masuk kembali untuk melanjutkan."
+      class="mb-6"
+      @close="isNoticeDismissed = true"
+    />
+
     <AuthLoginForm />
 
     <div class="mt-6 text-center font-body-1">
@@ -34,6 +43,10 @@
 </template>
 
 <script setup>
+const route = useRoute()
+const isNoticeDismissed = ref(false)
+const isVerifiedNotice = computed(() => route.query.verified === '1')
+
 definePageMeta({
   layout: 'auth'
 })

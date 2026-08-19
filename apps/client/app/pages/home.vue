@@ -37,12 +37,14 @@ const fetchAllData = async () => {
     profile.value = await getProfile()
 
     if (profile.value) {
-      const [userSkills, userTools, projects, applications] = await Promise.all([
-        getUserSkills(profile.value.id),
-        getUserTools(profile.value.id),
-        getMyProjects(),
-        getMyApplications()
-      ])
+      const [userSkills, userTools, projects, applications] = await Promise.all(
+        [
+          getUserSkills(profile.value.id),
+          getUserTools(profile.value.id),
+          getMyProjects(),
+          getMyApplications()
+        ]
+      )
 
       skills.value = userSkills
       tools.value = userTools
@@ -61,7 +63,7 @@ onMounted(fetchAllData)
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl">
+  <div class="mx-auto w-full">
     <MoleculeLoading
       v-if="isLoading"
       text="Memuat dashboard..."
@@ -91,11 +93,6 @@ onMounted(fetchAllData)
 
     <template v-else>
       <div class="space-y-8 fade-in-up delay-100">
-        <HomeVerificationBanner
-          v-if="!profile.is_verified"
-          :is-verified="profile.is_verified"
-        />
-
         <HomeGreeting
           :name="profile.full_name || profile.username"
           :is-verified="profile.is_verified"

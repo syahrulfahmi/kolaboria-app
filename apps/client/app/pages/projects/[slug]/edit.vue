@@ -12,6 +12,9 @@ import EditTabRequirements from '~/components/project/edit/EditTabRequirements.v
 import EditTabTimeline from '~/components/project/edit/EditTabTimeline.vue'
 import EditTabStatus from '~/components/project/edit/EditTabStatus.vue'
 import ProjectStatusConfirmModal from '~/components/project/ProjectStatusConfirmModal.vue'
+import { WorkspaceService } from '~/services/workspace.service'
+
+import { SkillService } from '~/services/skill.service'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
@@ -20,9 +23,10 @@ const router = useRouter()
 const {
   getProjectBySlug,
   updateProjectFull,
-  updateProjectStatus,
   publishProject,
-  getSkillTags,
+  startProject,
+  completeProject,
+  archiveProject,
   getProjectApplicants
 } = useProjects()
 const { user, currentUserId } = useAuth()
@@ -31,6 +35,7 @@ const { add: addToast } = useToast()
 const projectSlug = route.params.slug as string
 const project = ref<Project | null>(null)
 const skillTags = ref<{ id: string; name: string }[]>([])
+const contributionRoles = ref<{ id: string; name: string; slug: string; category?: string | null }[]>([])
 const pending = ref(true)
 const isSubmitting = ref(false)
 
@@ -48,14 +53,15 @@ const form = reactive<CreateProjectPayload>({
   title: '',
   summary: '',
   description: '',
-  type: 'web_app',
+  project_category: 'product',
   visibility: 'public',
   max_slots: 3,
   start_date: undefined,
   deadline: undefined,
-  tech_stack: [],
+  tool_ids: [],
   why_join: '',
-  skill_tag_ids: []
+  skill_ids: [],
+  roles: []
 })
 
 // Modal state
@@ -64,12 +70,13 @@ const confirmAction = ref<'open' | 'archived' | 'completed' | 'in_progress'>(
   'open'
 )
 const hasActiveApplicants = ref(false)
+const deliverableCount = ref(0)
 
 onMounted(async () => {
   try {
-    const [p, tags] = await Promise.all([
+    const [p, skills] = await Promise.all([
       getProjectBySlug(projectSlug),
-      getSkillTags()
+      SkillService.getSkills()
     ])
 
     if (!p) {
@@ -88,20 +95,32 @@ onMounted(async () => {
     }
 
     project.value = p
-    skillTags.value = tags
+    deliverableCount.value = (await WorkspaceService.getDeliverables(p.id)).length
+    skillTags.value = skills
+    contributionRoles.value = skills
 
     // Init form
     form.title = p.title
     form.summary = p.summary
     form.description = p.description || ''
-    form.type = p.type
+    form.project_category = p.project_category
     form.visibility = p.visibility
     form.max_slots = p.max_slots
     form.start_date = p.start_date
     form.deadline = p.deadline
-    form.tech_stack = p.tech_stack || []
+    form.tool_ids = p.project_technologies?.map((item) => item.tool_id) || []
     form.why_join = p.why_join || ''
-    form.skill_tag_ids = p.project_skills?.map((s) => s.skill_tag_id) || []
+    form.skill_ids = p.project_skills?.map((s) => s.skill_tag_id) || []
+    form.owner_contribution_role_id = p.owner_contribution_role_id || undefined
+    form.owner_custom_role_title = p.owner_custom_role_title || undefined
+    form.roles = p.project_roles?.map((role) => ({
+      id: role.id,
+      contribution_role_id: role.contribution_role_id || undefined,
+      custom_title: role.custom_title || undefined,
+      description: role.description || undefined,
+      capacity: role.capacity,
+      skill_ids: role.required_skills?.map((skill) => skill.id) || []
+    })) || []
 
     // Check active applicants for archive warning
     if (p.status !== 'draft' && p.status !== 'archived') {
@@ -192,7 +211,9 @@ const handleStatusConfirm = async () => {
       })
       router.push(`/projects/${project.value.slug}`)
     } else {
-      await updateProjectStatus(project.value.id, confirmAction?.value)
+      if (confirmAction.value === 'in_progress') await startProject(project.value.id)
+      if (confirmAction.value === 'completed') await completeProject(project.value.id)
+      if (confirmAction.value === 'archived') await archiveProject(project.value.id)
       addToast({
         variant: 'success',
         message: 'Status project berhasil diperbarui!'
@@ -272,7 +293,7 @@ const isValid = computed(() => {
           >
             <div class="mb-6 border-b border-neutral-100 pb-5">
               <h2 class="font-title-2">
-                {{ tabs[activeTab].label }}
+                {{ tabs[activeTab]?.label }}
               </h2>
             </div>
 
@@ -287,6 +308,7 @@ const isValid = computed(() => {
                 v-else-if="activeTab === 1"
                 v-model:form="form"
                 :skill-tags="skillTags"
+                :contribution-roles="contributionRoles"
               />
               <EditTabTimeline
                 v-else-if="activeTab === 2"

@@ -66,11 +66,16 @@ const handleRegister = async () => {
   // Submit
   isLoading.value = true
   try {
-    await register(
+    const res = await register(
       result.data.email,
       result.data.password,
       result.data.fullName
     )
+
+    if (res?.data?.verificationResendAvailableAt) {
+      const { setAvailableAt } = useVerificationCooldown()
+      setAvailableAt(result.data.email, res.data.verificationResendAvailableAt)
+    }
 
     addToast({
       variant: 'info',

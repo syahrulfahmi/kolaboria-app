@@ -70,7 +70,7 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 max-w-7xl">
+  <div class="min-h-screen bg-neutral-50">
     <div v-if="pending" class="flex min-h-screen items-center justify-center">
       <MoleculeLoading label="Memuat profil..." />
     </div>
@@ -92,6 +92,7 @@ useHead({
       :tools="tools"
       :stats="stats"
       :talent-profile="talentProfile"
+      :experiences="profile?.verified_experiences || []"
       :is-owner="isOwner"
     />
   </div>

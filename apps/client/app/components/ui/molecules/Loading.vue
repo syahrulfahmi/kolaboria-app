@@ -33,7 +33,7 @@
       <!-- Optional Label -->
       <span
         v-if="label"
-        class="text-xs text-body tracking-wide text-neutral-500 uppercase animate-pulse"
+        class="font-body-2 tracking-wide text-neutral-500 animate-pulse"
       >
         {{ label }}
       </span>

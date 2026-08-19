@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import type { CreateProjectPayload } from '~/types/project'
 import { sanitizeSlug } from '~/utils/slug'
+import { PROJECT_CATEGORY_OPTIONS } from '~/constants/projectCategory'
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
 
@@ -20,16 +21,6 @@ const onSlugInput = (val: string) => {
   isSlugModified.value = true
   form.value.slug = sanitizeSlug(val)
 }
-
-const typeOptions = [
-  { value: 'web_app', label: 'Web App' },
-  { value: 'mobile_app', label: 'Mobile App' },
-  { value: 'ui_ux', label: 'UI/UX Design' },
-  { value: 'backend', label: 'Backend' },
-  { value: 'data_analytics', label: 'Data & Analytics' },
-  { value: 'devops', label: 'DevOps' },
-  { value: 'other', label: 'Lainnya' }
-]
 
 const visibilityOptions = [
   { value: 'public', label: 'Publik' },
@@ -95,9 +86,9 @@ const visibilityOptions = [
       <!-- Section: Kategori & Visibilitas -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <MoleculeDropdown
-          v-model="form.type"
+          v-model="form.project_category"
           label="Kategori Project"
-          :options="typeOptions"
+          :options="[...PROJECT_CATEGORY_OPTIONS]"
           hint="Kategori membantu sistem merekomendasikan project ke talenta yang tepat."
         />
 

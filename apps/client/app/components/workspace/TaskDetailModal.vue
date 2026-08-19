@@ -26,6 +26,7 @@ const emit = defineEmits<{
 }>()
 
 const isEditing = ref(false)
+const { currentUserId } = useAuth()
 const form = reactive<UpdateTaskPayload>({
   title: '',
   description: '',
@@ -176,7 +177,8 @@ const deleteTask = () => {
           />
 
           <MoleculeDropdown
-            v-model="form.assignee_id"
+            :model-value="form.assignee_id ?? ''"
+            @update:model-value="form.assignee_id = typeof $event === 'string' && $event ? $event : null"
             label="Assignee"
             :options="assigneeOptions"
             :disabled="!canEditAllFields || saving"
@@ -184,7 +186,8 @@ const deleteTask = () => {
           />
 
           <MoleculeInputField
-            v-model="form.due_date"
+            :model-value="form.due_date ?? ''"
+            @update:model-value="form.due_date = typeof $event === 'string' && $event ? $event : null"
             label="Due Date"
             type="date"
             :disabled="!canEditAllFields || saving"
@@ -228,6 +231,7 @@ const deleteTask = () => {
         <WorkspaceTaskCommentList
           :comments="comments"
           :loading="commentsLoading"
+          :current-user-id="currentUserId || ''"
         />
 
         <WorkspaceTaskCommentForm :loading="saving" @submit="submitComment" />

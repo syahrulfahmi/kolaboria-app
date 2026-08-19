@@ -24,7 +24,10 @@
           $slots['icon-right'] || type === 'password' ? 'pr-10' : '',
           error
             ? 'border-red-300 focus:border-red-500'
-            : 'border-neutral-300 focus:border-primary-500'
+            : 'border-neutral-300 focus:border-primary-500',
+          type === 'number'
+            ? '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+            : ''
         ]"
         v-bind="$attrs"
       />

@@ -3,12 +3,16 @@ import type { ApiResponse } from '../types/api'
 import type {
   ActivityLog,
   CreateTaskPayload,
-  LogActivityPayload,
   MemberProfile,
   ReorderTaskUpdate,
   Task,
   TaskComment,
-  UpdateTaskPayload
+  UpdateTaskPayload,
+  ContributionSnapshot,
+  DeliverablePayload,
+  FinalizationStatus,
+  ProjectDeliverable,
+  UpdateDeliverablePayload
 } from '../types/workspace'
 import type { WorkHistory } from '../types/project'
 export const WorkspaceService = {
@@ -30,6 +34,7 @@ export const WorkspaceService = {
         body: payload
       }
     )
+    if (!res.data) throw new Error(res.message || 'Task tidak ditemukan.')
     return res.data
   },
   async updateTask(taskId: string, payload: UpdateTaskPayload): Promise<Task> {
@@ -41,6 +46,7 @@ export const WorkspaceService = {
         body: payload
       }
     )
+    if (!res.data) throw new Error(res.message || 'Task tidak ditemukan.')
     return res.data
   },
   async deleteTask(taskId: string): Promise<void> {
@@ -76,6 +82,7 @@ export const WorkspaceService = {
         body: { body }
       }
     )
+    if (!res.data) throw new Error(res.message || 'Komentar tidak ditemukan.')
     return res.data
   },
   async deleteComment(commentId: string): Promise<void> {
@@ -93,6 +100,7 @@ export const WorkspaceService = {
         body: { body }
       }
     )
+    if (!res.data) throw new Error(res.message || 'Komentar tidak ditemukan.')
     return res.data
   },
   async getActivityLogs(projectId: string, limit = 20): Promise<ActivityLog[]> {
@@ -104,9 +112,6 @@ export const WorkspaceService = {
       }
     )
     return res.data ?? []
-  },
-  async logActivity(payload: LogActivityPayload): Promise<void> {
-    // No-op because backend automatically records activity logs on task / comment updates
   },
   async getWorkspaceMembers(
     projectId: string,
@@ -125,5 +130,36 @@ export const WorkspaceService = {
     )
     // Because the response can be undefined when data is empty
     return res.data ?? { activities: [], my_tasks: [] }
+  },
+  async getDeliverables(projectId: string): Promise<ProjectDeliverable[]> {
+    const { $api } = useApi()
+    const res = await $api<ApiResponse<ProjectDeliverable[]>>(`/projects/${projectId}/deliverables`)
+    return res.data ?? []
+  },
+  async createDeliverable(projectId: string, payload: DeliverablePayload): Promise<ProjectDeliverable> {
+    const { $api } = useApi()
+    const res = await $api<ApiResponse<ProjectDeliverable>>(`/projects/${projectId}/deliverables`, { method: 'POST', body: payload })
+    if (!res.data) throw new Error(res.message || 'Deliverable tidak ditemukan.')
+    return res.data
+  },
+  async updateDeliverable(projectId: string, deliverableId: string, payload: UpdateDeliverablePayload): Promise<ProjectDeliverable> {
+    const { $api } = useApi()
+    const res = await $api<ApiResponse<ProjectDeliverable>>(`/projects/${projectId}/deliverables/${deliverableId}`, { method: 'PATCH', body: payload })
+    if (!res.data) throw new Error(res.message || 'Deliverable tidak ditemukan.')
+    return res.data
+  },
+  async deleteDeliverable(projectId: string, deliverableId: string): Promise<void> {
+    const { $api } = useApi()
+    await $api<ApiResponse<null>>(`/projects/${projectId}/deliverables/${deliverableId}`, { method: 'DELETE' })
+  },
+  async getContributionSnapshots(projectId: string): Promise<ContributionSnapshot[]> {
+    const { $api } = useApi()
+    const res = await $api<ApiResponse<ContributionSnapshot[]>>(`/projects/${projectId}/contribution-snapshots`)
+    return res.data ?? []
+  },
+  async getFinalizationStatus(projectId: string): Promise<FinalizationStatus> {
+    const { $api } = useApi()
+    const res = await $api<ApiResponse<FinalizationStatus>>(`/projects/${projectId}/finalization-status`)
+    return res.data ?? { project_id: projectId, status: 'succeeded', attempts: 0 }
   }
 }

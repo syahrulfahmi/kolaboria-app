@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import type { ApplicantAvailability } from '../../types/project'
+import type { ApplicantAvailability, ProjectRole } from '../../types/project'
 
 const props = defineProps<{
   projectId: string
   show: boolean
+  roles: ProjectRole[]
 }>()
 
 const emit = defineEmits<{
@@ -22,7 +23,9 @@ const form = reactive({
   motivation: '',
   expected_contribution: '',
   portfolio_links: [] as string[],
-  availability: 'flexible' as ApplicantAvailability
+  availability: 'flexible' as ApplicantAvailability,
+  project_role_id: '',
+  estimated_hours_per_week: undefined as number | undefined
 })
 
 const portfolioInput = ref('')
@@ -46,7 +49,26 @@ const motivationError = computed(() => {
   return ''
 })
 
-const isValid = computed(() => !motivationError.value)
+const roleError = computed(() => !form.project_role_id ? 'Pilih role yang ingin kamu lamar.' : '')
+const isValid = computed(() => !motivationError.value && !roleError.value)
+
+const roleOptions = computed(() => {
+  return props.roles.map((role) => {
+    const title =
+      role.custom_title || role.contribution_role?.name || 'Project Role'
+    return {
+      label: `${title} — ${role.remaining_capacity} tersisa`,
+      value: role.id
+    }
+  })
+})
+
+const AVAILABILITY_OPTIONS = [
+  { label: 'Fleksibel', value: 'flexible' },
+  { label: 'Full Time', value: 'full_time' },
+  { label: 'Part Time', value: 'part_time' },
+  { label: 'Hanya Akhir Pekan', value: 'weekends_only' }
+]
 
 const submitApplication = async () => {
   if (!isValid.value) {
@@ -78,40 +100,39 @@ const submitApplication = async () => {
     @close="emit('close')"
   >
     <div class="space-y-5">
-      <div>
-        <label class="mb-1.5 block text-caption text-body text-secondary-900">
-          Kenapa kamu tertarik bergabung? <span class="text-danger-500">*</span>
-        </label>
-        <textarea
-          v-model="form.motivation"
-          rows="4"
-          placeholder="Ceritakan ketertarikanmu pada project ini (min. 10 karakter)."
-          class="w-full rounded-lg border bg-white px-4 py-3 text-body text-neutral-900 outline-none transition duration-150 resize-none focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500"
-          :class="
-            showErrors && motivationError
-              ? 'border-red-300 focus:border-red-500'
-              : 'border-neutral-300 focus:border-primary-500'
-          "
-        />
-        <p
-          v-if="showErrors && motivationError"
-          class="mt-1.5 text-xs text-red-500 font-medium"
-        >
-          {{ motivationError }}
-        </p>
-      </div>
+      <MoleculeDropdown
+        v-model="form.project_role_id"
+        label="Role yang Dilamar"
+        placeholder="Pilih role..."
+        :options="roleOptions"
+        required
+        :error="showErrors && roleError ? roleError : ''"
+      />
 
-      <div>
-        <label class="mb-1.5 block text-caption text-body text-secondary-900">
-          Kontribusi yang bisa diberikan
-        </label>
-        <textarea
-          v-model="form.expected_contribution"
-          rows="3"
-          placeholder="Apa yang akan kamu lakukan di project ini?"
-          class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-body text-neutral-900 outline-none transition duration-150 resize-none focus:outline-none focus:border-primary-500 disabled:bg-neutral-100 disabled:text-neutral-500"
-        />
-      </div>
+      <MoleculeInputField
+        v-model.number="form.estimated_hours_per_week"
+        type="number"
+        label="Estimasi Jam per Minggu (Opsional)"
+        min="1"
+        max="168"
+        placeholder="Contoh: 10"
+      />
+
+      <MoleculeTextarea
+        v-model="form.motivation"
+        label="Kenapa kamu tertarik bergabung?"
+        placeholder="Ceritakan ketertarikanmu pada project ini (min. 10 karakter)."
+        required
+        :rows="4"
+        :error="showErrors && motivationError ? motivationError : ''"
+      />
+
+      <MoleculeTextarea
+        v-model="form.expected_contribution"
+        label="Kontribusi yang bisa diberikan"
+        placeholder="Apa yang akan kamu lakukan di project ini?"
+        :rows="3"
+      />
 
       <div>
         <label class="mb-1.5 block text-caption text-body text-secondary-900">
@@ -150,20 +171,12 @@ const submitApplication = async () => {
         </div>
       </div>
 
-      <div>
-        <label class="mb-1.5 block text-caption text-body text-secondary-900">
-          Ketersediaan Waktu
-        </label>
-        <select
-          v-model="form.availability"
-          class="h-[42px] w-full rounded-lg border border-neutral-300 bg-white px-3 text-body text-neutral-900 outline-none transition duration-150 focus:border-primary-500 disabled:bg-neutral-100 disabled:text-neutral-500"
-        >
-          <option value="flexible">Fleksibel</option>
-          <option value="full_time">Full Time</option>
-          <option value="part_time">Part Time</option>
-          <option value="weekends_only">Hanya Akhir Pekan</option>
-        </select>
-      </div>
+      <MoleculeDropdown
+        v-model="form.availability"
+        label="Ketersediaan Waktu"
+        placeholder="Pilih ketersediaan waktu"
+        :options="AVAILABILITY_OPTIONS"
+      />
 
       <MoleculeTicker
         v-if="submitError"

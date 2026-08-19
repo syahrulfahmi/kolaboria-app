@@ -27,6 +27,8 @@
     "@vitejs/plugin-vue": "^6.0.6",
     "cross-env": "^10.1.0",
     "storybook": "10.3.5",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.8"
   }
 }

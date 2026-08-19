@@ -2,6 +2,8 @@
 import type { Project } from '../../../../types/project'
 import type {
   CreateWorkspaceTaskPayload,
+  DeliverablePayload,
+  UpdateDeliverablePayload,
   Task,
   TaskStatus,
   UpdateTaskPayload
@@ -12,7 +14,12 @@ definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 const route = useRoute()
 const router = useRouter()
 const { user, currentUserId } = useAuth()
-const { getProjectBySlug } = useProjects()
+const {
+  getProjectBySlug,
+  leaveProject,
+  updateMemberStatus,
+  changeMemberRole
+} = useProjects()
 const toast = useToast()
 
 const slug = computed(() => String(route.params.slug || ''))
@@ -30,9 +37,18 @@ const {
   activities,
   members,
   comments,
+  overview,
   loading,
   saving,
-  commentsLoading
+  commentsLoading,
+  error,
+  deliverables,
+  snapshots,
+  finalizationStatus,
+  createDeliverable,
+  updateDeliverable,
+  deleteDeliverable,
+  refreshFinalization
 } = workspace
 
 const isOwner = computed(() =>
@@ -46,6 +62,7 @@ const isMember = computed(() => {
   return Boolean(
     project.value?.project_members?.some(
       (member) => member.profile_id === currentUserId.value
+        && member.status === 'active'
     )
   )
 })
@@ -64,12 +81,52 @@ const isDetailOpen = ref(false)
 const isCreateOpen = ref(false)
 const searchQuery = ref('')
 const showStatusPopup = ref(false)
+const isCollaborationOpen = ref(false)
 
 const isReadOnly = computed(
   () =>
     project.value?.status === 'completed' ||
     project.value?.status === 'archived'
 )
+
+const handleCreateDeliverable = async (payload: DeliverablePayload) => {
+  try {
+    await createDeliverable(payload)
+    await workspace.fetchActivities()
+    toast.success('Deliverable berhasil ditambahkan.')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menambahkan deliverable.')
+  }
+}
+
+const handleUpdateDeliverable = async (id: string, payload: UpdateDeliverablePayload) => {
+  try {
+    await updateDeliverable(id, payload)
+    await workspace.fetchActivities()
+    toast.success('Deliverable berhasil diperbarui.')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui deliverable.')
+  }
+}
+
+const handleDeleteDeliverable = async (id: string) => {
+  if (!window.confirm('Hapus deliverable ini?')) return
+  try {
+    await deleteDeliverable(id)
+    await workspace.fetchActivities()
+    toast.success('Deliverable dihapus.')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menghapus deliverable.')
+  }
+}
+
+const handleRefreshFinalization = async () => {
+  try {
+    await refreshFinalization()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat status finalisasi.')
+  }
+}
 
 const inactivePopupContent = computed(() => {
   if (project.value?.status === 'completed') {
@@ -141,6 +198,16 @@ const filteredTasks = computed<Record<TaskStatus, Task[]>>(() => {
   }
 })
 
+const filteredTaskCount = computed(() =>
+  Object.values(filteredTasks.value).reduce((sum, list) => sum + list.length, 0)
+)
+
+const workspaceMode = computed<'active' | 'not-started' | 'read-only'>(() => {
+  if (!canOpenWorkspace.value) return 'not-started'
+  if (isReadOnly.value) return 'read-only'
+  return 'active'
+})
+
 const handleTaskClick = (task: Task) => {
   selectedTaskId.value = task.id
   isDetailOpen.value = true
@@ -202,6 +269,48 @@ const handleCommentsRefresh = async (taskId: string) => {
   await workspace.fetchTaskComments(taskId)
 }
 
+const retryWorkspace = async () => {
+  if (!project.value) return
+  try {
+    await workspace.refreshWorkspace(project.value.creator_id)
+  } catch (retryError) {
+    toast.error(retryError instanceof Error ? retryError.message : 'Gagal memuat workspace.')
+  }
+}
+
+const handleLeaveProject = async () => {
+  if (!window.confirm('Keluar dari project ini?')) return
+  try {
+    await leaveProject(projectId.value || '')
+    toast.success('Kamu sudah keluar dari project.')
+    await router.replace(`/projects/${slug.value}`)
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Gagal keluar dari project.')
+  }
+}
+
+const handleRemoveMember = async (memberId: string) => {
+  if (!window.confirm('Keluarkan anggota ini dari project?')) return
+  try {
+    await updateMemberStatus(projectId.value || '', memberId, 'removed')
+    await workspace.refreshWorkspace(project.value?.creator_id || '')
+    toast.success('Anggota berhasil dikeluarkan.')
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Gagal memperbarui anggota.')
+  }
+}
+
+const handleChangeMemberRole = async (memberId: string, roleId: string) => {
+  if (!roleId) return
+  try {
+    await changeMemberRole(projectId.value || '', memberId, roleId)
+    await workspace.refreshWorkspace(project.value?.creator_id || '')
+    toast.success('Role anggota berhasil diperbarui.')
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Gagal mengubah role anggota.')
+  }
+}
+
 watch(
   [project, currentUserId],
   async ([currentProject, id]) => {
@@ -240,47 +349,83 @@ watch(
 </script>
 
 <template>
-  <div class="h-[calc(100vh-64px)] flex flex-col bg-neutral-50 overflow-hidden">
-    <MoleculeLoading v-if="pending" label="Memuat workspace..." class="py-20" />
+  <div class="flex h-[calc(100vh-64px)] flex-col overflow-hidden bg-neutral-50">
+    <div v-if="pending" class="flex flex-1 items-center justify-center px-6">
+      <div class="w-full max-w-5xl space-y-4" aria-label="Memuat workspace" aria-live="polite">
+        <div class="h-24 animate-pulse rounded-xl bg-neutral-200" />
+        <div class="grid gap-4 lg:grid-cols-4">
+          <div v-for="column in 4" :key="column" class="h-96 animate-pulse rounded-xl bg-neutral-200" />
+        </div>
+      </div>
+    </div>
 
     <template v-else-if="project">
       <WorkspacePageHeader
         :project="project"
         :tasks="tasksByStatus"
-        :is-owner="isOwner && !isReadOnly"
+        :is-owner="isOwner"
+        :is-read-only="isReadOnly"
         :is-submitting="saving"
         @create-task-click="openCreateModal('todo')"
         @search-change="searchQuery = $event"
+        @collaboration-toggle="isCollaborationOpen = true"
       />
 
-      <div class="flex-1 flex overflow-hidden min-h-0 relative">
-        <!-- Sidebar -->
-        <WorkspaceSidebar
-          :members="members"
-          :activities="activities"
-          :project-creator-id="project.creator_id"
-          :loading="loading"
-        />
+      <div class="relative flex min-h-0 flex-1 overflow-hidden">
+        <main class="relative flex min-w-0 flex-1 flex-col overflow-hidden" aria-label="Workspace project">
+          <div v-if="isReadOnly" class="flex shrink-0 items-start gap-3 border-b border-accent-200 bg-accent-50 px-4 py-3 text-accent-900 sm:px-6" role="status">
+            <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86l-7.82 13.5A2 2 0 004.2 20h15.6a2 2 0 001.73-2.64l-7.82-13.5a2 2 0 00-3.42 0z" />
+            </svg>
+            <div>
+              <p class="font-label-1">Workspace dalam mode baca saja</p>
+              <p class="mt-0.5 font-body-3">Project {{ workspaceMode === 'read-only' && project.status === 'completed' ? 'sudah selesai' : 'sudah diarsipkan' }}. Board dan aktivitas tetap dapat dilihat, tetapi tidak dapat diubah.</p>
+            </div>
+          </div>
 
-        <!-- Empty State if not started -->
-        <div
-          v-if="!canOpenWorkspace"
-          class="flex-1 flex items-center justify-center p-8 bg-white"
-        >
-          <OrganismEmptyState
-            title="Workspace belum aktif"
-            description="Project perlu dimulai terlebih dahulu sebelum board dan activity workspace dapat digunakan."
-            icon="folder"
-          />
-        </div>
+          <div v-if="loading && workspace.tasks.value.length === 0" class="flex flex-1 items-start gap-4 overflow-hidden p-4 sm:p-6" aria-live="polite" aria-label="Memuat data workspace">
+            <div v-for="column in 4" :key="column" class="h-full min-h-[28rem] flex-1 animate-pulse rounded-xl bg-neutral-200" />
+          </div>
 
-        <!-- Kanban Board Area -->
-        <template v-else>
+          <div v-else-if="error" class="flex flex-1 items-center justify-center bg-white p-8">
+            <OrganismEmptyState
+              title="Workspace gagal dimuat"
+              description="Data workspace tidak berhasil dimuat. Coba lagi untuk melanjutkan."
+              icon="document"
+            >
+              <template #actions>
+                <AtomicButton variant="outline" @click="retryWorkspace">Coba lagi</AtomicButton>
+              </template>
+            </OrganismEmptyState>
+          </div>
+
+          <div v-else-if="!canOpenWorkspace" class="flex flex-1 items-center justify-center bg-white p-8">
+            <OrganismEmptyState
+              title="Workspace belum aktif"
+              description="Project perlu dimulai terlebih dahulu sebelum board dan activity workspace dapat digunakan."
+              icon="folder"
+            />
+          </div>
+
+          <div v-else-if="searchQuery.trim() && filteredTaskCount === 0" class="flex flex-1 items-center justify-center bg-white p-8">
+            <OrganismEmptyState
+              title="Task tidak ditemukan"
+              description="Tidak ada task yang cocok dengan pencarianmu."
+              icon="search"
+            >
+              <template #actions>
+                <AtomicButton variant="outline" @click="searchQuery = ''">Bersihkan pencarian</AtomicButton>
+              </template>
+            </OrganismEmptyState>
+          </div>
+
           <WorkspaceBoard
-            class="flex-1 h-full min-h-0"
+            v-else
+            class="min-h-0 flex-1"
             :tasks="filteredTasks"
             :members="members"
             :is-owner="isOwner && !isReadOnly"
+            :read-only="isReadOnly"
             :selected-task-id="selectedTaskId"
             @task-create="openCreateModal"
             @task-click="handleTaskClick"
@@ -294,7 +439,8 @@ watch(
             :comments="workspace.comments.value"
             :comments-loading="workspace.commentsLoading.value"
             :saving="workspace.saving.value"
-            :is-owner="isOwner"
+            :is-owner="isOwner && !isReadOnly"
+            :read-only="isReadOnly"
             :current-user-id="currentUserId || ''"
             @close="
               () => {
@@ -315,8 +461,44 @@ watch(
             type="fullscreen"
             label="Menyimpan Task..."
           />
-        </template>
+        </main>
+
+        <WorkspaceSidebar
+          v-model="isCollaborationOpen"
+          :members="members"
+          :activities="activities"
+          :overview="overview"
+          :project-creator-id="project.creator_id"
+          :current-user-id="currentUserId"
+          :is-owner="isOwner"
+          :project-roles="project.project_roles || []"
+          :deliverables="deliverables"
+          :snapshots="snapshots"
+          :finalization-status="finalizationStatus"
+          :loading="loading"
+          :read-only="isReadOnly"
+          @leave="handleLeaveProject"
+          @remove="handleRemoveMember"
+          @change-role="handleChangeMemberRole"
+          @create-deliverable="handleCreateDeliverable"
+          @update-deliverable="handleUpdateDeliverable"
+          @remove-deliverable="handleDeleteDeliverable"
+          @refresh-finalization="handleRefreshFinalization"
+        />
       </div>
+
+      <button
+        v-if="isOwner && !isReadOnly && canOpenWorkspace"
+        type="button"
+        class="fixed bottom-5 right-5 z-30 inline-flex h-12 items-center gap-2 rounded-full bg-secondary-500 px-5 font-label-1 text-white shadow-lg transition-colors hover:bg-secondary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-300 sm:hidden"
+        aria-label="Buat task baru"
+        @click="openCreateModal('todo')"
+      >
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Tugas Baru
+      </button>
 
       <!-- Creation Modal -->
       <OrganismModal

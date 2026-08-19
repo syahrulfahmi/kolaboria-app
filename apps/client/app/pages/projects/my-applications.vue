@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-10 sm:px-6 overflow-x-hidden">
+  <div class="overflow-x-hidden">
     <!-- Hero Section (Premium Layout - matching Home) -->
     <div
       class="relative rounded-3xl overflow-hidden mb-10 bg-primary-500 shadow-xl border border-primary-400/30"
@@ -163,6 +163,14 @@
                       </h3>
                       <p class="font-label-2 text-gray-400 mt-1.5">
                         Diajukan {{ relativeDate(app.applied_at) }}
+                      </p>
+                      <p class="font-label-2 text-primary-600 mt-1">
+                        Peran:
+                        {{
+                          app.project_role?.custom_title ||
+                          app.project_role?.contribution_role?.name ||
+                          'Project Role'
+                        }}
                       </p>
                     </div>
                   </div>

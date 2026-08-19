@@ -13,6 +13,7 @@ const props = defineProps<{
   tools: UserTool[]
   stats: ContributionStats
   talentProfile?: TalentProfile | null
+  experiences?: import('../../types/experience').ExperienceCard[]
   isOwner: boolean
 }>()
 
@@ -51,6 +52,7 @@ const { data: careerJourneys } = await useAsyncData(
             :is-owner="isOwner"
             :username="profile.username"
           />
+          <VerifiedExperienceSection :experiences="experiences || []" :is-owner="isOwner" />
           <ProfileCareerSection
             :career-journeys="careerJourneys"
             :is-owner="isOwner"

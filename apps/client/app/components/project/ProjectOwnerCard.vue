@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Project } from '../../types/project'
+import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
 const props = defineProps<{
   project: Project
@@ -38,16 +39,6 @@ const extraSkillCount = computed(() => {
   const total = props.project.project_skills?.length ?? 0
   return total > 3 ? total - 3 : 0
 })
-
-const typeLabel: Record<string, string> = {
-  web_app: 'Web App',
-  mobile_app: 'Mobile App',
-  ui_ux: 'UI/UX',
-  backend: 'Backend',
-  data_analytics: 'Data & Analytics',
-  devops: 'DevOps',
-  other: 'Lainnya'
-}
 
 const statusConfig = computed(() => {
   const configs: Record<
@@ -107,7 +98,7 @@ const handleStartProject = () => {
         </AtomicTag>
 
         <span class="font-label-2 text-secondary">
-          {{ typeLabel[project.type] ?? 'Lainnya' }}
+          {{ getProjectCategoryLabel(project.project_category) }}
         </span>
       </div>
 

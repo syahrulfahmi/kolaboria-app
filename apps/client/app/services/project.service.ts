@@ -1,5 +1,6 @@
 import { useApi } from '../composables/useApi'
 import type { ApiResponse } from '../types/api'
+import type { Project } from '../types/project'
 import type {
   CreateProjectPayload,
   ApplyProjectPayload
@@ -118,5 +119,83 @@ export const ProjectService = {
   async getSkillTags() {
     const { $api } = useApi()
     return await $api<ApiResponse<any[]>>('/skill-tags')
+  },
+
+  async getSkills() {
+    const { $api } = useApi()
+    return await $api<ApiResponse<any[]>>('/master-data/skills')
+  },
+
+  async leaveProject(projectId: string) {
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>(
+      `/projects/${projectId}/members/leave`,
+      {
+        method: 'POST'
+      }
+    )
+  },
+
+  async updateMemberStatus(
+    projectId: string,
+    memberId: string,
+    status: 'active' | 'removed'
+  ) {
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>(
+      `/projects/${projectId}/members/${memberId}/status`,
+      {
+        method: 'PATCH',
+        body: { status }
+      }
+    )
+  },
+
+  async changeMemberRole(
+    projectId: string,
+    memberId: string,
+    projectRoleId: string
+  ) {
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>(
+      `/projects/${projectId}/members/${memberId}/role`,
+      {
+        method: 'PATCH',
+        body: { project_role_id: projectRoleId }
+      }
+    )
+  },
+
+  async getTools() {
+    const { $api } = useApi()
+    return await $api<ApiResponse<any[]>>('/master-data/tools')
+  },
+
+  async completeProject(
+    id: string
+  ): Promise<
+    ApiResponse<{
+      project: Project
+      outcome: string
+      finalization_status: string
+    }>
+  > {
+    const { $api } = useApi()
+    return await $api<
+      ApiResponse<{
+        project: Project
+        outcome: string
+        finalization_status: string
+      }>
+    >(`/projects/${id}/complete`, {
+      method: 'POST'
+    })
+  },
+
+  async archiveProject(id: string) {
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>(`/projects/${id}/archive`, {
+      method: 'POST'
+    })
   }
 }

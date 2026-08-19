@@ -1,13 +1,17 @@
-import type { LoginRequest, RegisterRequest } from '../types/auth'
+import type {
+  LoginRequest,
+  RegisterRequest,
+  RegistrationResponse,
+  ResendVerificationResponse,
+  AuthResponsePayload,
+  User
+} from '../types/auth'
 import type { ApiResponse } from '../types/api'
-import type { User } from '../types/auth'
 
 export const AuthService = {
   async login(payload: LoginRequest) {
     const { $api } = useApi()
-    return await $api<
-      ApiResponse<{ accessToken: string; refreshToken: string; user: User }>
-    >('/auth/login', {
+    return await $api<ApiResponse<AuthResponsePayload>>('/auth/login', {
       method: 'POST',
       body: payload
     })
@@ -23,7 +27,7 @@ export const AuthService = {
 
   async register(payload: RegisterRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<User>>('/auth/register', {
+    return await $api<ApiResponse<RegistrationResponse>>('/auth/register', {
       method: 'POST',
       body: {
         name: payload.fullName,
@@ -61,9 +65,7 @@ export const AuthService = {
 
   async loginWithGoogleCallback(code: string) {
     const { $api } = useApi()
-    return await $api<
-      ApiResponse<{ accessToken: string; refreshToken: string; user: User }>
-    >('/auth/google', {
+    return await $api<ApiResponse<AuthResponsePayload>>('/auth/google', {
       method: 'POST',
       body: { code }
     })
@@ -71,9 +73,20 @@ export const AuthService = {
 
   async resendVerification(email: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>('/auth/resend-verification', {
-      method: 'POST',
-      body: { email }
+    return await $api<ApiResponse<ResendVerificationResponse>>(
+      '/auth/resend-verification',
+      {
+        method: 'POST',
+        body: { email }
+      }
+    )
+  },
+
+  async verifyEmail(token: string) {
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>('/auth/verify-email', {
+      method: 'GET',
+      query: { token }
     })
   },
 
