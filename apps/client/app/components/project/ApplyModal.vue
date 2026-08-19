@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import type { ApplicantAvailability, ProjectRole } from '../../types/project'
+import type { UserSkill, UserTool } from '../../types/profile'
 
 const props = defineProps<{
   projectId: string
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const { applyToProject } = useProjects()
+const { getUserSkills, getUserTools } = useSkill()
 
 const isSubmitting = ref(false)
 const submitError = ref('')
@@ -29,6 +31,25 @@ const form = reactive({
 })
 
 const portfolioInput = ref('')
+const userSkills = ref<UserSkill[]>([])
+const userTools = ref<UserTool[]>([])
+const hasLoadedProfileCompetencies = ref(false)
+
+const loadProfileCompetencies = async () => {
+  if (hasLoadedProfileCompetencies.value) return
+
+  const [skills, tools] = await Promise.all([getUserSkills(), getUserTools()])
+  userSkills.value = skills
+  userTools.value = tools
+  hasLoadedProfileCompetencies.value = true
+}
+
+watch(
+  () => props.show,
+  (isOpen) => {
+    if (isOpen) void loadProfileCompetencies()
+  }
+)
 
 const addPortfolio = () => {
   const val = portfolioInput.value.trim()
@@ -61,6 +82,28 @@ const roleOptions = computed(() => {
       value: role.id
     }
   })
+})
+
+const selectedRole = computed(() =>
+  props.roles.find((role) => role.id === form.project_role_id)
+)
+
+const roleIsInProfile = computed(() => {
+  const contributionRoleID = selectedRole.value?.contribution_role_id
+  return Boolean(
+    contributionRoleID &&
+      userSkills.value.some((skill) => skill.skill_id === contributionRoleID)
+  )
+})
+
+const matchedRoleTools = computed(() => {
+  const userToolIDs = new Set(userTools.value.map((tool) => tool.tool_id))
+  return selectedRole.value?.tools.filter((tool) => userToolIDs.has(tool.id)) || []
+})
+
+const missingRoleTools = computed(() => {
+  const matchedToolIDs = new Set(matchedRoleTools.value.map((tool) => tool.id))
+  return selectedRole.value?.tools.filter((tool) => !matchedToolIDs.has(tool.id)) || []
 })
 
 const AVAILABILITY_OPTIONS = [
@@ -108,6 +151,46 @@ const submitApplication = async () => {
         required
         :error="showErrors && roleError ? roleError : ''"
       />
+
+      <div v-if="selectedRole" class="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <p class="font-label-2 text-secondary">Kecocokan Profil</p>
+        <p v-if="selectedRole.contribution_role_id" class="mt-2 text-sm text-secondary">
+          <span v-if="roleIsInProfile" class="text-success-700">
+            Role ini tercatat pada profilmu.
+          </span>
+          <span v-else>
+            Role ini belum tercatat pada profilmu. Kamu tetap dapat melamar dan menjelaskan pengalamanmu.
+          </span>
+        </p>
+        <p v-else class="mt-2 text-sm text-secondary">
+          Ini adalah role custom; jelaskan pengalaman yang relevan pada lamaranmu.
+        </p>
+
+        <div v-if="selectedRole.tools.length" class="mt-3">
+          <p class="text-xs text-secondary">
+            Tools: {{ matchedRoleTools.length }} dari {{ selectedRole.tools.length }} tercatat pada profil
+          </p>
+          <div class="mt-1.5 flex flex-wrap gap-1.5">
+            <AtomicTagCategory
+              v-for="tool in matchedRoleTools"
+              :key="tool.id"
+              variant="success"
+            >
+              {{ tool.name }}
+            </AtomicTagCategory>
+            <AtomicTagCategory
+              v-for="tool in missingRoleTools"
+              :key="tool.id"
+              variant="default"
+            >
+              {{ tool.name }}
+            </AtomicTagCategory>
+          </div>
+        </div>
+        <p v-else class="mt-3 text-xs text-secondary">
+          Project belum menetapkan tools khusus untuk role ini.
+        </p>
+      </div>
 
       <MoleculeInputField
         v-model.number="form.estimated_hours_per_week"

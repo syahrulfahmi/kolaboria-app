@@ -35,7 +35,7 @@
       <!-- Draft Banner -->
       <div
         v-if="project.status === 'draft' && isOwner"
-        class="mx-auto max-w-7xl pb-4"
+        class="mx-auto w-full pb-4"
       >
         <MoleculeTicker
           variant="warning"
@@ -268,13 +268,11 @@
                 </div>
 
                 <!-- Contribution roles -->
-                <div v-if="project.project_roles?.length">
-                  <p class="text-secondary mb-4 font-paragraph-2">
-                    Peran yang Dibutuhkan
-                  </p>
+                <div v-if="visibleRoles.length">
+                  <p class="font-label-1 mb-4">Peran yang Dibutuhkan</p>
                   <div class="space-y-3">
                     <div
-                      v-for="role in project.project_roles"
+                      v-for="role in visibleRoles"
                       :key="role.id"
                       class="rounded-xl border border-neutral-200 bg-neutral-50 p-4"
                     >
@@ -298,15 +296,16 @@
                         {{ role.description }}
                       </p>
                       <div
-                        v-if="role.required_skills?.length"
-                        class="mt-2 flex flex-wrap gap-1.5"
+                        v-if="role.tools?.length"
+                        class="mt-2 flex flex-wrap items-center gap-1.5"
                       >
+                        <span class="text-xs text-secondary">Tools:</span>
                         <AtomicTagCategory
-                          v-for="skill in role.required_skills"
-                          :key="skill.id"
+                          v-for="tool in role.tools"
+                          :key="tool.id"
                           variant="default"
                         >
-                          {{ skill.name }}
+                          {{ tool.name }}
                         </AtomicTagCategory>
                       </div>
                     </div>
@@ -811,7 +810,7 @@
     <ProjectApplyModal
       v-if="project"
       :project-id="project.id"
-      :roles="project.project_roles || []"
+      :roles="availableRoles"
       :show="showApplyModal"
       @close="showApplyModal = false"
       @applied="handleApplied"
@@ -852,8 +851,9 @@ useHead({
 
 const { data: myApps, refresh: refreshApps } = await useAsyncData<
   Application[]
->(`my-apps-${projectSlug}`, () =>
-  user.value ? getMyApplications() : Promise.resolve([]),
+>(
+  `my-apps-${projectSlug}`,
+  () => (user.value ? getMyApplications() : Promise.resolve([])),
   { server: false }
 )
 
@@ -882,17 +882,19 @@ const filledSlots = computed(() => members.value.length)
 const totalRoleCapacity = computed(
   () =>
     project.value?.project_roles?.reduce(
-      (total, role) => total + role.capacity,
+      (total, role) =>
+        role.status === 'archived' ? total : total + role.capacity,
       0
-    ) ??
-    project.value?.max_slots ??
-    0
+    ) ?? 0
 )
 
 const openSlots = computed(() => {
   return (
     project.value?.project_roles?.reduce(
-      (total, role) => total + role.remaining_capacity,
+      (total, role) =>
+        role.status === 'archived'
+          ? total
+          : total + Math.max(role.remaining_capacity, 0),
       0
     ) ?? 0
   )
@@ -902,6 +904,13 @@ const availableRoles = computed(
   () =>
     project.value?.project_roles?.filter(
       (role) => role.status === 'open' && role.remaining_capacity > 0
+    ) ?? []
+)
+
+const visibleRoles = computed(
+  () =>
+    project.value?.project_roles?.filter(
+      (role) => role.status !== 'archived'
     ) ?? []
 )
 

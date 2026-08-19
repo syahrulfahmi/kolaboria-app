@@ -7,10 +7,15 @@ const props = defineProps<{
 }>()
 
 const openSlots = computed(() => {
-  const memberCount =
-    props.project.project_members?.filter((m) => m.role === 'contributor')
-      .length ?? 0
-  return Math.max(0, props.project.max_slots - memberCount)
+  return (
+    props.project.project_roles?.reduce(
+      (total, role) =>
+        role.status === 'archived'
+          ? total
+          : total + Math.max(role.remaining_capacity, 0),
+      0
+    ) ?? 0
+  )
 })
 
 const skills = computed(

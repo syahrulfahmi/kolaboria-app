@@ -12,20 +12,27 @@ const toast = useToast()
 const starting = ref(false)
 
 const openSlots = computed(() => {
-  const memberCount =
-    props.project.project_members?.filter((m) => m.role === 'contributor')
-      .length ?? 0
-  return Math.max(0, props.project.max_slots - memberCount)
-})
-
-const memberCount = computed(() => {
   return (
-    props.project.project_members?.filter((m) => m.role === 'contributor')
-      .length ?? 0
+    props.project.project_roles?.reduce(
+      (total, role) =>
+        role.status === 'archived'
+          ? total
+          : total + Math.max(role.remaining_capacity, 0),
+      0
+    ) ?? 0
   )
 })
 
-const isFull = computed(() => memberCount.value >= props.project.max_slots)
+const totalCapacity = computed(
+  () =>
+    props.project.project_roles?.reduce(
+      (total, role) => (role.status === 'archived' ? total : total + role.capacity),
+      0
+    ) ?? 0
+)
+
+const filledCapacity = computed(() => totalCapacity.value - openSlots.value)
+const isFull = computed(() => totalCapacity.value > 0 && openSlots.value === 0)
 
 const skills = computed(
   () =>
@@ -161,9 +168,9 @@ const handleStartProject = () => {
               class="font-body-1"
               :class="isFull ? 'text-success-600' : 'text-primary'"
             >
-              {{ memberCount }}
+              {{ filledCapacity }}
             </span>
-            <span class="font-body-2">/ {{ project.max_slots }}</span>
+            <span class="font-body-2">/ {{ totalCapacity }}</span>
           </div>
         </div>
       </div>

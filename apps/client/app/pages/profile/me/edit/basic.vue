@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import type { Profile, TalentProfile } from '~/types/profile'
 import { LocationService } from '~/services/location.service'
 
@@ -18,14 +18,14 @@ const { add: addToast } = useToast()
 
 const isSaving = ref(false)
 
-const initialForm = {
+const initialForm = reactive({
   full_name: props.profile.full_name || '',
   headline: props.profile.headline || '',
   bio: props.profile.bio || '',
   goal: props.talentProfile?.goal || '',
   address: props.profile.address?.address || '',
   village_id: props.profile.address?.villageId || null
-}
+})
 
 const form = ref({ ...initialForm })
 
@@ -74,6 +74,7 @@ const handleSave = async () => {
   isSaving.value = true
   try {
     await updateProfile(form.value)
+    Object.assign(initialForm, form.value)
     emit('refresh')
 
     addToast({

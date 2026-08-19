@@ -31,10 +31,10 @@ const {
 } = useProjects()
 const { user, currentUserId } = useAuth()
 const { add: addToast } = useToast()
+const { tools, loadTools } = useSkill()
 
 const projectSlug = route.params.slug as string
 const project = ref<Project | null>(null)
-const skillTags = ref<{ id: string; name: string }[]>([])
 const contributionRoles = ref<{ id: string; name: string; slug: string; category?: string | null }[]>([])
 const pending = ref(true)
 const isSubmitting = ref(false)
@@ -55,7 +55,6 @@ const form = reactive<CreateProjectPayload>({
   description: '',
   project_category: 'product',
   visibility: 'public',
-  max_slots: 3,
   start_date: undefined,
   deadline: undefined,
   tool_ids: [],
@@ -72,11 +71,37 @@ const confirmAction = ref<'open' | 'archived' | 'completed' | 'in_progress'>(
 const hasActiveApplicants = ref(false)
 const deliverableCount = ref(0)
 
+const hydrateForm = (source: Project) => {
+  form.title = source.title
+  form.summary = source.summary
+  form.description = source.description || ''
+  form.project_category = source.project_category
+  form.visibility = source.visibility
+  form.start_date = source.start_date
+  form.deadline = source.deadline
+  form.tool_ids = source.project_technologies?.map((item) => item.tool_id) || []
+  form.why_join = source.why_join || ''
+  form.skill_ids = source.project_skills?.map((skill) => skill.skill_tag_id) || []
+  form.owner_contribution_role_id = source.owner_contribution_role_id || undefined
+  form.owner_custom_role_title = source.owner_custom_role_title || undefined
+  form.roles = source.project_roles
+    ?.filter((role) => role.status !== 'archived')
+    .map((role) => ({
+      id: role.id,
+      contribution_role_id: role.contribution_role_id || undefined,
+      custom_title: role.custom_title || undefined,
+      description: role.description || undefined,
+      capacity: role.capacity,
+      tool_ids: role.tools?.map((tool) => tool.id) || []
+    })) || []
+}
+
 onMounted(async () => {
   try {
     const [p, skills] = await Promise.all([
       getProjectBySlug(projectSlug),
-      SkillService.getSkills()
+      SkillService.getSkills(),
+      loadTools()
     ])
 
     if (!p) {
@@ -96,31 +121,11 @@ onMounted(async () => {
 
     project.value = p
     deliverableCount.value = (await WorkspaceService.getDeliverables(p.id)).length
-    skillTags.value = skills
-    contributionRoles.value = skills
+    contributionRoles.value = skills.filter(
+      (skill) => skill.category !== 'Legacy project skill'
+    )
 
-    // Init form
-    form.title = p.title
-    form.summary = p.summary
-    form.description = p.description || ''
-    form.project_category = p.project_category
-    form.visibility = p.visibility
-    form.max_slots = p.max_slots
-    form.start_date = p.start_date
-    form.deadline = p.deadline
-    form.tool_ids = p.project_technologies?.map((item) => item.tool_id) || []
-    form.why_join = p.why_join || ''
-    form.skill_ids = p.project_skills?.map((s) => s.skill_tag_id) || []
-    form.owner_contribution_role_id = p.owner_contribution_role_id || undefined
-    form.owner_custom_role_title = p.owner_custom_role_title || undefined
-    form.roles = p.project_roles?.map((role) => ({
-      id: role.id,
-      contribution_role_id: role.contribution_role_id || undefined,
-      custom_title: role.custom_title || undefined,
-      description: role.description || undefined,
-      capacity: role.capacity,
-      skill_ids: role.required_skills?.map((skill) => skill.id) || []
-    })) || []
+    hydrateForm(p)
 
     // Check active applicants for archive warning
     if (p.status !== 'draft' && p.status !== 'archived') {
@@ -152,19 +157,17 @@ const handleSave = async () => {
   isSubmitting.value = true
 
   try {
-    await updateProjectFull(project.value.id, form)
-
-    const hasSlugChanged = form.slug && form.slug !== projectSlug
-
-    // Update local project state to reflect changes without full reload
-    project.value = { ...project.value, ...form } as unknown as Project
+    const updatedProject = await updateProjectFull(project.value.id, form)
+    const hasSlugChanged = updatedProject.slug !== projectSlug
+    project.value = updatedProject
+    hydrateForm(updatedProject)
 
     if (hasSlugChanged) {
       addToast({
         variant: 'success',
         message: 'Slug berhasil diperbarui! Redirecting...'
       })
-      router.replace(`/projects/${form.slug}/edit`)
+      router.replace(`/projects/${updatedProject.slug}/edit`)
       return
     }
 
@@ -203,13 +206,15 @@ const handleStatusConfirm = async () => {
   try {
     if (confirmAction.value === 'open') {
       // Pastikan data terakhir tersimpan sebelum publish
-      await updateProjectFull(project.value.id, form)
-      await publishProject(project.value.id)
+      const updatedProject = await updateProjectFull(project.value.id, form)
+      project.value = updatedProject
+      hydrateForm(updatedProject)
+      await publishProject(updatedProject.id)
       addToast({
         variant: 'success',
         message: 'Project berhasil dipublikasikan!'
       })
-      router.push(`/projects/${project.value.slug}`)
+      router.push(`/projects/${updatedProject.slug}`)
     } else {
       if (confirmAction.value === 'in_progress') await startProject(project.value.id)
       if (confirmAction.value === 'completed') await completeProject(project.value.id)
@@ -307,8 +312,8 @@ const isValid = computed(() => {
               <EditTabRequirements
                 v-else-if="activeTab === 1"
                 v-model:form="form"
-                :skill-tags="skillTags"
                 :contribution-roles="contributionRoles"
+                :tools="tools"
               />
               <EditTabTimeline
                 v-else-if="activeTab === 2"

@@ -40,7 +40,7 @@ export const ProjectService = {
 
   async updateProjectFull(id: string, payload: Partial<CreateProjectPayload>) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}`, {
+    return await $api<ApiResponse<Project>>(`/projects/${id}`, {
       method: 'PUT',
       body: payload
     })

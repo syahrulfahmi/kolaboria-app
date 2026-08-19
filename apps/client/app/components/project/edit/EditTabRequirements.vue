@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { CreateProjectPayload } from '~/types/project'
+import type { Tool } from '~/types/skill'
 
 defineProps<{
-  skillTags: { id: string; name: string }[]
   contributionRoles: { id: string; name: string; slug: string; category?: string | null }[]
+  tools: Tool[]
 }>()
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
@@ -12,7 +13,7 @@ const form = defineModel<CreateProjectPayload>('form', { required: true })
 <template>
   <ProjectCreateRoleRequirementsEditor
     v-model:form="form"
-    :skill-tags="skillTags"
     :contribution-roles="contributionRoles"
+    :tools="tools"
   />
 </template>

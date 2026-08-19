@@ -7,16 +7,11 @@ const props = defineProps<{
   canPublish: boolean
   submitError: string
   isSubmitting: boolean
-  skillTags: { id: string; name: string }[]
   tools: { id: string; name: string }[]
   contributionRoles: { id: string; name: string; slug: string; category?: string | null }[]
 }>()
 
 const form = defineModel<CreateProjectPayload>('form', { required: true })
-
-const getSkillName = (id: string) => {
-  return props.skillTags.find((t) => t.id === id)?.name || id
-}
 
 const getToolName = (id: string) => {
   return props.tools.find((tool) => tool.id === id)?.name || id
@@ -27,8 +22,12 @@ const getRoleName = (role: { contribution_role_id?: string; custom_title?: strin
   return props.contributionRoles.find((item) => item.id === role.contribution_role_id)?.name || 'Project Role'
 }
 
-const getSkillNames = (ids: string[] = []) =>
-  ids.map((id) => props.skillTags.find((skill) => skill.id === id)?.name || id)
+const getToolNames = (ids: string[] = []) =>
+  ids.map((id) => props.tools.find((tool) => tool.id === id)?.name || id)
+
+const totalCapacity = computed(() =>
+  form.value.roles?.reduce((total, role) => total + Number(role.capacity || 0), 0) || 0
+)
 </script>
 
 <template>
@@ -94,8 +93,8 @@ const getSkillNames = (ids: string[] = []) =>
                   <p v-if="role.description" class="mt-1 text-xs text-secondary">
                     {{ role.description }}
                   </p>
-                  <p v-if="role.skill_ids?.length" class="mt-1 text-xs text-secondary">
-                    Skills: {{ getSkillNames(role.skill_ids).join(', ') }}
+                  <p v-if="role.tool_ids?.length" class="mt-1 text-xs text-secondary">
+                    Tools: {{ getToolNames(role.tool_ids).join(', ') }}
                   </p>
                 </div>
               </dd>
@@ -103,8 +102,8 @@ const getSkillNames = (ids: string[] = []) =>
             </div>
 
             <div>
-              <dt class="font-label-1">Kebutuhan Slot</dt>
-              <dd class="mt-1 font-body-2">{{ form.max_slots }} Kontributor</dd>
+              <dt class="font-label-1">Total Kebutuhan Kontributor</dt>
+              <dd class="mt-1 font-body-2">{{ totalCapacity }} Orang</dd>
             </div>
 
             <div>
@@ -151,26 +150,6 @@ const getSkillNames = (ids: string[] = []) =>
               </dd>
             </div>
 
-            <div class="sm:col-span-2 pt-4 border-t border-neutral-100">
-              <dt class="font-label-1 mb-2">Skill Utama yang Dicari</dt>
-              <dd>
-                <div
-                  v-if="form.skill_ids && form.skill_ids.length > 0"
-                  class="flex flex-wrap gap-2"
-                >
-                  <span
-                    v-for="skillId in form.skill_ids"
-                    :key="skillId"
-                    class="inline-flex items-center rounded-lg bg-neutral-50 px-3 py-1.5 text-xs text-body text-secondary-700 ring-1 ring-inset ring-neutral-200 shadow-sm"
-                  >
-                    {{ getSkillName(skillId) }}
-                  </span>
-                </div>
-                <span v-else class="font-body-2 italic"
-                  >Belum ada skill yang dipilih</span
-                >
-              </dd>
-            </div>
           </dl>
         </div>
       </div>

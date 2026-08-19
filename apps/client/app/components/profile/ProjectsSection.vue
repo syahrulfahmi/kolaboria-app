@@ -27,7 +27,7 @@ defineProps<{
       </h3>
       <NuxtLink
         v-if="projects && projects.length > 0 && isOwner"
-        to="/portfolio/me"
+        to="/profile/me/edit/portfolio"
         class="font-label-2 text-primary-600 hover:text-primary-800 transition-colors"
         >Lihat Semua</NuxtLink
       >

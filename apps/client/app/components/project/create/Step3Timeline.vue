@@ -86,17 +86,17 @@ const deadlineObj = computed({
         </div>
       </div>
 
-      <!-- Section: Tech Stack -->
+      <!-- Section: Shared project toolchain -->
       <div class="space-y-5">
         <MoleculeDropdown
           v-model="form.tool_ids"
-          label="Tech Stack / Tools"
+          label="Toolchain Project (Opsional)"
           placeholder="Cari dan pilih teknologi/tools..."
           :options="techOptions"
           searchable
           multiple
           :loading="isLoadingTools"
-          hint="Pilih teknologi, library, atau tools utama yang akan digunakan dalam project ini."
+          hint="Pilih tools yang dipakai bersama oleh tim. Tools khusus kandidat diatur pada masing-masing role."
         />
       </div>
 

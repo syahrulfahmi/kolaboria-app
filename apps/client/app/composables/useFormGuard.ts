@@ -1,6 +1,3 @@
-import { onMounted, onUnmounted } from 'vue'
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
-
 export const useFormGuard = (isDirty: () => boolean) => {
   const popup = usePopup()
   let pendingRoute: string | null = null
@@ -24,7 +21,8 @@ export const useFormGuard = (isDirty: () => boolean) => {
   const showConfirmDialog = () => {
     popup.show({
       title: 'Perubahan Belum Disimpan',
-      description: 'Kamu memiliki perubahan yang belum disimpan. Apakah kamu yakin ingin meninggalkan halaman ini dan membuang perubahan?',
+      description:
+        'Kamu memiliki perubahan yang belum disimpan. Apakah kamu yakin ingin meninggalkan halaman ini dan membuang perubahan?',
       type: 'warning',
       positiveLabel: 'Tinggalkan Halaman',
       negativeLabel: 'Batal',

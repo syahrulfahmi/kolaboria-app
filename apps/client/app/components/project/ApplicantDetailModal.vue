@@ -29,7 +29,10 @@ const handleReview = (status: 'accepted' | 'rejected') => {
   if (!props.application) return
 
   const isAccepted = status === 'accepted'
-  const applicantName = props.application.profiles?.full_name || props.application.profiles?.username || 'Talent'
+  const applicantName =
+    props.application.profiles?.full_name ||
+    props.application.profiles?.username ||
+    'Talent'
 
   showPopup({
     title: isAccepted ? 'Terima Pelamar?' : 'Tolak Lamaran?',
@@ -167,9 +170,16 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
             Role yang Dilamar
           </h4>
           <p class="mt-1 text-body font-semibold text-secondary-900">
-            {{ application.project_role?.custom_title || application.project_role?.contribution_role?.name || 'Project Role' }}
+            {{
+              application.project_role?.custom_title ||
+              application.project_role?.contribution_role?.name ||
+              'Project Role'
+            }}
           </p>
-          <p v-if="application.estimated_hours_per_week" class="mt-1 text-xs text-secondary">
+          <p
+            v-if="application.estimated_hours_per_week"
+            class="mt-1 text-xs text-secondary"
+          >
             Estimasi {{ application.estimated_hours_per_week }} jam/minggu
           </p>
         </div>
@@ -195,7 +205,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <h4 class="text-caption text-body uppercase text-neutral-500">
               Ketersediaan

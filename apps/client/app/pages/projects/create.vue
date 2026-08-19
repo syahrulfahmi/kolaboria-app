@@ -25,7 +25,6 @@ const stepperSteps = [
 
 // Load data awal
 const profile = ref<any>(null)
-const skillTags = ref<{ id: string; name: string }[]>([])
 const contributionRoles = ref<
   { id: string; name: string; slug: string; category?: string | null }[]
 >([])
@@ -34,8 +33,9 @@ onMounted(async () => {
   profile.value = await getProfile()
   try {
     const skills = await SkillService.getSkills()
-    skillTags.value = skills
-    contributionRoles.value = skills
+    contributionRoles.value = skills.filter(
+      (skill) => skill.category !== 'Legacy project skill'
+    )
     await loadTools()
   } catch (err) {
     console.error('Failed to load project reference data:', err)
@@ -51,19 +51,27 @@ const form = reactive<CreateProjectPayload>({
   description: '',
   project_category: 'product',
   visibility: 'public',
-  max_slots: 3,
   start_date: undefined,
   deadline: undefined,
   tool_ids: [],
   why_join: '',
   skill_ids: [],
-  roles: []
+  roles: [{ capacity: 1, tool_ids: [] }]
 })
 
 const stepValid = computed(() => {
   if (currentStep.value === 1)
     return form.title.trim().length > 0 && form.summary.trim().length > 0
-  if (currentStep.value === 2) return true
+  if (currentStep.value === 2) {
+    return Boolean(
+      form.roles?.length &&
+      form.roles.every(
+        (role) =>
+          role.capacity >= 1 &&
+          Boolean(role.contribution_role_id || role.custom_title?.trim())
+      )
+    )
+  }
   if (currentStep.value === 3) return true
   return true
 })
@@ -108,7 +116,7 @@ const saveAndPublish = async () => {
   try {
     const project = await createProject(form)
     await publishProject(project.id)
-    router.push(`/projects/${project.id}`)
+    router.push(`/projects/${project.slug}`)
   } catch (e: any) {
     submitError.value = e?.message || 'Gagal mempublikasikan project.'
   } finally {
@@ -205,12 +213,12 @@ const confirmSaveAndPublish = () => {
         <!-- Step 1: Info Dasar -->
         <ProjectCreateStep1Info v-if="currentStep === 1" v-model:form="form" />
 
-        <!-- Step 2: Skill & Kebutuhan -->
+        <!-- Step 2: Role & Kebutuhan -->
         <ProjectCreateStep2Requirements
           v-else-if="currentStep === 2"
           v-model:form="form"
-          :skill-tags="skillTags"
           :contribution-roles="contributionRoles"
+          :tools="tools"
         />
 
         <!-- Step 3: Timeline -->
@@ -227,7 +235,6 @@ const confirmSaveAndPublish = () => {
           :can-publish="canPublish"
           :submit-error="submitError"
           :is-submitting="isSubmitting"
-          :skill-tags="skillTags"
           :tools="tools"
           :contribution-roles="contributionRoles"
         />

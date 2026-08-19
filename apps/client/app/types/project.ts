@@ -45,7 +45,7 @@ export interface ProjectRoleInput {
   custom_title?: string
   description?: string
   capacity: number
-  skill_ids: string[]
+  tool_ids: string[]
 }
 
 export interface ProjectRole {
@@ -58,7 +58,7 @@ export interface ProjectRole {
   filled_capacity: number
   remaining_capacity: number
   status: 'open' | 'filled' | 'archived'
-  required_skills: MasterItem[]
+  tools: MasterItem[]
 }
 
 export interface ProjectSkill {
@@ -109,6 +109,11 @@ export interface Project {
   ended_at?: string | null
   completed_at?: string | null
   // Joined relations
+  creator?: {
+    username: string
+    full_name: string | null
+    avatar: string | null
+  }
   profiles?: {
     username: string
     full_name: string | null
@@ -158,7 +163,6 @@ export interface CreateProjectPayload {
   description?: string
   project_category: ProjectCategory
   visibility: ProjectVisibility
-  max_slots: number
   start_date?: string | null
   deadline?: string | null
   why_join?: string

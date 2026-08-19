@@ -97,11 +97,18 @@ export const useProjects = () => {
   const updateProjectFull = async (
     projectId: string,
     payload: Partial<CreateProjectPayload>
-  ): Promise<void> => {
+  ): Promise<Project> => {
     const res = await ProjectService.updateProjectFull(projectId, payload)
     if (res.status >= 400) {
       throw new Error(res.message || 'Gagal memperbarui project.')
     }
+    if (!res.data) {
+      throw new Error(res.message || 'Project hasil perubahan tidak tersedia.')
+    }
+    return {
+      ...res.data,
+      profiles: res.data.creator
+    } as Project
   }
 
   const updateProjectStatus = async (
