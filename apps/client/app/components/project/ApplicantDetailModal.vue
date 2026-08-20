@@ -100,14 +100,12 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
         class="flex items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-4"
       >
         <div class="flex-1">
-          <p
-            class="text-caption text-body text-neutral-500 uppercase tracking-wider mb-1"
-          >
+          <p class="font-body-1 text-primary tracking-wider mb-1">
             Status Lamaran
           </p>
           <span
             :class="[
-              'inline-flex items-center rounded-full px-3 py-1 text-caption font-bold ring-1 ring-inset',
+              'inline-flex items-center rounded-full font-body-1 px-3 py-1 ring-1 ring-inset',
               statusConfig[application.status]?.classes
             ]"
           >
@@ -166,10 +164,8 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
       <!-- Application Details -->
       <div class="space-y-4">
         <div class="rounded-lg border border-primary-100 bg-primary-50/50 p-4">
-          <h4 class="text-caption text-body uppercase text-primary-700">
-            Role yang Dilamar
-          </h4>
-          <p class="mt-1 text-body font-semibold text-secondary-900">
+          <h4 class="font-body-1 text-primary-700">Role yang Dilamar</h4>
+          <p class="mt-1 font-label-1 text-secondary-900">
             {{
               application.project_role?.custom_title ||
               application.project_role?.contribution_role?.name ||
@@ -184,9 +180,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
           </p>
         </div>
         <div>
-          <h4 class="text-caption text-body uppercase text-neutral-500">
-            Motivasi
-          </h4>
+          <h4 class="font-body-1">Motivasi</h4>
           <p
             class="mt-1 whitespace-pre-line text-body text-secondary-900 rounded-lg bg-neutral-50 border border-neutral-100 p-4"
           >
@@ -195,9 +189,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
         </div>
 
         <div v-if="application.expected_contribution">
-          <h4 class="text-caption text-body uppercase text-neutral-500">
-            Ekspektasi Kontribusi
-          </h4>
+          <h4 class="font-body-1">Ekspektasi Kontribusi</h4>
           <p
             class="mt-1 whitespace-pre-line text-body text-secondary-900 rounded-lg bg-neutral-50 border border-neutral-100 p-4"
           >
@@ -207,9 +199,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <h4 class="text-caption text-body uppercase text-neutral-500">
-              Ketersediaan
-            </h4>
+            <h4 class="font-body-1">Ketersediaan</h4>
             <p
               class="mt-1 text-body font-medium text-secondary-900 flex items-center gap-2"
             >
@@ -279,15 +269,11 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
         v-if="application.status === 'pending'"
         class="border-t border-neutral-200 pt-5 mt-2"
       >
-        <label class="mb-1.5 block text-caption text-body text-secondary-900">
-          Catatan Reviewer
-          <span class="text-neutral-400 font-normal">(Opsional)</span>
-        </label>
-        <textarea
+        <MoleculeTextarea
           v-model="reviewerNote"
+          label="Catatan Reviewer"
           rows="2"
           placeholder="Berikan alasan atau pesan ke pelamar..."
-          class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-body outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-100 resize-none shadow-sm"
         />
 
         <div class="mt-4 flex gap-3">

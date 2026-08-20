@@ -70,7 +70,9 @@ const motivationError = computed(() => {
   return ''
 })
 
-const roleError = computed(() => !form.project_role_id ? 'Pilih role yang ingin kamu lamar.' : '')
+const roleError = computed(() =>
+  !form.project_role_id ? 'Pilih role yang ingin kamu lamar.' : ''
+)
 const isValid = computed(() => !motivationError.value && !roleError.value)
 
 const roleOptions = computed(() => {
@@ -92,18 +94,23 @@ const roleIsInProfile = computed(() => {
   const contributionRoleID = selectedRole.value?.contribution_role_id
   return Boolean(
     contributionRoleID &&
-      userSkills.value.some((skill) => skill.skill_id === contributionRoleID)
+    userSkills.value.some((skill) => skill.skill_id === contributionRoleID)
   )
 })
 
 const matchedRoleTools = computed(() => {
   const userToolIDs = new Set(userTools.value.map((tool) => tool.tool_id))
-  return selectedRole.value?.tools.filter((tool) => userToolIDs.has(tool.id)) || []
+  return (
+    selectedRole.value?.tools.filter((tool) => userToolIDs.has(tool.id)) || []
+  )
 })
 
 const missingRoleTools = computed(() => {
   const matchedToolIDs = new Set(matchedRoleTools.value.map((tool) => tool.id))
-  return selectedRole.value?.tools.filter((tool) => !matchedToolIDs.has(tool.id)) || []
+  return (
+    selectedRole.value?.tools.filter((tool) => !matchedToolIDs.has(tool.id)) ||
+    []
+  )
 })
 
 const AVAILABILITY_OPTIONS = [
@@ -152,23 +159,32 @@ const submitApplication = async () => {
         :error="showErrors && roleError ? roleError : ''"
       />
 
-      <div v-if="selectedRole" class="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <div
+        v-if="selectedRole"
+        class="rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+      >
         <p class="font-label-2 text-secondary">Kecocokan Profil</p>
-        <p v-if="selectedRole.contribution_role_id" class="mt-2 text-sm text-secondary">
+        <p
+          v-if="selectedRole.contribution_role_id"
+          class="mt-2 text-sm text-secondary"
+        >
           <span v-if="roleIsInProfile" class="text-success-700">
             Role ini tercatat pada profilmu.
           </span>
           <span v-else>
-            Role ini belum tercatat pada profilmu. Kamu tetap dapat melamar dan menjelaskan pengalamanmu.
+            Role ini belum tercatat pada profilmu. Kamu tetap dapat melamar dan
+            menjelaskan pengalamanmu.
           </span>
         </p>
         <p v-else class="mt-2 text-sm text-secondary">
-          Ini adalah role custom; jelaskan pengalaman yang relevan pada lamaranmu.
+          Ini adalah role custom; jelaskan pengalaman yang relevan pada
+          lamaranmu.
         </p>
 
         <div v-if="selectedRole.tools.length" class="mt-3">
           <p class="text-xs text-secondary">
-            Tools: {{ matchedRoleTools.length }} dari {{ selectedRole.tools.length }} tercatat pada profil
+            Tools: {{ matchedRoleTools.length }} dari
+            {{ selectedRole.tools.length }} tercatat pada profil
           </p>
           <div class="mt-1.5 flex flex-wrap gap-1.5">
             <AtomicTagCategory
@@ -274,6 +290,7 @@ const submitApplication = async () => {
         variant="outline"
         @click="emit('close')"
         :disabled="isSubmitting"
+        class="flex-1 sm:flex-initial"
       >
         Batal
       </AtomicButton>
@@ -281,6 +298,7 @@ const submitApplication = async () => {
         variant="primary"
         :disabled="isSubmitting"
         @click="submitApplication"
+        class="flex-1 sm:flex-initial"
       >
         {{ isSubmitting ? 'Mengirim...' : 'Kirim Lamaran' }}
       </AtomicButton>

@@ -3,7 +3,7 @@
     <Transition name="modal-fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 overflow-hidden"
+        class="fixed inset-0 z-49 overflow-hidden"
         aria-labelledby="modal-title"
         role="dialog"
         aria-modal="true"
@@ -16,10 +16,10 @@
 
         <!-- On mobile: align to bottom; on desktop: center -->
         <div
-          class="flex min-h-screen items-end justify-center sm:items-center p-0 sm:p-4 text-center"
+          class="fixed inset-0 flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 text-center pointer-events-none"
         >
           <div
-            class="modal-panel relative flex flex-col transform overflow-hidden rounded-t-2xl sm:rounded-xl bg-white text-left shadow-xl w-full sm:my-8"
+            class="modal-panel pointer-events-auto relative flex flex-col transform overflow-hidden rounded-t-2xl sm:rounded-xl bg-white text-left shadow-xl w-full max-h-[90dvh] sm:max-h-[90vh] sm:my-8"
             :class="sizeClass"
             @click.stop
           >
@@ -28,7 +28,9 @@
               class="mx-auto w-12 h-1.5 bg-neutral-200 rounded-full mt-3 mb-1 shrink-0 sm:hidden"
             />
             <!-- Header -->
-            <div class="py-3 px-5 flex items-start justify-between gap-4">
+            <div
+              class="py-3 px-5 flex items-start justify-between gap-4 shrink-0"
+            >
               <div class="w-full">
                 <h3
                   class="font-title-3 leading-snug"
@@ -70,18 +72,21 @@
               </button>
             </div>
 
-            <hr class="border-neutral-200" v-if="showClose" />
+            <hr class="border-neutral-200 shrink-0" v-if="showClose" />
 
             <!-- Body -->
-            <div class="p-5 max-h-[60vh] sm:max-h-[60vh] overflow-y-auto">
+            <div class="p-5 overflow-y-auto flex-1 min-h-0">
               <slot></slot>
             </div>
 
             <!-- Footer -->
-            <div v-if="$slots.footer || primaryLabel || secondaryLabel">
+            <div
+              v-if="$slots.footer || primaryLabel || secondaryLabel"
+              class="shrink-0 bg-white"
+            >
               <hr class="border-neutral-200" />
               <div
-                class="py-3 px-5 flex items-center gap-3 w-full"
+                class="py-3 px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-3 w-full"
                 :class="
                   primaryLabel && !secondaryLabel
                     ? 'justify-center'
@@ -174,7 +179,12 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'onPrimaryClick', 'onSecondaryClick'])
+const emit = defineEmits([
+  'update:modelValue',
+  'close',
+  'onPrimaryClick',
+  'onSecondaryClick'
+])
 
 const sizeClass = computed(() => {
   switch (props.size) {
