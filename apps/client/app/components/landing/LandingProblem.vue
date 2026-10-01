@@ -39,9 +39,51 @@
               :style="`--delay: ${300 + i * 100}ms`"
             >
               <span
-                class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-red-50 border border-red-100 text-base"
-                >{{ p.icon }}</span
+                class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-red-50 border border-red-100 text-red-500 shadow-xs"
               >
+                <svg
+                  v-if="p.iconType === 'search'"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <svg
+                  v-else-if="p.iconType === 'draft'"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <svg
+                  v-else-if="p.iconType === 'time'"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </span>
               <div>
                 <p class="text-secondary-500 text-body text-sm">
                   {{ p.title }}
@@ -119,17 +161,17 @@ const { revealItems } = useScrollReveal()
 
 const problems = [
   {
-    icon: '🔍',
+    iconType: 'search',
     title: 'Susah Nemuin Kolaborator yang Tepat',
     desc: 'Platform freelance terlalu transaksional tidak didesain untuk kolaborasi jangka panjang yang bermakna.'
   },
   {
-    icon: '📭',
+    iconType: 'draft',
     title: 'Ide Bagus Mati di Draft',
     desc: 'Banyak inisiator proyek yang menyerah bukan karena idenya buruk, tapi karena tidak tahu cara menemukan tim yang pas.'
   },
   {
-    icon: '⏳',
+    iconType: 'time',
     title: 'Waktu Terbuang di Koordinasi',
     desc: 'Tanpa tools yang tepat, koordinasi proyek jadi boros energi dan membunuh momentum kolaborasi.'
   }
@@ -145,8 +187,8 @@ const solutions = [
     desc: 'Setiap proyek punya role terdefinisi, slot kontributor, dan roadmap yang terstruktur.'
   },
   {
-    title: 'Mentor Terintegrasi',
-    desc: 'Setiap proyek dapat diawasi oleh mentor berpengalaman — bukan sekadar feedback, tapi bimbingan nyata.'
+    title: 'Workspace Kolaborasi Terpadu',
+    desc: 'Lacak progres tugas, milestone proyek, dan komunikasi tim dalam satu platform tanpa hambatan.'
   }
 ]
 </script>

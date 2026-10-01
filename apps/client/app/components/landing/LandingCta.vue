@@ -21,9 +21,9 @@
         <span class="text-primary-400">berkolaborasi hari ini.</span>
       </h2>
       <p
-        class="text-white/55 text-[0.95rem] leading-relaxed mb-10 max-w-xl mx-auto"
+        class="text-white/60 text-[0.95rem] leading-relaxed mb-10 max-w-xl mx-auto"
       >
-        Lebih dari 2.000 talenta, 500 mentor, dan ratusan proyek aktif
+        Lebih dari 2.000 talenta terampil dan ratusan proyek aktif
         menunggumu. Tidak perlu kartu kredit. Cukup daftar dan mulai.
       </p>
 

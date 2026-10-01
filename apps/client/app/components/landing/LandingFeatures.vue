@@ -30,12 +30,98 @@
           >
             <div
               :class="[
-                'w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-xl',
+                'w-11 h-11 rounded-xl flex items-center justify-center mb-5',
                 'transition-transform duration-300 group-hover:-translate-y-0.5',
                 feat.iconBg
               ]"
             >
-              {{ feat.icon }}
+              <svg
+                v-if="feat.iconType === 'matching'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="5" />
+                <circle cx="12" cy="12" r="1.5" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3v2m0 14v2m9-9h-2M5 12H3"
+                />
+              </svg>
+              <svg
+                v-else-if="feat.iconType === 'management'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                />
+              </svg>
+              <svg
+                v-else-if="feat.iconType === 'verified'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+              <svg
+                v-else-if="feat.iconType === 'chat'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <svg
+                v-else-if="feat.iconType === 'milestone'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                />
+              </svg>
+              <svg
+                v-else-if="feat.iconType === 'portfolio'"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
             </div>
 
             <div class="k-rule mb-4"></div>
@@ -59,40 +145,40 @@ const { revealItems } = useScrollReveal()
 
 const features = [
   {
-    icon: '🎯',
-    iconBg: 'bg-primary-50 border border-primary-100',
+    iconType: 'matching',
+    iconBg: 'bg-primary-50 border border-primary-100 text-primary-500',
     title: 'Smart Matching',
     desc: 'Sistem kami menyarankan proyek dan kolaborator berdasarkan skill dan minatmu secara otomatis tanpa pencarian manual.'
   },
   {
-    icon: '📋',
-    iconBg: 'bg-secondary-50 border border-secondary-100',
+    iconType: 'management',
+    iconBg: 'bg-secondary-50 border border-secondary-100 text-secondary-500',
     title: 'Manajemen Proyek Terintegrasi',
-    desc: 'Update progres, atur role, dan lacak kontribusi anggota langsung dari satu halaman tanpa alat tambahan.'
+    desc: 'Update progres, atur role, dan lacak kontribusi anggota langsung dari satu dashboard tanpa alat tambahan.'
   },
   {
-    icon: '🔒',
-    iconBg: 'bg-gray-50 border border-gray-100',
+    iconType: 'verified',
+    iconBg: 'bg-emerald-50 border border-emerald-100 text-emerald-600',
     title: 'Profil Terverifikasi',
-    desc: 'Setiap anggota melewati proses verifikasi dasar sehingga kamu tahu kamu berkolaborasi dengan orang nyata.'
+    desc: 'Setiap anggota melewati proses verifikasi dasar sehingga kamu tahu kamu berkolaborasi dengan talenta terpercaya.'
   },
   {
-    icon: '💬',
-    iconBg: 'bg-primary-50 border border-primary-100',
+    iconType: 'chat',
+    iconBg: 'bg-primary-50 border border-primary-100 text-primary-500',
     title: 'Komunikasi Real-time',
-    desc: 'Chat dan notifikasi proyek terintegrasi. Tidak perlu berpindah ke WhatsApp atau Slack untuk koordinasi.'
+    desc: 'Diskusi dan notifikasi proyek terintegrasi langsung untuk koordinasi tim yang cepat tanpa hambatan.'
   },
   {
-    icon: '🎓',
-    iconBg: 'bg-amber-50 border border-amber-100',
-    title: 'Mentor-in-Residence',
-    desc: 'Setiap proyek bisa memiliki mentor yang memberikan review dan arah — kolaborasi yang diarahkan menghasilkan lebih baik.'
+    iconType: 'milestone',
+    iconBg: 'bg-amber-50 border border-amber-100 text-amber-600',
+    title: 'Milestone & Workspace',
+    desc: 'Bagi proyek ke dalam sprint dan target terukur. Pastikan deliverables selesai tepat waktu dengan koordinasi transparan.'
   },
   {
-    icon: '📊',
-    iconBg: 'bg-secondary-50 border border-secondary-100',
-    title: 'Portfolio Otomatis',
-    desc: 'Setiap kontribusi yang kamu berikan terekam dan otomatis menjadi bagian dari portofolio publik profilmu.'
+    iconType: 'portfolio',
+    iconBg: 'bg-secondary-50 border border-secondary-100 text-secondary-500',
+    title: 'Portofolio Otomatis',
+    desc: 'Setiap kontribusi yang kamu selesaikan terekam otomatis dan menjadi bagian dari portofolio publik profilmu.'
   }
 ]
 </script>

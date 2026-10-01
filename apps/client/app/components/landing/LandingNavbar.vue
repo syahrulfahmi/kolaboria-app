@@ -174,11 +174,16 @@ const { isAuthenticated } = useAuth()
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
 
+const route = useRoute()
+
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 32
 }
 
 const scrollTo = (selector: string) => {
+  if (route.path !== '/') {
+    return navigateTo(`/${selector}`)
+  }
   const el = document.querySelector(selector)
   if (!el) return
   window.scrollTo({
@@ -188,6 +193,10 @@ const scrollTo = (selector: string) => {
 }
 
 const handleScrollTo = (link: string) => {
+  if (route.path !== '/') {
+    mobileOpen.value = false
+    return navigateTo(`/#${link}`)
+  }
   scrollTo(`#${link}`)
   mobileOpen.value = false
 }
@@ -199,6 +208,7 @@ const navLinks = [
   { id: 'problem', label: 'Masalah & Solusi' },
   { id: 'how', label: 'Cara Kerja' },
   { id: 'features', label: 'Fitur' },
+  { id: 'pricing', label: 'Harga' },
   { id: 'faq', label: 'FAQ' }
 ]
 </script>

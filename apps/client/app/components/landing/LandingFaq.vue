@@ -52,7 +52,7 @@ const accordionItems = [
   {
     title: 'Apakah ada jaminan kualitas dari kontributor?',
     content:
-      'Setiap profil kontributor dilengkapi dengan riwayat proyek yang sudah dikerjakan di Kolaboria, skill yang terverifikasi, dan review dari inisiator sebelumnya. Kamu juga bisa request rekomendasi mentor.'
+      'Setiap profil kontributor dilengkapi dengan riwayat proyek yang sudah dikerjakan di Kolaboria, skill yang terverifikasi, dan ulasan objektif dari inisiator proyek sebelumnya untuk memastikan kualitas kolaborasi.'
   },
   {
     title: 'Bisakah saya bergabung ke proyek yang sedang berjalan?',

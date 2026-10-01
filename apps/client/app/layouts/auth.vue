@@ -51,7 +51,7 @@
             Masa Depan <span class="text-white/90">Kolaborasi</span>
           </h2>
           <p class="font-title-2 text-white max-w-lg leading-[1.7]">
-            Gabung bersama ribuan talenta dan mentor ahli untuk membangun
+            Gabung bersama ribuan talenta terampil untuk membangun
             inovasi digital yang berdampak nyata tanpa hambatan hierarki.
           </p>
         </div>
@@ -91,7 +91,7 @@
               </svg>
             </div>
             <span class="text-white/95 font-title-3 tracking-wide"
-              >Dapatkan mentor & tim solid</span
+              >Bangun tim kolaboratif & solid</span
             >
           </div>
           <div

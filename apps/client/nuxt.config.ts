@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-10-01',
   // The application shell and authenticated product areas are client-rendered
   // by default. Public routes opt back into SSR below.
   ssr: false,
@@ -56,6 +56,8 @@ export default defineNuxtConfig({
   routeRules: {
     // Public acquisition and discovery surfaces.
     '/': { ssr: true, prerender: true },
+    '/privacy-policy': { ssr: true, prerender: true },
+    '/terms-of-service': { ssr: true, prerender: true },
     '/projects': { ssr: true, swr: 300 },
     '/projects/*': { ssr: true },
     '/profile/*': { ssr: true },
@@ -79,7 +81,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'The ultimate platform connecting mentors, talents, and companies to collaborate on amazing projects.'
+            'The ultimate platform connecting talents and project initiators to collaborate on amazing projects.'
         }
       ]
     }

@@ -53,9 +53,53 @@
 
             <div class="relative z-10">
               <div
-                class="w-14 h-14 rounded-2xl bg-white border border-neutral-100 flex items-center justify-center text-3xl shadow-sm mb-8 group-hover:scale-110 group-hover:-rotate-3 group-hover:bg-primary-500 group-hover:border-primary-500 group-hover:text-white transition-all duration-500"
+                class="w-14 h-14 rounded-2xl bg-white border border-neutral-100 flex items-center justify-center text-secondary-500 shadow-sm mb-8 group-hover:scale-110 group-hover:-rotate-3 group-hover:bg-primary-500 group-hover:border-primary-500 group-hover:text-white transition-all duration-500"
               >
-                <span class="transition-all duration-500">{{ step.icon }}</span>
+                <svg
+                  v-if="step.iconType === 'profile'"
+                  class="w-7 h-7 text-primary-500 group-hover:text-white transition-colors duration-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                <svg
+                  v-else-if="step.iconType === 'match'"
+                  class="w-7 h-7 text-primary-500 group-hover:text-white transition-colors duration-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <circle cx="12" cy="12" r="5" />
+                  <circle cx="12" cy="12" r="1.5" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 3v2m0 14v2m9-9h-2M5 12H3"
+                  />
+                </svg>
+                <svg
+                  v-else-if="step.iconType === 'launch'"
+                  class="w-7 h-7 text-primary-500 group-hover:text-white transition-colors duration-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                  />
+                </svg>
               </div>
 
               <h3
@@ -82,19 +126,19 @@ const { revealItems } = useScrollReveal()
 
 const steps = [
   {
-    icon: '📝',
+    iconType: 'profile',
     title: 'Buat Profil atau Posting Proyek',
     desc: 'Daftar dalam hitungan menit. Inisiator posting proyek dengan detail role dan kebutuhan. Kontributor isi portofolio dan skill.'
   },
   {
-    icon: '🎯',
+    iconType: 'match',
     title: 'Temukan Match yang Tepat',
     desc: 'Sistem kami mencarikan kandidat atau proyek yang sesuai. Kamu tinggal pilih dan konfirmasi.'
   },
   {
-    icon: '🚀',
+    iconType: 'launch',
     title: 'Mulai Berkolaborasi',
-    desc: 'Proyek berjalan, progress terpantau, dan hasilnya nyata dengan bimbingan mentor yang relevan.'
+    desc: 'Proyek berjalan terarah, milestone terpantau transparan, dan hasil nyata siap menjadi portofolio unggulan.'
   }
 ]
 </script>

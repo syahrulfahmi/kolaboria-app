@@ -6,6 +6,7 @@
     <LandingHowItWorks />
     <LandingPersona />
     <LandingFeatures />
+    <LandingPricing />
     <LandingFaq />
     <LandingCta />
     <LandingFooter />
@@ -19,7 +20,7 @@ useHead({
     {
       name: 'description',
       content:
-        'Platform kolaborasi Indonesia yang menghubungkan inisiator proyek dengan talenta dan mentor terbaik.'
+        'Platform kolaborasi Indonesia yang menghubungkan inisiator proyek dengan talenta terbaik untuk mewujudkan ide menjadi kenyataan.'
     }
   ]
 })

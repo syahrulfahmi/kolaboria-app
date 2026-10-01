@@ -16,7 +16,7 @@
           </div>
           <p class="text-gray-400 text-sm leading-relaxed max-w-sm">
             Ecosystem Marketplace untuk Skill Validation & Career Readiness.
-            Menghubungkan ide brilian dengan eksekutor dan mentor terbaik.
+            Menghubungkan ide brilian dengan talenta eksekutor terbaik untuk mewujudkan karya nyata.
           </p>
         </div>
 
@@ -36,13 +36,6 @@
                 to="/register"
                 class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
                 >Talenta / Kontributor</NuxtLink
-              >
-            </li>
-            <li>
-              <NuxtLink
-                to="/register"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Mentor Profesional</NuxtLink
               >
             </li>
           </ul>
@@ -67,13 +60,6 @@
               >
             </li>
             <li>
-              <NuxtLink
-                to="/mentors"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Temukan Mentor</NuxtLink
-              >
-            </li>
-            <li>
               <a
                 href="#how"
                 class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
@@ -84,16 +70,9 @@
         </div> -->
 
         <!-- Kolaboria -->
-        <!-- <div class="col-span-1">
-          <h4 class="text-white text-body mb-4">Kolaboria</h4>
+        <div class="col-span-1">
+          <h4 class="text-white text-body mb-4">Informasi</h4>
           <ul class="space-y-2.5">
-            <li>
-              <NuxtLink
-                to="/about-us"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Tentang Kami</NuxtLink
-              >
-            </li>
             <li>
               <NuxtLink
                 to="/privacy-policy"
@@ -103,13 +82,13 @@
             </li>
             <li>
               <NuxtLink
-                to="/terms-conditions"
+                to="/terms-of-service"
                 class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
                 >Syarat & Ketentuan</NuxtLink
               >
             </li>
           </ul>
-        </div> -->
+        </div>
       </div>
 
       <!-- Bottom Bar -->

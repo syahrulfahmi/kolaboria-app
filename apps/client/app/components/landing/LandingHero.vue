@@ -153,7 +153,7 @@
             class="reveal mt-5 text-white/65 font-paragraph-base max-w-[500px]"
             style="--delay: 200ms"
           >
-            Kolaboria menghubungkan inisiator proyek dengan talenta dan mentor
+            Kolaboria menghubungkan inisiator proyek dengan talenta digital
             terbaik. Bukan sekadar jaringan, ini adalah kolaborasi yang
             bergerak.
           </p>
@@ -228,7 +228,7 @@
               class="reveal-scale flex items-center gap-2 bg-success-500 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 800ms"
             >
-              <span class="text-white text-xs text-body">Mentor Bergabung</span>
+              <span class="text-white text-xs text-body">Kolaborator Bergabung</span>
             </div>
           </div>
 
@@ -416,8 +416,8 @@ import { useScrollReveal } from '~/composables/useScrollReveal'
 const { revealItems } = useScrollReveal()
 
 const heroStats = [
-  { value: '500', label: 'Mentor Aktif' },
-  { value: '2k', label: 'Talenta' },
-  { value: '150', label: 'Proyek Aktif' }
+  { value: '2k', label: 'Talenta Terdaftar' },
+  { value: '150', label: 'Proyek Aktif' },
+  { value: '500', label: 'Kolaborasi Terjalin' }
 ]
 </script>
