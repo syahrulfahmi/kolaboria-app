@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import { ref, reactive, computed, watch } from 'vue'
 import type { ApplicantAvailability, ProjectRole } from '../../types/project'
 import type { UserSkill, UserTool } from '../../types/profile'
@@ -135,8 +136,8 @@ const submitApplication = async () => {
     })
     emit('applied')
     emit('close')
-  } catch (e: any) {
-    submitError.value = e?.message || 'Gagal mengirim lamaran.'
+  } catch (e: unknown) {
+    submitError.value = getApiErrorMessage(e, 'Gagal mengirim lamaran.')
   } finally {
     isSubmitting.value = false
   }

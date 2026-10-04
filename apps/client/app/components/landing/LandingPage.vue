@@ -51,13 +51,18 @@ html {
   }
 }
 
+.k-root {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
 .k-rule {
   height: 1px;
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: var(--color-neutral-200);
 }
 .k-rule-light {
   height: 1px;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: color-mix(in srgb, var(--color-primary-100) 20%, transparent);
 }
 
 .k-dot-texture {
@@ -92,7 +97,7 @@ html {
   height: 60%;
   background: radial-gradient(
     ellipse at center,
-    rgba(28, 46, 74, 0.5) 0%,
+    color-mix(in srgb, var(--color-secondary-500) 50%, transparent) 0%,
     transparent 70%
   );
   animation: k-aurora-drift 16s ease-in-out infinite alternate-reverse;
@@ -163,12 +168,15 @@ html {
 }
 
 .k-eyebrow {
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: var(--font-label-3-size);
+  font-weight: var(--font-label-3-weight);
+  line-height: var(--font-label-3-line-height);
   letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .k-section-title {
+  font-family: var(--font-sans);
   font-size: 2rem;
   font-weight: 900;
   line-height: 1.15;
@@ -181,6 +189,7 @@ html {
 }
 
 .k-headline {
+  font-family: var(--font-sans);
   font-size: 3rem;
   font-weight: 900;
   line-height: 1.05;
@@ -207,38 +216,36 @@ html {
   transform: scale(1.1);
 }
 
-/* .k-tilt-card {
-  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.k-tilt-card:hover {
-  transform: translateY(-8px) scale(1.02);
-} */
-
 .k-slot-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: var(--font-label-3-size);
+  font-weight: var(--font-label-3-weight);
+  line-height: var(--font-label-3-line-height);
+  letter-spacing: var(--font-label-3-letter-spacing);
   border-width: 1px;
 }
 
 .k-project-tag {
   display: inline-block;
   padding: 0.25rem 0.625rem;
-  background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
+  background-color: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200);
   border-radius: 0.375rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #64748b;
+  font-family: var(--font-sans);
+  font-size: var(--font-label-3-size);
+  font-weight: var(--font-label-2-weight);
+  line-height: var(--font-label-3-line-height);
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 .group:hover .k-project-tag {
   background-color: white;
-  border-color: #e2e8f0;
+  border-color: var(--color-neutral-300);
 }
 
 .k-progress-bar {
@@ -255,12 +262,15 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: var(--font-label-2-size);
+  font-weight: var(--font-body-1-weight);
+  line-height: var(--font-label-2-line-height);
+  color: var(--text-primary);
   background-color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-neutral-200);
 }
 
 .animate-float {

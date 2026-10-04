@@ -26,7 +26,7 @@
           :style="`--delay: ${200 + i * 100}ms`"
         >
           <div
-            class="group h-full bg-white rounded-2xl p-6 border border-black/[.07] hover:border-primary-400/40 shadow-sm hover:shadow-xl hover:shadow-black/[.06] transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] hover:-translate-y-1 cursor-default"
+            class="group h-full bg-white rounded-2xl p-6 border border-neutral-200 hover:border-primary-400/40 shadow-sm hover:shadow-xl hover:shadow-black/[.06] transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] hover:-translate-y-1 cursor-default"
           >
             <div
               :class="[
@@ -125,10 +125,10 @@
             </div>
 
             <div class="k-rule mb-4"></div>
-            <h3 class="text-secondary-500 font-bold text-sm mb-1.5">
+            <h3 class="text-secondary-900 font-label-1 mb-1.5">
               {{ feat.title }}
             </h3>
-            <p class="text-secondary-400/65 text-[0.8rem] leading-relaxed">
+            <p class="text-secondary-600 font-body-2 leading-relaxed">
               {{ feat.desc }}
             </p>
           </div>
@@ -158,7 +158,7 @@ const features = [
   },
   {
     iconType: 'verified',
-    iconBg: 'bg-emerald-50 border border-emerald-100 text-emerald-600',
+    iconBg: 'bg-success-50 border border-success-100 text-success-700',
     title: 'Profil Terverifikasi',
     desc: 'Setiap anggota melewati proses verifikasi dasar sehingga kamu tahu kamu berkolaborasi dengan talenta terpercaya.'
   },
@@ -170,7 +170,7 @@ const features = [
   },
   {
     iconType: 'milestone',
-    iconBg: 'bg-amber-50 border border-amber-100 text-amber-600',
+    iconBg: 'bg-accent-50 border border-accent-100 text-accent-700',
     title: 'Milestone & Workspace',
     desc: 'Bagi proyek ke dalam sprint dan target terukur. Pastikan deliverables selesai tepat waktu dengan koordinasi transparan.'
   },

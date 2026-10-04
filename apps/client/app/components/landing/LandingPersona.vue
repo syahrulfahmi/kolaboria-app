@@ -17,7 +17,7 @@
         </h2>
         <p
           :ref="(el) => revealItems(el, 2)"
-          class="reveal text-secondary-400/70 text-sm leading-relaxed mt-4"
+          class="reveal text-secondary-600 font-paragraph-3 mt-4"
           style="--delay: 200ms"
         >
           Dua jalur berbeda, satu tujuan: kolaborasi yang menghasilkan dampak nyata.
@@ -70,15 +70,15 @@
             </div>
 
             <span
-              class="inline-block px-3 py-1 bg-accent-400/15 text-accent-300 text-xs font-bold rounded-full uppercase tracking-wider mb-4"
+              class="inline-block px-3 py-1 bg-accent-400/15 text-accent-300 font-label-3 rounded-full uppercase tracking-wider mb-4"
               >Inisiator Proyek</span
             >
 
-            <h3 class="text-2xl md:text-3xl font-black text-white mb-3 tracking-tight">
+            <h3 class="font-title-1 text-white mb-3 tracking-tight">
               Punya Ide? Wujudkan Bersama Tim.
             </h3>
 
-            <p class="text-white/60 text-sm md:text-base leading-relaxed mb-8">
+            <p class="text-white/75 font-paragraph-3 md:font-paragraph-2 mb-8">
               Post proyekmu, definisikan kebutuhan role secara spesifik, dan temukan
               kontributor bertalenta yang siap mengeksekusi ide brilianmu menjadi produk nyata.
             </p>
@@ -106,7 +106,7 @@
                     />
                   </svg>
                 </span>
-                <span class="text-white/80 text-sm leading-normal">{{ p }}</span>
+                <span class="text-white/90 font-body-2">{{ p }}</span>
               </li>
             </ul>
           </div>
@@ -124,7 +124,7 @@
         <!-- Card 2: Kontributor / Talenta -->
         <div
           :ref="(el) => revealItems(el, 4)"
-          class="reveal-right relative bg-white border border-black/[.08] rounded-3xl p-8 md:p-10 overflow-hidden group hover:border-primary-400/60 shadow-lg shadow-black/[0.03] hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] flex flex-col justify-between"
+          class="reveal-right relative bg-white border border-neutral-200 rounded-3xl p-8 md:p-10 overflow-hidden group hover:border-primary-400/60 shadow-lg shadow-black/[0.03] hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] flex flex-col justify-between"
           style="--delay: 400ms"
         >
           <div
@@ -132,8 +132,8 @@
             style="
               background: repeating-linear-gradient(
                 45deg,
-                #1c2e4a 0px,
-                #1c2e4a 1px,
+                var(--color-secondary-500) 0px,
+                var(--color-secondary-500) 1px,
                 transparent 1px,
                 transparent 12px
               );
@@ -161,15 +161,15 @@
             </div>
 
             <span
-              class="inline-block px-3 py-1 bg-primary-50 text-primary-600 border border-primary-100 text-xs font-bold rounded-full uppercase tracking-wider mb-4"
+              class="inline-block px-3 py-1 bg-primary-50 text-primary-600 border border-primary-100 font-label-3 rounded-full uppercase tracking-wider mb-4"
               >Kontributor / Talenta</span
             >
 
-            <h3 class="text-2xl md:text-3xl font-black text-secondary-500 mb-3 tracking-tight">
+            <h3 class="font-title-1 text-secondary-900 mb-3 tracking-tight">
               Punya Skill? Kerjakan Proyek Nyata.
             </h3>
 
-            <p class="text-secondary-400/75 text-sm md:text-base leading-relaxed mb-8">
+            <p class="text-secondary-600 font-paragraph-3 md:font-paragraph-2 mb-8">
               Bangun portofolio yang terverifikasi dan diakui. Kontribusi ke proyek sungguhan,
               kembangkan kompetensi kerja nyata, dan terhubung langsung dengan inisiator proyek.
             </p>
@@ -197,7 +197,7 @@
                     />
                   </svg>
                 </span>
-                <span class="text-secondary-500 text-sm leading-normal">{{ p }}</span>
+                <span class="text-secondary-700 font-body-2">{{ p }}</span>
               </li>
             </ul>
           </div>

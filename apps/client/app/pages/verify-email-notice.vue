@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { getApiErrorMessage, UserFacingError } from '../utils/error'
 
 definePageMeta({
   layout: 'auth'
@@ -30,8 +31,8 @@ const handleResend = async () => {
 
   try {
     const res = await resendVerification(email.value)
-    if (res?.data?.verificationResendAvailableAt) {
-      setAvailableAt(res.data.verificationResendAvailableAt)
+    if (res?.data?.verification_resend_available_at) {
+      setAvailableAt(res.data.verification_resend_available_at)
     }
 
     addToast({
@@ -40,16 +41,15 @@ const handleResend = async () => {
       message: 'Link verifikasi baru telah dikirim ke email kamu.',
       duration: 6000
     })
-  } catch (err: any) {
-    const errorData = err?.data?.errors
-    if (errorData?.verificationResendAvailableAt) {
-      setAvailableAt(errorData.verificationResendAvailableAt)
+  } catch (err: unknown) {
+    if (err instanceof UserFacingError && err.verificationResendAvailableAt) {
+      setAvailableAt(err.verificationResendAvailableAt)
     }
 
-    const msg =
-      err?.data?.message ||
-      err?.message ||
+    const msg = getApiErrorMessage(
+      err,
       'Gagal mengirim ulang email verifikasi. Silakan coba lagi.'
+    )
     addToast({
       variant: 'danger',
       title: 'Gagal Mengirim',

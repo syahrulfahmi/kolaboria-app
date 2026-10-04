@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../../utils/error'
 import { ref, computed, reactive } from 'vue'
 import type { Profile, TalentProfile } from '~/types/profile'
 import { LocationService } from '~/services/location.service'
@@ -84,11 +85,11 @@ const handleSave = async () => {
     })
 
     await router.replace('/profile/me')
-  } catch (err: any) {
+  } catch (err: unknown) {
     addToast({
       variant: 'danger',
       title: 'Gagal menyimpan',
-      message: err.message || 'Terjadi kesalahan saat menyimpan perubahan.'
+      message: getApiErrorMessage(err, 'Terjadi kesalahan saat menyimpan perubahan.')
     })
   } finally {
     isSaving.value = false

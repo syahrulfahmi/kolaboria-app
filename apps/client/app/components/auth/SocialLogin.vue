@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import { ref } from 'vue'
 
 const { loginWithGoogle } = useAuth()
@@ -10,8 +11,8 @@ const handleGoogleLogin = async () => {
   errorMessage.value = ''
   try {
     loginWithGoogle()
-  } catch (err: any) {
-    errorMessage.value = err?.message || 'Gagal masuk dengan Google.'
+  } catch (err: unknown) {
+    errorMessage.value = getApiErrorMessage(err, 'Gagal masuk dengan Google.')
   } finally {
     isLoading.value = false
   }

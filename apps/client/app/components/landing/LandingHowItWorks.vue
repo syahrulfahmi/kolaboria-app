@@ -22,7 +22,7 @@
         </h2>
         <p
           :ref="(el) => revealItems(el, 2)"
-          class="reveal text-secondary-400/80 mt-4 font-paragraph-base"
+          class="reveal text-secondary-600 mt-4 font-paragraph-2"
           style="--delay: 200ms"
         >
           Sistem cerdas Kolaboria mempertemukan ide brilianmu dengan eksekutor
@@ -39,10 +39,10 @@
           :style="`--delay: ${300 + i * 120}ms`"
         >
           <div
-            class="group relative h-full bg-white p-8 rounded-3xl border border-black/[0.04] shadow-sm hover:border-primary-200 hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden"
+            class="group relative h-full bg-white p-8 rounded-3xl border border-neutral-200 shadow-sm hover:border-primary-200 hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden"
           >
             <span
-              class="absolute -bottom-8 -right-4 text-[10rem] font-black text-neutral-100/60 group-hover:text-primary-50 transition-colors duration-500 pointer-events-none select-none leading-none"
+              class="absolute -bottom-8 -right-4 text-[10rem] font-black text-neutral-200/50 group-hover:text-primary-50 transition-colors duration-500 pointer-events-none select-none leading-none"
             >
               {{ i + 1 }}
             </span>
@@ -53,7 +53,7 @@
 
             <div class="relative z-10">
               <div
-                class="w-14 h-14 rounded-2xl bg-white border border-neutral-100 flex items-center justify-center text-secondary-500 shadow-sm mb-8 group-hover:scale-110 group-hover:-rotate-3 group-hover:bg-primary-500 group-hover:border-primary-500 group-hover:text-white transition-all duration-500"
+                class="w-14 h-14 rounded-2xl bg-white border border-neutral-200 flex items-center justify-center text-secondary-500 shadow-sm mb-8 group-hover:scale-110 group-hover:-rotate-3 group-hover:bg-primary-500 group-hover:border-primary-500 group-hover:text-white transition-all duration-500"
               >
                 <svg
                   v-if="step.iconType === 'profile'"
@@ -103,12 +103,12 @@
               </div>
 
               <h3
-                class="text-xl font-bold text-secondary-500 mb-3 group-hover:text-primary-600 transition-colors duration-300"
+                class="font-title-2 text-secondary-900 mb-3 group-hover:text-primary-600 transition-colors duration-300"
               >
                 {{ step.title }}
               </h3>
 
-              <p class="text-secondary-400/80 font-paragraph-sm">
+              <p class="text-secondary-600 font-paragraph-3">
                 {{ step.desc }}
               </p>
             </div>

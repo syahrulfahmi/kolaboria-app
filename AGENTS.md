@@ -1,3 +1,7 @@
+## Konteks sebelum implementasi fitur Kolaboria
+
+Sebelum implementasi, perubahan perilaku, atau review implementasi, baca [skill kolaboria-feature-context](../.agents/skills/kolaboria-feature-context/SKILL.md), lalu [Implementation Quick Reference](../kolaboria-knowledge/04-development/implementation-quick-reference.md). Ikuti rujukan sesuai task dan ringkas kesepakatan fitur, scope, acceptance, serta verifikasinya sebelum edit kode. Jika otorisasi implementasi sudah tersedia, lanjutkan tanpa meminta approval yang sama kembali. Pengarah ini berlaku juga ketika chat dimulai langsung dari akar repo ini; skill dapat dibaca melalui path meskipun tidak muncul di selector repo anak.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

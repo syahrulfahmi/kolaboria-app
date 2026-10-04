@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../../utils/error'
 import type { Project } from '../../../../types/project'
 import type {
   CreateWorkspaceTaskPayload,
@@ -95,7 +96,7 @@ const handleCreateDeliverable = async (payload: DeliverablePayload) => {
     await workspace.fetchActivities()
     toast.success('Deliverable berhasil ditambahkan.')
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal menambahkan deliverable.')
+    toast.error(getApiErrorMessage(err, 'Gagal menambahkan deliverable.'))
   }
 }
 
@@ -105,7 +106,7 @@ const handleUpdateDeliverable = async (id: string, payload: UpdateDeliverablePay
     await workspace.fetchActivities()
     toast.success('Deliverable berhasil diperbarui.')
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui deliverable.')
+    toast.error(getApiErrorMessage(err, 'Gagal memperbarui deliverable.'))
   }
 }
 
@@ -116,7 +117,7 @@ const handleDeleteDeliverable = async (id: string) => {
     await workspace.fetchActivities()
     toast.success('Deliverable dihapus.')
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal menghapus deliverable.')
+    toast.error(getApiErrorMessage(err, 'Gagal menghapus deliverable.'))
   }
 }
 
@@ -124,7 +125,7 @@ const handleRefreshFinalization = async () => {
   try {
     await refreshFinalization()
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal memuat status finalisasi.')
+    toast.error(getApiErrorMessage(err, 'Gagal memuat status finalisasi.'))
   }
 }
 
@@ -274,7 +275,7 @@ const retryWorkspace = async () => {
   try {
     await workspace.refreshWorkspace(project.value.creator_id)
   } catch (retryError) {
-    toast.error(retryError instanceof Error ? retryError.message : 'Gagal memuat workspace.')
+    toast.error(getApiErrorMessage(retryError, 'Gagal memuat workspace.'))
   }
 }
 
@@ -285,7 +286,7 @@ const handleLeaveProject = async () => {
     toast.success('Kamu sudah keluar dari project.')
     await router.replace(`/projects/${slug.value}`)
   } catch (error) {
-    toast.error(error instanceof Error ? error.message : 'Gagal keluar dari project.')
+    toast.error(getApiErrorMessage(error, 'Gagal keluar dari project.'))
   }
 }
 
@@ -296,7 +297,7 @@ const handleRemoveMember = async (memberId: string) => {
     await workspace.refreshWorkspace(project.value?.creator_id || '')
     toast.success('Anggota berhasil dikeluarkan.')
   } catch (error) {
-    toast.error(error instanceof Error ? error.message : 'Gagal memperbarui anggota.')
+    toast.error(getApiErrorMessage(error, 'Gagal memperbarui anggota.'))
   }
 }
 
@@ -307,7 +308,7 @@ const handleChangeMemberRole = async (memberId: string, roleId: string) => {
     await workspace.refreshWorkspace(project.value?.creator_id || '')
     toast.success('Role anggota berhasil diperbarui.')
   } catch (error) {
-    toast.error(error instanceof Error ? error.message : 'Gagal mengubah role anggota.')
+    toast.error(getApiErrorMessage(error, 'Gagal mengubah role anggota.'))
   }
 }
 
@@ -340,7 +341,7 @@ watch(
       await workspace.refreshWorkspace(currentProject.creator_id)
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Gagal memuat workspace.'
+        getApiErrorMessage(error, 'Gagal memuat workspace.')
       toast.error(message)
     }
   },

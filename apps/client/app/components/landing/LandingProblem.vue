@@ -21,7 +21,7 @@
           </h2>
           <p
             :ref="(el) => revealItems(el, 2)"
-            class="reveal-left text-secondary-400/80 font-paragraph-sm mb-8"
+            class="reveal-left text-secondary-600 font-paragraph-3 mb-8"
             style="--delay: 200ms"
           >
             Banyak ide brilian gagal bukan karena kekurangan talenta tapi karena
@@ -35,11 +35,11 @@
               v-for="(p, i) in problems"
               :key="p.title"
               :ref="(el) => revealItems(el, 3 + i)"
-              class="reveal-left flex gap-4 pb-4 border-b border-black/[.06] last:border-0 last:pb-0"
+              class="reveal-left flex gap-4 pb-4 border-b border-neutral-200 last:border-0 last:pb-0"
               :style="`--delay: ${300 + i * 100}ms`"
             >
               <span
-                class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-red-50 border border-red-100 text-red-500 shadow-xs"
+                class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-danger-50 border border-danger-100 text-danger-500 shadow-xs"
               >
                 <svg
                   v-if="p.iconType === 'search'"
@@ -85,10 +85,10 @@
                 </svg>
               </span>
               <div>
-                <p class="text-secondary-500 text-body text-sm">
+                <p class="text-secondary-900 font-label-1">
                   {{ p.title }}
                 </p>
-                <p class="text-secondary-400/70 font-body-sm mt-0.5">
+                <p class="text-secondary-600 font-body-2 mt-0.5">
                   {{ p.desc }}
                 </p>
               </div>
@@ -99,7 +99,7 @@
         <div class="lg:pt-12">
           <div
             :ref="(el) => revealItems(el, 10)"
-            class="reveal-right bg-primary-500/5 border border-primary-500/15 rounded-2xl p-7"
+            class="reveal-right bg-primary-50/50 border border-primary-100 rounded-2xl p-7"
             style="--delay: 400ms"
           >
             <p class="k-eyebrow text-primary-500 mb-4">Kolaboria Menjawab</p>
@@ -127,10 +127,10 @@
                   </svg>
                 </span>
                 <div>
-                  <p class="text-secondary-500 text-body text-sm">
+                  <p class="text-secondary-900 font-label-1">
                     {{ s.title }}
                   </p>
-                  <p class="text-secondary-400/70 font-body-sm mt-0.5">
+                  <p class="text-secondary-600 font-body-2 mt-0.5">
                     {{ s.desc }}
                   </p>
                 </div>

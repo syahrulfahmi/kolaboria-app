@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import type { Project } from '../../types/project'
 import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
@@ -83,7 +84,7 @@ const handleStartProject = () => {
         await navigateTo(`/projects/${props.project.slug}/workspace`)
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Gagal memulai project.'
+          getApiErrorMessage(error, 'Gagal memulai project.')
         toast.error(message)
       } finally {
         starting.value = false

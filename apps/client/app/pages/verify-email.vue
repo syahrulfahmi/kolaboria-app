@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { getApiErrorMessage } from '../utils/error'
 
 definePageMeta({
   layout: 'auth'
@@ -38,7 +39,7 @@ onMounted(async () => {
     router.replace({ path: '/login', query: { verified: '1' } })
   } catch (err: unknown) {
     status.value = 'error'
-    message.value = 'Link verifikasi tidak valid, sudah digunakan, atau sudah kedaluwarsa.'
+    message.value = getApiErrorMessage(err)
   }
 })
 </script>

@@ -49,7 +49,7 @@
         cx="55%"
         cy="80%"
         r="2.5"
-        fill="#FFB020"
+        fill="var(--color-accent-400)"
         opacity="0.35"
         style="animation-delay: 2.4s"
       />
@@ -67,7 +67,7 @@
         cx="70%"
         cy="50%"
         r="1.5"
-        fill="#FFB020"
+        fill="var(--color-accent-400)"
         opacity="0.2"
         style="animation-delay: 3.5s"
       />
@@ -127,18 +127,6 @@
         class="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-14 lg:gap-10 items-center"
       >
         <div>
-          <div
-            :ref="(el) => revealItems(el, 0)"
-            class="reveal inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/25 mb-8"
-          >
-            <span
-              class="w-2 h-2 rounded-full bg-accent-400 animate-pulse"
-            ></span>
-            <span class="text-white/90 font-label-sm">
-              Platform Kolaborasi Terbuka di Indonesia
-            </span>
-          </div>
-
           <h1
             :ref="(el) => revealItems(el, 1)"
             class="reveal k-headline text-white"
@@ -150,7 +138,7 @@
 
           <p
             :ref="(el) => revealItems(el, 2)"
-            class="reveal mt-5 text-white/65 font-paragraph-base max-w-[500px]"
+            class="reveal mt-5 text-white/75 font-paragraph-2 max-w-[500px]"
             style="--delay: 200ms"
           >
             Kolaboria menghubungkan inisiator proyek dengan talenta digital
@@ -180,7 +168,7 @@
               <p class="text-2xl font-black text-white tracking-tight">
                 {{ stat.value }}<span class="text-accent-400">+</span>
               </p>
-              <p class="text-white/50 text-xs mt-0.5 font-medium">
+              <p class="text-white/70 font-body-3 mt-0.5">
                 {{ stat.label }}
               </p>
             </div>
@@ -197,10 +185,10 @@
           >
             <div
               :ref="(el) => revealItems(el, 6)"
-              class="reveal-scale flex items-center gap-2 bg-accent-400 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
+              class="reveal-scale flex items-center gap-2 bg-accent-400 backdrop-blur-md border border-neutral-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 600ms"
             >
-              <span class="text-secondary-800 text-xs text-body"
+              <span class="text-secondary-800 font-label-3"
                 >Proyek Diterbitkan</span
               >
             </div>
@@ -212,10 +200,10 @@
           >
             <div
               :ref="(el) => revealItems(el, 7)"
-              class="reveal-scale flex items-center gap-2 bg-secondary-500 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
+              class="reveal-scale flex items-center gap-2 bg-secondary-500 backdrop-blur-md border border-neutral-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 700ms"
             >
-              <span class="text-white text-xs text-body">Slot FE Terisi</span>
+              <span class="text-white font-label-3">Slot FE Terisi</span>
             </div>
           </div>
 
@@ -225,10 +213,12 @@
           >
             <div
               :ref="(el) => revealItems(el, 8)"
-              class="reveal-scale flex items-center gap-2 bg-success-500 backdrop-blur-md border border-gray-100 py-1.5 px-4 rounded-full shadow-lg"
+              class="reveal-scale flex items-center gap-2 bg-success-500 backdrop-blur-md border border-neutral-100 py-1.5 px-4 rounded-full shadow-lg"
               style="--delay: 800ms"
             >
-              <span class="text-white text-xs text-body">Kolaborator Bergabung</span>
+              <span class="text-white font-label-3"
+                >Kolaborator Bergabung</span
+              >
             </div>
           </div>
 
@@ -239,28 +229,28 @@
             style="--delay: 500ms"
           >
             <div
-              class="relative z-10 w-[380px] bg-white rounded-2xl p-6 shadow-2xl shadow-primary-900/40 ring-1 ring-gray-200/50 -translate-y-2 k-tilt-card"
+              class="relative z-10 w-[380px] bg-white rounded-2xl p-6 shadow-2xl shadow-primary-900/40 ring-1 ring-neutral-200 -translate-y-2 k-tilt-card"
             >
               <!-- Header -->
               <div class="flex justify-between items-start mb-6">
                 <div>
                   <h3
-                    class="text-gray-900 font-bold text-lg leading-tight mb-1"
+                    class="text-secondary-900 font-bold text-lg leading-tight mb-1"
                   >
                     Kolaboria Mobile App
                   </h3>
-                  <p class="text-gray-500 text-xs">Oleh Ahmad Fazri</p>
+                  <p class="text-secondary font-body-3">Oleh Ahmad Fazri</p>
                 </div>
                 <div
-                  class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-md"
+                  class="flex items-center gap-1.5 bg-success-50 border border-success-100 px-2 py-1 rounded-md"
                 >
                   <div class="relative flex h-2 w-2">
                     <span
-                      class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
+                      class="relative inline-flex rounded-full h-2 w-2 bg-success-500"
                     ></span>
                   </div>
                   <span
-                    class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider"
+                    class="text-success-700 font-label-3 uppercase tracking-wider"
                     >Aktif</span
                   >
                 </div>
@@ -269,46 +259,46 @@
               <!-- Roles -->
               <div class="flex gap-2 mb-6">
                 <div
-                  class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
+                  class="flex items-center gap-1.5 bg-neutral-50 px-2.5 py-1.5 rounded-lg border border-neutral-200"
                 >
-                  <span class="text-gray-700 text-xs font-medium">UI/UX</span>
-                  <span class="text-gray-400 text-xs">1/1</span>
+                  <span class="text-secondary-700 font-body-3 font-medium">UI/UX</span>
+                  <span class="text-neutral-400 font-body-3">1/1</span>
                 </div>
                 <div
                   class="flex items-center gap-1.5 bg-primary-50 px-2.5 py-1.5 rounded-lg border border-primary-200"
                 >
-                  <span class="text-primary-600 text-xs font-medium"
+                  <span class="text-primary-600 font-body-3 font-medium"
                     >Frontend</span
                   >
-                  <span class="text-primary-400 text-xs">0/2</span>
+                  <span class="text-primary-400 font-body-3">0/2</span>
                 </div>
                 <div
-                  class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
+                  class="flex items-center gap-1.5 bg-neutral-50 px-2.5 py-1.5 rounded-lg border border-neutral-200"
                 >
-                  <span class="text-gray-700 text-xs font-medium">Backend</span>
-                  <span class="text-gray-400 text-xs">1/1</span>
+                  <span class="text-secondary-700 font-body-3 font-medium">Backend</span>
+                  <span class="text-neutral-400 font-body-3">1/1</span>
                 </div>
               </div>
 
               <!-- Progress -->
               <div class="mb-6">
-                <div class="flex justify-between text-xs mb-2">
-                  <span class="text-gray-500">Progress</span>
-                  <span class="text-gray-900 font-medium">65%</span>
+                <div class="flex justify-between font-body-3 mb-2">
+                  <span class="text-secondary">Progress</span>
+                  <span class="text-secondary-900 font-medium">65%</span>
                 </div>
                 <div
-                  class="h-2 w-full bg-gray-100 rounded-full overflow-hidden"
+                  class="h-2 w-full bg-neutral-100 rounded-full overflow-hidden"
                 >
                   <div class="h-full bg-primary-400 rounded-full w-[65%]"></div>
                 </div>
               </div>
 
-              <div class="h-px w-full bg-gray-100 mb-6"></div>
+              <div class="h-px w-full bg-neutral-200 mb-6"></div>
 
               <!-- Activity Feed -->
               <div class="space-y-4">
                 <p
-                  class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2"
+                  class="text-neutral-400 font-label-3 uppercase tracking-wider mb-2"
                 >
                   Aktivitas Terkini
                 </p>
@@ -319,12 +309,12 @@
                     class="w-6 h-6 rounded-full"
                   />
                   <div class="flex-1 min-w-0">
-                    <p class="text-gray-700 text-xs truncate">
-                      <span class="text-body text-gray-900">Ahmad</span>
+                    <p class="text-secondary-700 font-body-3 truncate">
+                      <span class="font-semibold text-secondary-900">Ahmad</span>
                       melakukan commit: setup auth
                     </p>
                   </div>
-                  <span class="text-gray-400 text-[10px]">2m</span>
+                  <span class="text-neutral-400 font-body-3">2m</span>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -333,27 +323,27 @@
                     class="w-6 h-6 rounded-full"
                   />
                   <div class="flex-1 min-w-0">
-                    <p class="text-gray-700 text-xs truncate">
-                      <span class="text-body text-gray-900">Sinta</span>
+                    <p class="text-secondary-700 font-body-3 truncate">
+                      <span class="font-semibold text-secondary-900">Sinta</span>
                       mengunggah desain Figma
                     </p>
                   </div>
-                  <span class="text-gray-400 text-[10px]">15m</span>
+                  <span class="text-neutral-400 font-body-3">15m</span>
                 </div>
 
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-6 h-6 rounded-full bg-secondary-500 flex items-center justify-center text-[10px] text-white"
+                    class="w-6 h-6 rounded-full bg-secondary-500 flex items-center justify-center font-label-3 text-white"
                   >
                     D
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-gray-700 text-xs truncate">
-                      <span class="text-body text-gray-900">Deri</span>
+                    <p class="text-secondary-700 font-body-3 truncate">
+                      <span class="font-semibold text-secondary-900">Deri</span>
                       bergabung sebagai Backend
                     </p>
                   </div>
-                  <span class="text-gray-400 text-[10px]">1h</span>
+                  <span class="text-neutral-400 font-body-3">1h</span>
                 </div>
               </div>
             </div>

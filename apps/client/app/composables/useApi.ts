@@ -1,6 +1,9 @@
 import { defu } from 'defu'
 import type { UseFetchOptions } from 'nuxt/app'
 import type { ApiResponse } from '../types/api'
+import type { RefreshAuthResponsePayload } from '../types/auth'
+import { API_ENDPOINTS } from '../constants/api-endpoints'
+import { assertApiResponse, getApiErrorStatus, toUserFacingError } from '../utils/error'
 
 // Composable untuk declarative data fetching (SSR-safe, auto-reactive)
 export const useApiFetch = <T = unknown>(
@@ -14,17 +17,24 @@ export const useApiFetch = <T = unknown>(
     baseURL: config.public.apiBaseUrl,
     key: typeof url === 'function' ? url() : url,
     onRequest({ options }) {
-      options.headers = options.headers || {}
+      const headers = new Headers(options.headers)
       if (accessToken.value) {
-        // @ts-ignore
-        options.headers['Authorization'] = `Bearer ${accessToken.value}`
+        headers.set('Authorization', `Bearer ${accessToken.value}`)
       }
+      options.headers = headers
+    },
+    onResponse({ response }) {
+      if (response.ok) assertApiResponse(response._data)
+    },
+    onRequestError({ error }) {
+      throw toUserFacingError(error)
     },
     async onResponseError({ response }) {
       if (response.status === 401) {
         // Token kedaluwarsa atau tidak valid
         await handleTokenExpiry()
       }
+      throw toUserFacingError({ status: response.status, data: response._data })
     }
   }
 
@@ -43,45 +53,33 @@ export const useApi = () => {
     opts: Parameters<typeof $fetch>[1] = {}
   ): Promise<T> => {
     try {
-      const headers = {
-        ...(opts.headers || {}),
-        ...(accessToken.value
-          ? { Authorization: `Bearer ${accessToken.value}` }
-          : {})
-      }
-      return await $fetch<T>(request, {
+      const headers = new Headers(opts.headers)
+      if (accessToken.value) headers.set('Authorization', `Bearer ${accessToken.value}`)
+      return assertApiResponse(await $fetch<T>(request, {
         baseURL: config.public.apiBaseUrl,
         ...opts,
         headers
-      })
+      }))
     } catch (err: unknown) {
-      if (
-        err &&
-        typeof err === 'object' &&
-        ('statusCode' in err || 'status' in err)
-      ) {
-        // @ts-ignore
-        const status = err.statusCode || err.status
-        if (status === 401) {
-          const success = await refreshAccessToken()
-          if (success) {
-            const retryHeaders = {
-              ...(opts.headers || {}),
-              ...(accessToken.value
-                ? { Authorization: `Bearer ${accessToken.value}` }
-                : {})
-            }
-            return await $fetch<T>(request, {
+      if (getApiErrorStatus(err) === 401) {
+        const success = await refreshAccessToken()
+        if (success) {
+          const retryHeaders = new Headers(opts.headers)
+          if (accessToken.value) retryHeaders.set('Authorization', `Bearer ${accessToken.value}`)
+          try {
+            return assertApiResponse(await $fetch<T>(request, {
               baseURL: config.public.apiBaseUrl,
               ...opts,
               headers: retryHeaders
-            })
-          } else {
-            forceLogout()
+            }))
+          } catch (retryError: unknown) {
+            throw toUserFacingError(retryError)
           }
+        } else {
+          forceLogout()
         }
       }
-      throw err
+      throw toUserFacingError(err)
     }
   }
 
@@ -89,16 +87,17 @@ export const useApi = () => {
   async function refreshAccessToken(): Promise<boolean> {
     if (!refreshToken.value) return false
     try {
-      const response = await $fetch<
-        ApiResponse<{ accessToken: string; refreshToken: string }>
-      >('/auth/refresh', {
+      const response = await $fetch<ApiResponse<RefreshAuthResponsePayload>>(
+        API_ENDPOINTS.AUTH.REFRESH,
+        {
         baseURL: config.public.apiBaseUrl,
         method: 'POST',
         body: { refreshToken: refreshToken.value }
-      })
-      if (response.data) {
-        accessToken.value = response.data.accessToken
-        refreshToken.value = response.data.refreshToken
+        }
+      )
+      if (response.data?.access_token && response.data.refresh_token) {
+        accessToken.value = response.data.access_token
+        refreshToken.value = response.data.refresh_token
         return true
       }
       return false
@@ -124,16 +123,17 @@ async function handleTokenExpiry() {
 
   if (refreshToken.value) {
     try {
-      const response = await $fetch<
-        ApiResponse<{ accessToken: string; refreshToken: string }>
-      >('/auth/refresh', {
+      const response = await $fetch<ApiResponse<RefreshAuthResponsePayload>>(
+        API_ENDPOINTS.AUTH.REFRESH,
+        {
         baseURL: config.public.apiBaseUrl,
         method: 'POST',
         body: { refreshToken: refreshToken.value }
-      })
-      if (response.data) {
-        accessToken.value = response.data.accessToken
-        refreshToken.value = response.data.refreshToken
+        }
+      )
+      if (response.data?.access_token && response.data.refresh_token) {
+        accessToken.value = response.data.access_token
+        refreshToken.value = response.data.refresh_token
         // Reload page untuk memicu re-fetch dengan token baru
         window.location.reload()
       }

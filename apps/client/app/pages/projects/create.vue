@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import type { CreateProjectPayload } from '~/types/project'
-import { SkillService } from '~/services/skill.service'
+import { MasterService } from '~/services/master.service'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 useHead({ title: 'Buat Project — Kolaboria' })
@@ -32,10 +33,7 @@ const contributionRoles = ref<
 onMounted(async () => {
   profile.value = await getProfile()
   try {
-    const skills = await SkillService.getSkills()
-    contributionRoles.value = skills.filter(
-      (skill) => skill.category !== 'Legacy project skill'
-    )
+    contributionRoles.value = await MasterService.getContributionRoles()
     await loadTools()
   } catch (err) {
     console.error('Failed to load project reference data:', err)
@@ -91,8 +89,8 @@ const saveDraft = async () => {
   try {
     const project = await createProject(form)
     router.push(`/projects/${project.slug}`)
-  } catch (e: any) {
-    submitError.value = e?.message || 'Gagal menyimpan draft.'
+  } catch (e: unknown) {
+    submitError.value = getApiErrorMessage(e, 'Gagal menyimpan draft.')
   } finally {
     isSubmitting.value = false
   }
@@ -117,8 +115,8 @@ const saveAndPublish = async () => {
     const project = await createProject(form)
     await publishProject(project.id)
     router.push(`/projects/${project.slug}`)
-  } catch (e: any) {
-    submitError.value = e?.message || 'Gagal mempublikasikan project.'
+  } catch (e: unknown) {
+    submitError.value = getApiErrorMessage(e, 'Gagal mempublikasikan project.')
   } finally {
     isSubmitting.value = false
   }

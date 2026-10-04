@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { getApiErrorMessage } from '../../utils/error'
+import { setAvailableAt } from '../../composables/useVerificationCooldown'
 
 // ── Zod Schema ──────────────────────────────────────────────────────────────
 const registerSchema = z
@@ -72,9 +73,8 @@ const handleRegister = async () => {
       result.data.fullName
     )
 
-    if (res?.data?.verificationResendAvailableAt) {
-      const { setAvailableAt } = useVerificationCooldown()
-      setAvailableAt(result.data.email, res.data.verificationResendAvailableAt)
+    if (res?.data?.verification_resend_available_at) {
+      setAvailableAt(result.data.email, res.data.verification_resend_available_at)
     }
 
     addToast({
@@ -86,14 +86,10 @@ const handleRegister = async () => {
     })
     router.push({
       path: '/verify-email-notice',
-      query: { email: form.value.email }
+      query: { email: result.data.email }
     })
   } catch (err: unknown) {
-    if (getApiErrorMessage(err) === 'email already registered') {
-      authError.value = 'Email sudah terdaftar'
-    } else {
-      authError.value = getApiErrorMessage(err)
-    }
+    authError.value = getApiErrorMessage(err)
   } finally {
     isLoading.value = false
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../utils/error'
 import { computed, onMounted, ref } from 'vue'
 import type { Profile, UserSkill, UserTool } from '../types/profile'
 import type { Project, Application } from '../types/project'
@@ -52,8 +53,8 @@ const fetchAllData = async () => {
       myApplications.value = applications
       checklist.value = getChecklist(profile.value, userSkills, userTools)
     }
-  } catch (error: any) {
-    loadError.value = error?.message || 'Gagal memuat dashboard.'
+  } catch (error: unknown) {
+    loadError.value = getApiErrorMessage(error, 'Gagal memuat dashboard.')
   } finally {
     isLoading.value = false
   }

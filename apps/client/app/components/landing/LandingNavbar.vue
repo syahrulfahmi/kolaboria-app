@@ -5,7 +5,7 @@
       'fixed top-0 inset-x-0 z-50',
       'transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]',
       isScrolled
-        ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-black/[.06]'
+        ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200'
         : 'bg-transparent'
     ]"
   >
@@ -25,10 +25,10 @@
           :href="`#${link.id}`"
           @click.prevent="scrollTo(`#${link.id}`)"
           :class="[
-            'text-sm font-medium transition-colors duration-300 relative group',
+            'font-body-2 transition-colors duration-300 relative group',
             isScrolled
-              ? 'text-primary-600 hover:text-primary-800'
-              : 'text-white/75 hover:text-white'
+              ? 'text-secondary-700 hover:text-primary-600'
+              : 'text-white/80 hover:text-white'
           ]"
         >
           {{ link.label }}
@@ -44,9 +44,9 @@
           <NuxtLink
             to="/login"
             :class="[
-              'hidden sm:inline-flex text-sm text-body px-4 py-2 rounded-lg transition-colors duration-300',
+              'hidden sm:inline-flex font-body-2 px-4 py-2 rounded-lg transition-colors duration-300',
               isScrolled
-                ? 'text-primary-400 hover:text-primary-500'
+                ? 'text-secondary-700 hover:text-primary-600'
                 : 'text-white/80 hover:text-white'
             ]"
           >
@@ -71,7 +71,7 @@
           :class="[
             'md:hidden p-2 rounded-lg transition-colors duration-200',
             isScrolled
-              ? 'text-secondary-400 hover:bg-gray-100'
+              ? 'text-secondary-600 hover:bg-neutral-100'
               : 'text-white hover:bg-white/10'
           ]"
         >
@@ -109,7 +109,7 @@
     >
       <div
         v-show="mobileOpen"
-        class="md:hidden bg-white border-b border-black/[.06] shadow-lg"
+        class="md:hidden bg-white border-b border-neutral-200 shadow-lg"
       >
         <div class="k-container py-4 flex flex-col gap-1">
           <a
@@ -117,7 +117,7 @@
             :key="link.id"
             :href="`#${link.id}`"
             @click.prevent="handleScrollTo(link.id)"
-            class="px-3 py-2.5 text-sm font-medium text-secondary-400 hover:text-secondary-500 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+            class="px-3 py-2.5 font-body-2 text-secondary-600 hover:text-secondary-900 hover:bg-neutral-50 rounded-lg transition-colors duration-200"
           >
             {{ link.label }}
           </a>
@@ -125,7 +125,7 @@
             <div class="k-rule mt-2 mb-3"></div>
             <NuxtLink
               to="/login"
-              class="px-3 py-2.5 text-sm font-medium text-secondary-400 hover:bg-gray-50 rounded-lg"
+              class="px-3 py-2.5 font-body-2 text-secondary-600 hover:bg-neutral-50 rounded-lg"
               @click="mobileOpen = false"
               >Masuk</NuxtLink
             >

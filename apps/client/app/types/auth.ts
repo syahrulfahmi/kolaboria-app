@@ -17,12 +17,20 @@ export interface User {
   email: string
   username: string
   emailVerifiedAt: string | null
-  isActive: boolean
-  createdAt: string
+  isActive?: boolean
+  createdAt?: string
+}
+
+export interface CurrentUserResponse {
+  name: string
+  email: string
+  email_verified_at: string | null
+  is_active: boolean
+  created_at: string
 }
 
 export interface VerificationCooldown {
-  verificationResendAvailableAt: string
+  verification_resend_available_at: string
 }
 
 export interface RegistrationResponse extends User, VerificationCooldown {}
@@ -30,14 +38,28 @@ export interface RegistrationResponse extends User, VerificationCooldown {}
 export interface ResendVerificationResponse extends VerificationCooldown {}
 
 export interface AuthResponsePayload {
-  accessToken: string
-  refreshToken: string
-  user: User
-  verificationResendAvailableAt?: string | null
+  access_token: string
+  refresh_token: string
+  name: string
+  email: string
+  email_verified_at: string | null
+}
+
+export interface RefreshAuthResponsePayload {
+  access_token: string
+  refresh_token: string
+  user: {
+    id: string
+    name: string
+    username: string
+    email: string
+    email_verified_at: string | null
+    is_active: boolean
+    created_at: string
+  }
 }
 
 export interface VerificationCooldownErrorDetails {
-  verificationResendAvailableAt?: string
-  retryAfterSeconds?: number
+  verification_resend_available_at?: string
+  retry_after_seconds?: number
 }
-

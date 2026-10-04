@@ -48,7 +48,7 @@
           cx="60%"
           cy="75%"
           r="2.5"
-          fill="#FFB020"
+          fill="var(--color-accent-400, #ffb020)"
           opacity="0.35"
           style="animation-delay: 2.4s"
         />
@@ -66,7 +66,7 @@
           cx="75%"
           cy="45%"
           r="1.5"
-          fill="#FFB020"
+          fill="var(--color-accent-400, #ffb020)"
           opacity="0.2"
           style="animation-delay: 3.5s"
         />
@@ -96,61 +96,61 @@
       <div class="k-container relative z-10 w-full text-center max-w-4xl mx-auto">
         <!-- Eyebrow Badge -->
         <div
-          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 border border-white/25 mb-6 backdrop-blur-md shadow-sm"
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 border border-primary-200/30 mb-6 backdrop-blur-md shadow-sm"
         >
           <span class="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></span>
-          <span class="text-white/95 text-xs font-semibold tracking-wide">
+          <span class="font-label-2 text-primary-50 tracking-wide">
             Pembaruan Terakhir: 1 Oktober 2026
           </span>
         </div>
 
         <!-- Main Title -->
         <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12] mb-6">
-          Syarat & Ketentuan Layanan<br />
+          Syarat &amp; Ketentuan Layanan<br />
           <span class="text-accent-300">di Kolaboria</span>
         </h1>
 
         <!-- Subtitle -->
-        <p class="text-white/80 font-paragraph-base max-w-2xl mx-auto text-base sm:text-lg leading-relaxed mb-10">
+        <p class="font-paragraph-1 text-primary-100 max-w-2xl mx-auto mb-10">
           Pedoman dan kesepakatan bersama dalam membangun proyek nyata, menjaga etika profesional,
           dan menciptakan ekosistem kolaborasi terbuka yang sehat di Indonesia.
         </p>
 
         <!-- Quick Highlights Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left max-w-3xl mx-auto">
-          <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
-            <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center mb-3">
+          <div class="bg-white/10 backdrop-blur-md border border-primary-200/20 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
+            <div class="w-8 h-8 rounded-lg bg-primary-400/30 text-white flex items-center justify-center mb-3">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h2 class="text-white font-bold text-sm mb-1">Kolaborasi Terbuka & Adil</h2>
-            <p class="text-white/70 text-xs leading-relaxed">Peran terdefinisi transparan tanpa hierarki yang mengekang.</p>
+            <h3 class="font-title-3 text-white mb-1">Kolaborasi Terbuka &amp; Adil</h3>
+            <p class="font-paragraph-4 text-primary-100">Peran terdefinisi transparan tanpa hierarki yang mengekang.</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
-            <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center mb-3">
+          <div class="bg-white/10 backdrop-blur-md border border-primary-200/20 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
+            <div class="w-8 h-8 rounded-lg bg-primary-400/30 text-white flex items-center justify-center mb-3">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <h2 class="text-white font-bold text-sm mb-1">Hak Cipta Tetap Milik Tim</h2>
-            <p class="text-white/70 text-xs leading-relaxed">Kolaboria tidak mengklaim kepemilikan atas produk buatan Anda.</p>
+            <h3 class="font-title-3 text-white mb-1">Hak Cipta Tetap Milik Tim</h3>
+            <p class="font-paragraph-4 text-primary-100">Kolaboria tidak mengklaim kepemilikan atas produk buatan Anda.</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
-            <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center mb-3">
+          <div class="bg-white/10 backdrop-blur-md border border-primary-200/20 rounded-2xl p-4 transition-all duration-300 hover:bg-white/15">
+            <div class="w-8 h-8 rounded-lg bg-primary-400/30 text-white flex items-center justify-center mb-3">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h2 class="text-white font-bold text-sm mb-1">Etika & Akuntabilitas</h2>
-            <p class="text-white/70 text-xs leading-relaxed">Komitmen saling menghargai waktu dan kontribusi sesama anggota.</p>
+            <h3 class="font-title-3 text-white mb-1">Etika &amp; Akuntabilitas</h3>
+            <p class="font-paragraph-4 text-primary-100">Komitmen saling menghargai waktu dan kontribusi sesama anggota.</p>
           </div>
         </div>
       </div>
 
-      <!-- Wave Bottom Transition (Smooth Curve into Content) -->
+      <!-- Wave Bottom Transition -->
       <div
         class="absolute bottom-[-1px] left-0 right-0 overflow-hidden leading-none z-10 w-full h-[10vh] min-h-[70px]"
       >
@@ -198,22 +198,25 @@
     <!-- Main Content Section -->
     <main class="py-16 lg:py-24 bg-white relative">
       <div class="k-container">
-        <!-- Intro Notice -->
-        <div class="mb-10 flex items-center gap-4 border-b border-black/[0.06] pb-6">
-          <div class="flex items-center gap-2 text-xs text-secondary-400/80">
-            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <!-- Intro Notice Banner -->
+        <div class="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-6">
+          <div class="flex items-center gap-2 font-paragraph-3 text-neutral-600 font-medium">
+            <svg class="w-4 h-4 text-success-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Berlaku efektif sejak 1 Oktober 2026 untuk seluruh inisiator proyek dan talenta Kolaboria</span>
+            <span>Berlaku efektif sejak 1 Oktober 2026 untuk seluruh inisiator proyek dan talenta <strong class="text-secondary-900 font-semibold">Kolaboria</strong></span>
+          </div>
+          <div class="font-body-3 text-neutral-500">
+            Versi Ketentuan: 2.0
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-12 lg:gap-16 items-start">
           <!-- Sidebar Navigation (Desktop Sticky) -->
           <aside class="hidden lg:block lg:sticky lg:top-28 lg:self-start space-y-6">
-            <div class="bg-neutral-50/80 border border-black/[0.06] rounded-2xl p-6 shadow-xs backdrop-blur-xs">
-              <p class="k-eyebrow text-primary-500 mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <div class="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 shadow-xs backdrop-blur-xs">
+              <p class="k-eyebrow text-primary-600 mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
                 </svg>
                 Daftar Isi
@@ -225,18 +228,18 @@
                   :key="section.id"
                   @click="scrollToSection(section.id)"
                   :class="[
-                    'w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-between group',
+                    'w-full text-left px-3 py-2 rounded-lg font-label-2 transition-all duration-200 flex items-center justify-between group',
                     activeSection === section.id
-                      ? 'bg-primary-50 text-primary-600 font-bold shadow-xs'
-                      : 'text-secondary-400 hover:text-secondary-500 hover:bg-neutral-100/70'
+                      ? 'bg-primary-50 text-primary-600 font-bold shadow-xs border border-primary-200'
+                      : 'text-neutral-600 hover:text-secondary-900 hover:bg-neutral-100'
                   ]"
                 >
                   <span class="truncate">{{ section.title }}</span>
                   <svg
                     :class="[
-                      'w-3.5 h-3.5 transition-transform duration-200',
+                      'w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0',
                       activeSection === section.id
-                        ? 'text-primary-500 translate-x-0'
+                        ? 'text-primary-600 translate-x-0'
                         : 'text-neutral-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5'
                     ]"
                     fill="none"
@@ -253,13 +256,13 @@
             <!-- Quick Legal Box in Sidebar -->
             <div class="bg-secondary-500 rounded-2xl p-5 text-white relative overflow-hidden">
               <div class="k-dot-texture absolute inset-0 opacity-5 pointer-events-none"></div>
-              <h4 class="font-bold text-sm text-white mb-2 relative z-10">Pertanyaan Ketentuan?</h4>
-              <p class="text-white/70 text-xs leading-relaxed mb-4 relative z-10">
+              <h4 class="font-title-3 text-white mb-2 relative z-10">Pertanyaan Ketentuan?</h4>
+              <p class="font-paragraph-4 text-secondary-100 mb-4 relative z-10">
                 Punya pertanyaan mengenai hak cipta proyek atau aturan kolaborasi? Hubungi tim legal kami.
               </p>
               <a
                 href="mailto:legal@kolaboria.id"
-                class="inline-flex items-center gap-1.5 text-xs font-bold text-accent-300 hover:text-accent-200 transition-colors relative z-10"
+                class="inline-flex items-center gap-1.5 font-label-2 text-accent-300 hover:text-accent-200 transition-colors relative z-10"
               >
                 <span>legal@kolaboria.id</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -274,23 +277,23 @@
             <!-- Section 1: Penerimaan Ketentuan -->
             <section id="penerimaan-ketentuan" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   01
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Penerimaan Ketentuan & Ruang Lingkup
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Penerimaan Ketentuan &amp; Ruang Lingkup
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
-                  Syarat & Ketentuan Layanan ini (*"Ketentuan"*) merupakan perjanjian yang sah dan mengikat secara hukum
-                  antara Anda (*"Pengguna"*, baik bertindak sebagai Inisiator Proyek maupun Talenta/Kontributor) dan
-                  <strong>Kolaboria</strong> (*"Kami"*).
+                  Syarat &amp; Ketentuan Layanan ini (<em class="text-secondary-900 font-medium">&quot;Ketentuan&quot;</em>) merupakan perjanjian yang sah dan mengikat secara hukum
+                  antara Anda (<em class="text-secondary-900 font-medium">&quot;Pengguna&quot;</em>, baik bertindak sebagai Inisiator Proyek maupun Talenta/Kontributor) dan
+                  <strong class="text-secondary-900 font-semibold">Kolaboria</strong> (<em class="text-secondary-900 font-medium">&quot;Kami&quot;</em>).
                 </p>
                 <p>
                   Dengan mengakses situs web kami, membuat akun, menerbitkan proyek, atau mengajukan diri ke dalam proyek
                   di platform Kolaboria, Anda menyatakan telah membaca, memahami, dan menyetujui untuk terikat oleh
-                  seluruh isi Ketentuan ini serta <NuxtLink to="/privacy-policy" class="text-primary-600 hover:underline font-semibold">Kebijakan Privasi</NuxtLink> kami.
+                  seluruh isi Ketentuan ini serta <NuxtLink to="/privacy-policy" class="text-primary-600 hover:underline font-semibold hover:text-primary-700 transition-colors">Kebijakan Privasi</NuxtLink> kami.
                 </p>
                 <p>
                   Jika Anda tidak menyetujui salah satu bagian dari Ketentuan ini, Anda tidak diperkenankan untuk mengakses
@@ -304,45 +307,45 @@
             <!-- Section 2: Kelayakan & Akun -->
             <section id="kelayakan-akun" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   02
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Kelayakan Pengguna & Keamanan Akun
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Kelayakan Pengguna &amp; Keamanan Akun
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
-                <p>
+              <div class="space-y-5">
+                <p class="font-paragraph-2 text-neutral-600">
                   Untuk menggunakan layanan Kolaboria, Anda wajib memenuhi persyaratan kelayakan sebagai berikut:
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-5">
-                  <div class="bg-neutral-50 rounded-xl p-5 border border-black/[0.05]">
-                    <div class="flex items-center gap-2 mb-2 font-bold text-secondary-500 text-sm">
-                      <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
+                  <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-200">
+                    <div class="flex items-center gap-2 mb-2 font-title-3 text-secondary-900">
+                      <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       Kredibilitas Identitas
                     </div>
-                    <p class="text-secondary-400/80 text-xs leading-relaxed">
+                    <p class="font-paragraph-3 text-neutral-600">
                       Anda wajib memberikan informasi profil, keahlian, dan riwayat yang jujur dan dapat dipertanggungjawabkan tanpa manipulasi.
                     </p>
                   </div>
 
-                  <div class="bg-neutral-50 rounded-xl p-5 border border-black/[0.05]">
-                    <div class="flex items-center gap-2 mb-2 font-bold text-secondary-500 text-sm">
-                      <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-200">
+                    <div class="flex items-center gap-2 mb-2 font-title-3 text-secondary-900">
+                      <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                       Tanggung Jawab Kredensial
                     </div>
-                    <p class="text-secondary-400/80 text-xs leading-relaxed">
+                    <p class="font-paragraph-3 text-neutral-600">
                       Anda bertanggung jawab penuh menjaga kerahasiaan kata sandi akun Anda dan atas semua tindakan yang terjadi di bawah akun tersebut.
                     </p>
                   </div>
                 </div>
 
-                <p>
+                <p class="font-paragraph-2 text-neutral-600">
                   Pembuatan akun palsu (impersonation), akun robotik tanpa izin, atau penjualan kembali akun Kolaboria
                   dilarang keras dan akan berakibat pada penutupan akun permanen.
                 </p>
@@ -354,14 +357,14 @@
             <!-- Section 3: Peran & Etika Kolaborasi -->
             <section id="peran-etika" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   03
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Peran Pengguna & Etika Kolaborasi
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Peran Pengguna &amp; Etika Kolaborasi
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
                   Kolaboria adalah wadah kolaborasi independen. Hubungan antara Inisiator Proyek dan Talenta/Kontributor
                   adalah hubungan kemitraan profesional, bukan hubungan ketenagakerjaan atau majikan-pekerja dengan Kolaboria:
@@ -374,7 +377,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                    <span><strong>Kewajiban Inisiator Proyek:</strong> Menyediakan gambaran visi proyek yang jelas, menetapkan kriteria role dan ekspektasi beban kerja secara realistis, serta memberikan feedback objektif dan tepat waktu kepada kontributor tim.</span>
+                    <span><strong class="text-secondary-900 font-semibold">Kewajiban Inisiator Proyek:</strong> Menyediakan gambaran visi proyek yang jelas, menetapkan kriteria role dan ekspektasi beban kerja secara realistis, serta memberikan feedback objektif dan tepat waktu kepada kontributor tim.</span>
                   </li>
                   <li class="flex items-start gap-3">
                     <span class="w-5 h-5 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -382,7 +385,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                    <span><strong>Komitmen Talenta / Kontributor:</strong> Melaksanakan tugas dan deliverable sesuai kesepakatan tim, menghormati roadmap milestone, dan segera mengomunikasikan kendala jika terjadi hambatan kerja.</span>
+                    <span><strong class="text-secondary-900 font-semibold">Komitmen Talenta / Kontributor:</strong> Melaksanakan tugas dan deliverable sesuai kesepakatan tim, menghormati roadmap milestone, dan segera mengomunikasikan kendala jika terjadi hambatan kerja.</span>
                   </li>
                   <li class="flex items-start gap-3">
                     <span class="w-5 h-5 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -390,7 +393,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                    <span><strong>Pengunduran Diri yang Bertanggung Jawab:</strong> Jika anggota tim berhalangan melanjutkan kolaborasi, wajib menyampaikan pemberitahuan transparan agar tim proyek dapat menyesuaikan slot kontributor tanpa merugikan progres.</span>
+                    <span><strong class="text-secondary-900 font-semibold">Pengunduran Diri yang Bertanggung Jawab:</strong> Jika anggota tim berhalangan melanjutkan kolaborasi, wajib menyampaikan pemberitahuan transparan agar tim proyek dapat menyesuaikan slot kontributor tanpa merugikan progres.</span>
                   </li>
                 </ul>
               </div>
@@ -401,21 +404,21 @@
             <!-- Section 4: HAKI & Kepemilikan Karya -->
             <section id="hak-kekayaan-intelektual" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   04
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
                   Kepemilikan Hak Kekayaan Intelektual (HAKI)
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
                   Prinsip kami mengenai hak kekayaan intelektual dirancang untuk melindungi pencipta karya dan menjunjung
                   semangat kolaborasi terbuka:
                 </p>
 
                 <!-- Big Guarantee Callout Card -->
-                <div class="not-prose my-6 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl p-6 text-white shadow-md">
+                <div class="my-6 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl p-6 text-white shadow-md">
                   <div class="flex items-start gap-4">
                     <div class="w-10 h-10 rounded-xl bg-accent-400/20 border border-accent-400/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -423,18 +426,18 @@
                       </svg>
                     </div>
                     <div>
-                      <h4 class="font-bold text-base text-white mb-1">Produk Anda adalah Milik Tim Anda</h4>
-                      <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                        Kolaboria <strong>tidak mengklaim kepemilikan hak cipta atas kode program, desain, atau produk digital</strong> yang Anda ciptakan dalam proyek. Seluruh hak cipta diatur sepenuhnya oleh kesepakatan internal antara Inisiator dan Kontributor masing-masing.
+                      <h3 class="font-title-2 text-white mb-1">Produk Anda adalah Milik Tim Anda</h3>
+                      <p class="font-paragraph-3 text-secondary-100 leading-relaxed">
+                        Kolaboria <strong class="text-white font-semibold">tidak mengklaim kepemilikan hak cipta atas kode program, desain, atau produk digital</strong> yang Anda ciptakan dalam proyek. Seluruh hak cipta diatur sepenuhnya oleh kesepakatan internal antara Inisiator dan Kontributor masing-masing.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="space-y-3">
-                  <p><strong>1. Lisensi Proyek:</strong> Inisiator dan tim disarankan untuk menentukan lisensi proyek sejak awal (misalnya lisensi open-source seperti MIT, Apache 2.0, GPL, atau perjanjian kepemilikan bersama proprietary).</p>
-                  <p><strong>2. Hak Pamer Portofolio (Showcase Rights):</strong> Setiap kontributor berhak menampilkan keterlibatannya, cuplikan karya yang telah disetujui, dan verifikasi kontribusi proyek pada portofolio profil publik Kolaboria mereka sebagai bukti keahlian nyata.</p>
-                  <p><strong>3. Kekayaan Intelektual Kolaboria:</strong> Segala merek dagang, logo Kolaboria, desain antarmuka, dan kode inti platform Kolaboria adalah milik eksklusif Kolaboria dan dilindungi oleh undang-undang hak cipta Republik Indonesia.</p>
+                <div class="space-y-3 font-paragraph-2 text-neutral-600">
+                  <p><strong class="text-secondary-900 font-semibold">1. Lisensi Proyek:</strong> Inisiator dan tim disarankan untuk menentukan lisensi proyek sejak awal (misalnya lisensi open-source seperti MIT, Apache 2.0, GPL, atau perjanjian kepemilikan bersama proprietary).</p>
+                  <p><strong class="text-secondary-900 font-semibold">2. Hak Pamer Portofolio (Showcase Rights):</strong> Setiap kontributor berhak menampilkan keterlibatannya, cuplikan karya yang telah disetujui, dan verifikasi kontribusi proyek pada portofolio profil publik Kolaboria mereka sebagai bukti keahlian nyata.</p>
+                  <p><strong class="text-secondary-900 font-semibold">3. Kekayaan Intelektual Kolaboria:</strong> Segala merek dagang, logo Kolaboria, desain antarmuka, dan kode inti platform Kolaboria adalah milik eksklusif Kolaboria dan dilindungi oleh undang-undang hak cipta Republik Indonesia.</p>
                 </div>
               </div>
             </section>
@@ -444,43 +447,43 @@
             <!-- Section 5: Perilaku Terlarang -->
             <section id="aktivitas-terlarang" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   05
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Aktivitas & Perilaku yang Dilarang
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Aktivitas &amp; Perilaku yang Dilarang
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
                   Untuk memastikan ekosistem Kolaboria tetap aman, suportif, dan profesional, pengguna dilarang keras untuk:
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-5">
-                  <div class="p-4 rounded-xl border border-red-100 bg-red-50/50">
-                    <h4 class="font-bold text-xs text-red-700 uppercase tracking-wider mb-1">Pelecehan & Diskriminasi</h4>
-                    <p class="text-secondary-400 text-xs leading-relaxed">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
+                  <div class="p-4 rounded-xl border border-danger-100 bg-danger-50/50">
+                    <h4 class="font-label-2 text-danger-700 uppercase tracking-wider mb-1">Pelecehan &amp; Diskriminasi</h4>
+                    <p class="font-paragraph-4 text-neutral-600">
                       Melakukan ujaran kebencian, perundungan, intimidasi, pelecehan seksual, atau diskriminasi berbasis SARA dalam bentuk apapun.
                     </p>
                   </div>
 
-                  <div class="p-4 rounded-xl border border-red-100 bg-red-50/50">
-                    <h4 class="font-bold text-xs text-red-700 uppercase tracking-wider mb-1">Penipuan & Proyek Palsu</h4>
-                    <p class="text-secondary-400 text-xs leading-relaxed">
+                  <div class="p-4 rounded-xl border border-danger-100 bg-danger-50/50">
+                    <h4 class="font-label-2 text-danger-700 uppercase tracking-wider mb-1">Penipuan &amp; Proyek Palsu</h4>
+                    <p class="font-paragraph-4 text-neutral-600">
                       Membuat proyek fiktif untuk mengelabui talenta, mencuri data karya tanpa atribusi, atau melakukan skema penipuan finansial.
                     </p>
                   </div>
 
-                  <div class="p-4 rounded-xl border border-red-100 bg-red-50/50">
-                    <h4 class="font-bold text-xs text-red-700 uppercase tracking-wider mb-1">Eksploitasi & Malware</h4>
-                    <p class="text-secondary-400 text-xs leading-relaxed">
+                  <div class="p-4 rounded-xl border border-danger-100 bg-danger-50/50">
+                    <h4 class="font-label-2 text-danger-700 uppercase tracking-wider mb-1">Eksploitasi &amp; Malware</h4>
+                    <p class="font-paragraph-4 text-neutral-600">
                       Menyebarkan perangkat lunak berbahaya, virus, trojan, phishing link, atau berupaya membobol infrastruktur sistem Kolaboria.
                     </p>
                   </div>
 
-                  <div class="p-4 rounded-xl border border-red-100 bg-red-50/50">
-                    <h4 class="font-bold text-xs text-red-700 uppercase tracking-wider mb-1">Scraping & Spam</h4>
-                    <p class="text-secondary-400 text-xs leading-relaxed">
+                  <div class="p-4 rounded-xl border border-danger-100 bg-danger-50/50">
+                    <h4 class="font-label-2 text-danger-700 uppercase tracking-wider mb-1">Scraping &amp; Spam</h4>
+                    <p class="font-paragraph-4 text-neutral-600">
                       Mengumpulkan data pengguna lain secara massal tanpa izin atau mengirimkan pesan promosi/spam secara agresif di platform.
                     </p>
                   </div>
@@ -493,21 +496,21 @@
             <!-- Section 6: Workspace & Milestone -->
             <section id="workspace-milestone" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   06
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Ruang Kerja (Workspace) & Kolaborasi Tim
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Ruang Kerja (Workspace) &amp; Kolaborasi Tim
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
                   Fitur Workspace disediakan sebagai sarana teknis untuk mendukung eksekusi proyek:
                 </p>
                 <ul class="space-y-2 list-disc pl-5">
-                  <li><strong>Kerahasiaan Internal:</strong> Dokumen tugas, lampiran, dan diskusi di dalam Workspace privat hanya dapat diakses oleh anggota tim yang telah diterima dalam proyek bersangkutan.</li>
-                  <li><strong>Verifikasi Kontribusi:</strong> Tugas dan kontribusi yang ditandai selesai (*completed*) akan menjadi dasar validasi portofolio anggota tim yang terintegrasi secara otomatis ke profil.</li>
-                  <li><strong>Penyelesaian Perselisihan:</strong> Jika timbul perbedaan pendapat mengenai arah teknis atau pengerjaan tugas, tim diharapkan menyelesaikannya secara musyawarah profesional di ruang diskusi.</li>
+                  <li><strong class="text-secondary-900 font-semibold">Kerahasiaan Internal:</strong> Dokumen tugas, lampiran, dan diskusi di dalam Workspace privat hanya dapat diakses oleh anggota tim yang telah diterima dalam proyek bersangkutan.</li>
+                  <li><strong class="text-secondary-900 font-semibold">Verifikasi Kontribusi:</strong> Tugas dan kontribusi yang ditandai selesai (<em>completed</em>) akan menjadi dasar validasi portofolio anggota tim yang terintegrasi secara otomatis ke profil.</li>
+                  <li><strong class="text-secondary-900 font-semibold">Penyelesaian Perselisihan:</strong> Jika timbul perbedaan pendapat mengenai arah teknis atau pengerjaan tugas, tim diharapkan menyelesaikannya secara musyawarah profesional di ruang diskusi.</li>
                 </ul>
               </div>
             </section>
@@ -517,17 +520,17 @@
             <!-- Section 7: Batasan Tanggung Jawab -->
             <section id="batasan-tanggung-jawab" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   07
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Batasan Tanggung Jawab & Penolakan Jaminan
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Batasan Tanggung Jawab &amp; Penolakan Jaminan
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
-                  Layanan platform Kolaboria disediakan atas dasar <strong>"sebagaimana adanya" (*as-is*)</strong> dan
-                  <strong>"sebagaimana tersedia" (*as-available*)</strong>.
+                  Layanan platform Kolaboria disediakan atas dasar <strong class="text-secondary-900 font-semibold">&quot;sebagaimana adanya&quot; (<em>as-is</em>)</strong> dan
+                  <strong class="text-secondary-900 font-semibold">&quot;sebagaimana tersedia&quot; (<em>as-available</em>)</strong>.
                 </p>
                 <p>
                   Sejauh diizinkan oleh hukum yang berlaku di Indonesia, Kolaboria tidak bertanggung jawab atas:
@@ -545,16 +548,16 @@
             <!-- Section 8: Pengakhiran & Hukum -->
             <section id="pengakhiran-hukum" class="scroll-mt-28">
               <div class="flex items-center gap-3 mb-4">
-                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-500 font-bold text-xs">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 font-label-2">
                   08
                 </span>
-                <h2 class="text-xl sm:text-2xl font-black text-secondary-500 tracking-tight">
-                  Pengakhiran Akun, Hukum & Kontak
+                <h2 class="font-title-1 text-secondary-900 tracking-tight">
+                  Pengakhiran Akun, Hukum &amp; Kontak
                 </h2>
               </div>
-              <div class="prose prose-neutral max-w-none text-secondary-400 text-sm sm:text-base leading-relaxed space-y-4">
+              <div class="space-y-4 font-paragraph-2 text-neutral-600">
                 <p>
-                  Ketentuan ini tunduk pada hukum dan peraturan perundang-undangan yang berlaku di <strong>Republik Indonesia</strong>.
+                  Ketentuan ini tunduk pada hukum dan peraturan perundang-undangan yang berlaku di <strong class="text-secondary-900 font-semibold">Republik Indonesia</strong>.
                 </p>
                 <p>
                   Kolaboria berhak untuk menangguhkan atau menghentikan akses akun Anda sewaktu-waktu apabila ditemukan
@@ -562,16 +565,19 @@
                 </p>
 
                 <!-- Interactive Contact Card -->
-                <div class="not-prose mt-8 bg-neutral-50 border border-black/[0.08] rounded-3xl p-8 hover:border-primary-400/40 transition-all duration-300">
+                <div class="mt-8 bg-neutral-50 border border-neutral-200 rounded-3xl p-8 hover:border-primary-300 transition-all duration-300">
                   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                     <div>
-                      <span class="k-eyebrow text-primary-500">Pusat Layanan Hukum</span>
-                      <h4 class="text-xl font-bold text-secondary-500 mt-1 mb-2">
+                      <span class="k-eyebrow text-primary-600">Pusat Layanan Hukum</span>
+                      <h3 class="font-title-2 text-secondary-900 mt-1 mb-2">
                         Ada Hal yang Ingin Anda Tanyakan?
-                      </h4>
-                      <p class="text-secondary-400 text-xs sm:text-sm max-w-md leading-relaxed">
+                      </h3>
+                      <p class="font-paragraph-3 text-neutral-600 max-w-md">
                         Tim kepatuhan dan legal Kolaboria siap memberikan klarifikasi terkait hak cipta, lisensi karya, atau ketentuan kerja sama.
                       </p>
+                      <div class="mt-3 font-body-2 text-neutral-600">
+                        Email Resmi: <a href="mailto:legal@kolaboria.id" class="font-bold text-primary-600 underline hover:text-primary-700 transition-colors">legal@kolaboria.id</a>
+                      </div>
                     </div>
 
                     <a
@@ -688,14 +694,15 @@ html {
 
 .k-rule {
   height: 1px;
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: var(--color-neutral-200, #e2e8ef);
 }
 
 .k-eyebrow {
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: var(--font-label-3-size, 0.6875rem);
+  font-weight: var(--font-label-3-weight, 700);
+  line-height: var(--font-label-3-line-height, 1.36);
+  letter-spacing: var(--font-label-3-letter-spacing, 0.05em);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .k-dot-texture {
@@ -731,7 +738,7 @@ html {
   height: 60%;
   background: radial-gradient(
     ellipse at center,
-    rgba(28, 46, 74, 0.5) 0%,
+    color-mix(in srgb, var(--color-secondary-500, #1c2e4a) 50%, transparent) 0%,
     transparent 70%
   );
   animation: k-aurora-drift 16s ease-in-out infinite alternate-reverse;

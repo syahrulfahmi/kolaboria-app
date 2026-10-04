@@ -1,33 +1,53 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import { z } from 'zod'
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants and validation ────────────────────────────────────────────────
+const EXPERIENCE_LEVEL_VALUES = [
+  'Beginner',
+  'Intermediate',
+  'Advanced',
+  'Expert'
+] as const
+
 const EXPERIENCE_LEVELS = [
-  { label: 'Beginner', value: 'Beginner', desc: '0–1 tahun' },
-  { label: 'Intermediate', value: 'Intermediate', desc: '1–3 tahun' },
-  { label: 'Advanced', value: 'Advanced', desc: '3–5 tahun' },
-  { label: 'Expert', value: 'Expert', desc: '5+ tahun' }
+  { value: EXPERIENCE_LEVEL_VALUES[0], desc: '0–1 tahun' },
+  { value: EXPERIENCE_LEVEL_VALUES[1], desc: '1–3 tahun' },
+  { value: EXPERIENCE_LEVEL_VALUES[2], desc: '3–5 tahun' },
+  { value: EXPERIENCE_LEVEL_VALUES[3], desc: '5+ tahun' }
 ]
 
 const MAX_TOOLS = 3
 
-// ── Zod Schema ──────────────────────────────────────────────────────────────
-const onboardingSchema = z.object({
-  primarySkillId: z.string().min(1, 'Pilih skill utama kamu'),
-  experienceLevel: z.string().min(1, 'Pilih level pengalaman kamu'),
-  toolIds: z.array(z.string()).max(MAX_TOOLS, `Maksimal ${MAX_TOOLS} tools`),
+const onboardingFieldsSchema = z.object({
+  primarySkillId: z.string().uuid('Pilih keahlian utama dari daftar'),
+  experienceLevel: z.enum(EXPERIENCE_LEVEL_VALUES, {
+    error: 'Pilih level pengalaman kamu'
+  }),
+  toolIds: z
+    .array(z.string().uuid('Pilihan tools tidak valid'))
+    .max(MAX_TOOLS, `Maksimal ${MAX_TOOLS} tools`)
+    .refine((toolIds) => new Set(toolIds).size === toolIds.length, {
+      message: 'Tools yang sama tidak boleh dipilih lebih dari sekali'
+    }),
   externalLink: z
-    .string()
-    .url('Format URL tidak valid')
-    .optional()
-    .or(z.literal('')),
-  bio: z.string().max(300, 'Bio maksimal 300 karakter').optional(),
-  goal: z.string().max(200, 'Goal maksimal 200 karakter').optional()
+    .union([z.literal(''), z.string().url('Format URL tidak valid')]),
+  bio: z.string().trim().max(300, 'Bio maksimal 300 karakter'),
+  goal: z.string().trim().max(200, 'Goal maksimal 200 karakter')
 })
 
-type FieldErrors = Partial<
-  Record<keyof z.infer<typeof onboardingSchema>, string>
->
+type OnboardingForm = z.infer<typeof onboardingFieldsSchema>
+type OnboardingField = keyof OnboardingForm
+type FieldErrors = Partial<Record<OnboardingField, string>>
+
+const ONBOARDING_FIELDS = [
+  'primarySkillId',
+  'experienceLevel',
+  'toolIds',
+  'externalLink',
+  'bio',
+  'goal'
+] as const satisfies readonly OnboardingField[]
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const router = useRouter()
@@ -43,8 +63,8 @@ const {
 const { add: addToast } = useToast()
 
 const form = ref({
-  primarySkillId: '' as string | number | null,
-  experienceLevel: '',
+  primarySkillId: '',
+  experienceLevel: '' as OnboardingForm['experienceLevel'] | '',
   toolIds: [] as string[],
   externalLink: '',
   bio: '',
@@ -54,45 +74,63 @@ const form = ref({
 const fieldErrors = ref<FieldErrors>({})
 const submitError = ref('')
 const isLoading = ref(false)
+const isLoadingMasterData = computed(
+  () => isLoadingSkills.value || isLoadingTools.value
+)
 
 // ── Methods ───────────────────────────────────────────────────────────────────
 const skillOptions = computed(() => {
-  return skills.value.map((skill) => ({
-    label: skill.name,
-    value: skill.id
-  }))
+  return skills.value.map(({ id, name }) => ({ label: name, value: id }))
 })
 
 const toolOptions = computed(() => {
-  return tools.value.map((tool) => ({
-    label: tool.name,
-    value: tool.id
-  }))
+  return tools.value.map(({ id, name }) => ({ label: name, value: id }))
 })
 
-const handleSubmit = async () => {
+const toFieldErrors = (error: z.ZodError<OnboardingForm>): FieldErrors => {
+  const flattenedErrors = z.flattenError(error).fieldErrors
+  const errors: FieldErrors = {}
+
+  for (const field of ONBOARDING_FIELDS) {
+    const message = flattenedErrors[field]?.[0]
+    if (message) errors[field] = message
+  }
+
+  return errors
+}
+
+const validateSelections = (values: OnboardingForm): FieldErrors => {
+  const errors: FieldErrors = {}
+  const availableSkillIds = new Set(skills.value.map(({ id }) => id))
+  const availableToolIds = new Set(tools.value.map(({ id }) => id))
+
+  if (!availableSkillIds.has(values.primarySkillId)) {
+    errors.primarySkillId = 'Pilih keahlian utama dari daftar yang tersedia'
+  }
+
+  if (values.toolIds.some((toolId) => !availableToolIds.has(toolId))) {
+    errors.toolIds = 'Pilih tools dari daftar yang tersedia'
+  }
+
+  return errors
+}
+
+const handleSubmit = async (): Promise<void> => {
   fieldErrors.value = {}
   submitError.value = ''
 
-  const result = onboardingSchema.safeParse({
-    primarySkillId: form.value.primarySkillId,
-    experienceLevel: form.value.experienceLevel,
-    toolIds: form.value.toolIds,
-    externalLink: form.value.externalLink || '',
-    bio: form.value.bio,
-    goal: form.value.goal
-  })
+  if (isLoadingMasterData.value) return
+
+  const result = onboardingFieldsSchema.safeParse(form.value)
 
   if (!result.success) {
-    const flat = z.flattenError(result.error).fieldErrors
-    fieldErrors.value = {
-      primarySkillId: flat.primarySkillId?.[0],
-      experienceLevel: flat.experienceLevel?.[0],
-      toolIds: flat.toolIds?.[0],
-      externalLink: flat.externalLink?.[0],
-      bio: flat.bio?.[0],
-      goal: flat.goal?.[0]
-    }
+    fieldErrors.value = toFieldErrors(result.error)
+    return
+  }
+
+  const selectionErrors = validateSelections(result.data)
+  if (Object.keys(selectionErrors).length > 0) {
+    fieldErrors.value = selectionErrors
     return
   }
 
@@ -102,9 +140,9 @@ const handleSubmit = async () => {
       primarySkillId: result.data.primarySkillId,
       experienceLevel: result.data.experienceLevel,
       toolIds: result.data.toolIds,
-      goal: result.data.goal ?? '',
-      bio: result.data.bio ?? '',
-      externalLink: result.data.externalLink ?? ''
+      goal: result.data.goal,
+      bio: result.data.bio,
+      externalLink: result.data.externalLink
     })
 
     addToast({
@@ -114,13 +152,13 @@ const handleSubmit = async () => {
     })
 
     await router.replace('/home')
-  } catch (err: any) {
-    submitError.value =
-      err?.message || 'Gagal menyimpan profil. Silakan coba lagi.'
+  } catch (error: unknown) {
+    submitError.value = getApiErrorMessage(error, 'Gagal menyimpan profil. Silakan coba lagi.')
   } finally {
     isLoading.value = false
   }
 }
+
 </script>
 
 <template>
@@ -176,7 +214,7 @@ const handleSubmit = async () => {
                 : 'border-neutral-200 bg-white text-neutral-600 hover:border-primary-300 hover:bg-primary-50/50'
             "
           >
-            <span class="font-body-2 text-primary">{{ level.label }}</span>
+            <span class="font-body-2 text-primary">{{ level.value }}</span>
             <span class="font-body-3 text-secondary mt-1">{{
               level.desc
             }}</span>
@@ -251,7 +289,7 @@ const handleSubmit = async () => {
       <AtomicButton
         type="submit"
         variant="primary"
-        :loading="isLoading"
+        :loading="isLoading || isLoadingMasterData"
         block
         class="mt-2"
       >

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import { ref, computed } from 'vue'
 import type { Project } from '../../types/project'
 import {
@@ -44,8 +45,8 @@ const fetchProjects = async (isLoadMore = false) => {
 
     projects.value = newProjects
     hasMore.value = newProjects.length === currentLimit
-  } catch (e: any) {
-    fetchError.value = e?.message || 'Gagal memuat project.'
+  } catch (e: unknown) {
+    fetchError.value = getApiErrorMessage(e, 'Gagal memuat project.')
   } finally {
     isLoading.value = false
     isLoadingMore.value = false

@@ -1,4 +1,6 @@
+import { getApiErrorMessage } from '../utils/error'
 import { useApi } from '../composables/useApi'
+import { API_ENDPOINTS } from '../constants/api-endpoints'
 import type { ApiResponse } from '../types/api'
 import type {
   ActivityLog,
@@ -15,60 +17,67 @@ import type {
   UpdateDeliverablePayload
 } from '../types/workspace'
 import type { WorkHistory } from '../types/project'
+
 export const WorkspaceService = {
   async getTasks(projectId: string): Promise<Task[]> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<Task[]>>(
-      `/projects/${projectId}/workspace/tasks`
+      API_ENDPOINTS.WORKSPACE.TASKS(projectId)
     )
     return res.data ?? []
   },
+
   async createTask(
     payload: CreateTaskPayload & { created_by: string }
   ): Promise<Task> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<Task>>(
-      `/projects/${payload.project_id}/workspace/tasks`,
+      API_ENDPOINTS.WORKSPACE.TASKS(payload.project_id),
       {
         method: 'POST',
         body: payload
       }
     )
-    if (!res.data) throw new Error(res.message || 'Task tidak ditemukan.')
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Task tidak ditemukan.'))
     return res.data
   },
+
   async updateTask(taskId: string, payload: UpdateTaskPayload): Promise<Task> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<Task>>(
-      `/projects/workspace/tasks/${taskId}`,
+      API_ENDPOINTS.WORKSPACE.TASK_DETAIL(taskId),
       {
         method: 'PATCH',
         body: payload
       }
     )
-    if (!res.data) throw new Error(res.message || 'Task tidak ditemukan.')
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Task tidak ditemukan.'))
     return res.data
   },
+
   async deleteTask(taskId: string): Promise<void> {
     const { $api } = useApi()
-    await $api<ApiResponse<null>>(`/projects/workspace/tasks/${taskId}`, {
+    await $api<ApiResponse<null>>(API_ENDPOINTS.WORKSPACE.TASK_DETAIL(taskId), {
       method: 'DELETE'
     })
   },
+
   async reorderTasks(updates: ReorderTaskUpdate[]): Promise<void> {
     const { $api } = useApi()
-    await $api<ApiResponse<null>>('/projects/workspace/tasks/reorder', {
+    await $api<ApiResponse<null>>(API_ENDPOINTS.WORKSPACE.TASKS_REORDER, {
       method: 'PATCH',
       body: { updates }
     })
   },
+
   async getTaskComments(taskId: string): Promise<TaskComment[]> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<TaskComment[]>>(
-      `/projects/workspace/tasks/${taskId}/comments`
+      API_ENDPOINTS.WORKSPACE.TASK_COMMENTS(taskId)
     )
     return res.data ?? []
   },
+
   async addComment(
     taskId: string,
     authorId: string,
@@ -76,90 +85,137 @@ export const WorkspaceService = {
   ): Promise<TaskComment> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<TaskComment>>(
-      `/projects/workspace/tasks/${taskId}/comments`,
+      API_ENDPOINTS.WORKSPACE.TASK_COMMENTS(taskId),
       {
         method: 'POST',
         body: { body }
       }
     )
-    if (!res.data) throw new Error(res.message || 'Komentar tidak ditemukan.')
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Komentar tidak ditemukan.'))
     return res.data
   },
+
   async deleteComment(commentId: string): Promise<void> {
     const { $api } = useApi()
-    await $api<ApiResponse<null>>(`/projects/workspace/comments/${commentId}`, {
+    await $api<ApiResponse<null>>(API_ENDPOINTS.WORKSPACE.COMMENT_DETAIL(commentId), {
       method: 'DELETE'
     })
   },
+
   async updateComment(commentId: string, body: string): Promise<TaskComment> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<TaskComment>>(
-      `/projects/workspace/comments/${commentId}`,
+      API_ENDPOINTS.WORKSPACE.COMMENT_DETAIL(commentId),
       {
         method: 'PATCH',
         body: { body }
       }
     )
-    if (!res.data) throw new Error(res.message || 'Komentar tidak ditemukan.')
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Komentar tidak ditemukan.'))
     return res.data
   },
+
   async getActivityLogs(projectId: string, limit = 20): Promise<ActivityLog[]> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<ActivityLog[]>>(
-      `/projects/${projectId}/workspace/activities`,
+      API_ENDPOINTS.WORKSPACE.ACTIVITIES(projectId),
       {
-        params: { limit }
+        query: { limit }
       }
     )
     return res.data ?? []
   },
+
   async getWorkspaceMembers(
     projectId: string,
-    creatorId: string
+    creatorId?: string
   ): Promise<MemberProfile[]> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<MemberProfile[]>>(
-      `/projects/${projectId}/workspace/members`
+      API_ENDPOINTS.WORKSPACE.MEMBERS(projectId)
     )
     return res.data ?? []
   },
+
   async getMyWorkHistory(projectId: string): Promise<WorkHistory> {
     const { $api } = useApi()
     const res = await $api<ApiResponse<WorkHistory>>(
-      `/projects/${projectId}/workspace/my-history`
+      API_ENDPOINTS.WORKSPACE.MY_HISTORY(projectId)
     )
-    // Because the response can be undefined when data is empty
     return res.data ?? { activities: [], my_tasks: [] }
   },
+
+  // --- Evidence & Deliverables ---
+
   async getDeliverables(projectId: string): Promise<ProjectDeliverable[]> {
     const { $api } = useApi()
-    const res = await $api<ApiResponse<ProjectDeliverable[]>>(`/projects/${projectId}/deliverables`)
+    const res = await $api<ApiResponse<ProjectDeliverable[]>>(
+      API_ENDPOINTS.EVIDENCE.DELIVERABLES(projectId)
+    )
     return res.data ?? []
   },
-  async createDeliverable(projectId: string, payload: DeliverablePayload): Promise<ProjectDeliverable> {
+
+  async createDeliverable(
+    projectId: string,
+    payload: DeliverablePayload
+  ): Promise<ProjectDeliverable> {
     const { $api } = useApi()
-    const res = await $api<ApiResponse<ProjectDeliverable>>(`/projects/${projectId}/deliverables`, { method: 'POST', body: payload })
-    if (!res.data) throw new Error(res.message || 'Deliverable tidak ditemukan.')
+    const res = await $api<ApiResponse<ProjectDeliverable>>(
+      API_ENDPOINTS.EVIDENCE.DELIVERABLES(projectId),
+      {
+        method: 'POST',
+        body: payload
+      }
+    )
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Deliverable tidak ditemukan.'))
     return res.data
   },
-  async updateDeliverable(projectId: string, deliverableId: string, payload: UpdateDeliverablePayload): Promise<ProjectDeliverable> {
+
+  async updateDeliverable(
+    projectId: string,
+    deliverableId: string,
+    payload: UpdateDeliverablePayload
+  ): Promise<ProjectDeliverable> {
     const { $api } = useApi()
-    const res = await $api<ApiResponse<ProjectDeliverable>>(`/projects/${projectId}/deliverables/${deliverableId}`, { method: 'PATCH', body: payload })
-    if (!res.data) throw new Error(res.message || 'Deliverable tidak ditemukan.')
+    const res = await $api<ApiResponse<ProjectDeliverable>>(
+      API_ENDPOINTS.EVIDENCE.DELIVERABLE_DETAIL(projectId, deliverableId),
+      {
+        method: 'PATCH',
+        body: payload
+      }
+    )
+    if (!res.data) throw new Error(getApiErrorMessage(res, 'Deliverable tidak ditemukan.'))
     return res.data
   },
-  async deleteDeliverable(projectId: string, deliverableId: string): Promise<void> {
+
+  async deleteDeliverable(
+    projectId: string,
+    deliverableId: string
+  ): Promise<void> {
     const { $api } = useApi()
-    await $api<ApiResponse<null>>(`/projects/${projectId}/deliverables/${deliverableId}`, { method: 'DELETE' })
+    await $api<ApiResponse<null>>(
+      API_ENDPOINTS.EVIDENCE.DELIVERABLE_DETAIL(projectId, deliverableId),
+      {
+        method: 'DELETE'
+      }
+    )
   },
-  async getContributionSnapshots(projectId: string): Promise<ContributionSnapshot[]> {
+
+  async getContributionSnapshots(
+    projectId: string
+  ): Promise<ContributionSnapshot[]> {
     const { $api } = useApi()
-    const res = await $api<ApiResponse<ContributionSnapshot[]>>(`/projects/${projectId}/contribution-snapshots`)
+    const res = await $api<ApiResponse<ContributionSnapshot[]>>(
+      API_ENDPOINTS.EVIDENCE.SNAPSHOTS(projectId)
+    )
     return res.data ?? []
   },
+
   async getFinalizationStatus(projectId: string): Promise<FinalizationStatus> {
     const { $api } = useApi()
-    const res = await $api<ApiResponse<FinalizationStatus>>(`/projects/${projectId}/finalization-status`)
+    const res = await $api<ApiResponse<FinalizationStatus>>(
+      API_ENDPOINTS.EVIDENCE.FINALIZATION_STATUS(projectId)
+    )
     return res.data ?? { project_id: projectId, status: 'succeeded', attempts: 0 }
   }
 }

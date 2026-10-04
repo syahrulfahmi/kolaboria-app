@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../../utils/error'
 import { ref, computed } from 'vue'
 import type { UserSkill, UserTool } from '~/types/profile'
 
@@ -87,11 +88,11 @@ const runAction = async (
       title: 'Perubahan disimpan',
       message: successMessage
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     addToast({
       variant: 'danger',
       title: 'Gagal menyimpan',
-      message: err.message || 'Terjadi kesalahan saat menyimpan perubahan.'
+      message: getApiErrorMessage(err, 'Terjadi kesalahan saat menyimpan perubahan.')
     })
   } finally {
     isLoading.value = false

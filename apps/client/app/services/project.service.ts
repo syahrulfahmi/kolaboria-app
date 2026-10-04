@@ -1,30 +1,35 @@
 import { useApi } from '../composables/useApi'
+import { API_ENDPOINTS } from '../constants/api-endpoints'
 import type { ApiResponse } from '../types/api'
-import type { Project } from '../types/project'
 import type {
+  Project,
   CreateProjectPayload,
   ApplyProjectPayload
 } from '../types/project'
+import { MasterService } from './master.service'
+import { ApplicationService } from './application.service'
 
 export const ProjectService = {
   async getProjects(params: Record<string, any> = {}) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/projects', { params })
+    return await $api<ApiResponse<Project[]>>(API_ENDPOINTS.PROJECT.LIST_OR_CREATE, {
+      query: params
+    })
   },
 
   async getProjectById(id: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>(`/projects/${id}`)
+    return await $api<ApiResponse<Project>>(API_ENDPOINTS.PROJECT.DETAIL_BY_ID(id))
   },
 
   async getProjectBySlug(slug: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>(`/projects/slug/${slug}`)
+    return await $api<ApiResponse<Project>>(API_ENDPOINTS.PROJECT.DETAIL_BY_SLUG(slug))
   },
 
   async createProject(payload: CreateProjectPayload) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>('/projects', {
+    return await $api<ApiResponse<Project>>(API_ENDPOINTS.PROJECT.LIST_OR_CREATE, {
       method: 'POST',
       body: payload
     })
@@ -32,7 +37,7 @@ export const ProjectService = {
 
   async updateProject(id: string, payload: Partial<CreateProjectPayload>) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.DETAIL_BY_ID(id), {
       method: 'PATCH',
       body: payload
     })
@@ -40,7 +45,7 @@ export const ProjectService = {
 
   async updateProjectFull(id: string, payload: Partial<CreateProjectPayload>) {
     const { $api } = useApi()
-    return await $api<ApiResponse<Project>>(`/projects/${id}`, {
+    return await $api<ApiResponse<Project>>(API_ENDPOINTS.PROJECT.DETAIL_BY_ID(id), {
       method: 'PUT',
       body: payload
     })
@@ -48,7 +53,7 @@ export const ProjectService = {
 
   async updateProjectStatus(id: string, status: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}/status`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.STATUS(id), {
       method: 'PATCH',
       body: { status }
     })
@@ -56,31 +61,26 @@ export const ProjectService = {
 
   async publishProject(id: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}/publish`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.PUBLISH(id), {
       method: 'POST'
     })
   },
 
   async startProject(id: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}/start`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.START(id), {
       method: 'POST'
     })
   },
 
   async getMyProjects() {
     const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/projects/my-projects')
-  },
-
-  async getMyApplications() {
-    const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/applications/my-applications')
+    return await $api<ApiResponse<Project[]>>(API_ENDPOINTS.PROJECT.MY_PROJECTS)
   },
 
   async applyToProject(projectId: string, payload: ApplyProjectPayload) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${projectId}/apply`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.APPLY(projectId), {
       method: 'POST',
       body: payload
     })
@@ -88,52 +88,33 @@ export const ProjectService = {
 
   async getProjectApplicants(projectId: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>(`/projects/${projectId}/applicants`)
+    return await $api<ApiResponse<any[]>>(API_ENDPOINTS.PROJECT.APPLICANTS(projectId))
   },
 
-  async reviewApplication(
-    applicationId: string,
-    status: 'accepted' | 'rejected',
-    reviewerNote?: string
-  ) {
-    const { $api } = useApi()
-    return await $api<ApiResponse<null>>(
-      `/applications/${applicationId}/review`,
-      {
-        method: 'PATCH',
-        body: { status, reviewer_note: reviewerNote }
-      }
-    )
+  /**
+   * Complete project - uses backend status update
+   */
+  async completeProject(id: string) {
+    return await this.updateProjectStatus(id, 'completed')
   },
 
-  async withdrawApplication(applicationId: string) {
-    const { $api } = useApi()
-    return await $api<ApiResponse<null>>(
-      `/applications/${applicationId}/withdraw`,
-      {
-        method: 'POST'
-      }
-    )
+  /**
+   * Archive project - uses backend status update
+   */
+  async archiveProject(id: string) {
+    return await this.updateProjectStatus(id, 'archived')
   },
 
-  async getSkillTags() {
-    const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/skill-tags')
-  },
-
-  async getSkills() {
-    const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/master-data/skills')
-  },
+  // --- Member Management (Guards for unimplemented backend routes) ---
 
   async leaveProject(projectId: string) {
-    const { $api } = useApi()
-    return await $api<ApiResponse<null>>(
-      `/projects/${projectId}/members/leave`,
-      {
-        method: 'POST'
-      }
+    console.warn(
+      `[ProjectService] leaveProject for ${projectId}: Endpoint /projects/:id/members/leave belum didukung backend Go.`
     )
+    const { $api } = useApi()
+    return await $api<ApiResponse<null>>(`/projects/${projectId}/members/leave`, {
+      method: 'POST'
+    })
   },
 
   async updateMemberStatus(
@@ -141,6 +122,9 @@ export const ProjectService = {
     memberId: string,
     status: 'active' | 'removed'
   ) {
+    console.warn(
+      `[ProjectService] updateMemberStatus for member ${memberId}: Endpoint /projects/:id/members/:memberId/status belum didukung backend Go.`
+    )
     const { $api } = useApi()
     return await $api<ApiResponse<null>>(
       `/projects/${projectId}/members/${memberId}/status`,
@@ -156,6 +140,9 @@ export const ProjectService = {
     memberId: string,
     projectRoleId: string
   ) {
+    console.warn(
+      `[ProjectService] changeMemberRole for member ${memberId}: Endpoint /projects/:id/members/:memberId/role belum didukung backend Go.`
+    )
     const { $api } = useApi()
     return await $api<ApiResponse<null>>(
       `/projects/${projectId}/members/${memberId}/role`,
@@ -166,36 +153,12 @@ export const ProjectService = {
     )
   },
 
-  async getTools() {
-    const { $api } = useApi()
-    return await $api<ApiResponse<any[]>>('/master-data/tools')
-  },
+  // Delegated to MasterService (eliminated duplication)
+  getSkills: MasterService.getSkills,
+  getTools: MasterService.getTools,
 
-  async completeProject(
-    id: string
-  ): Promise<
-    ApiResponse<{
-      project: Project
-      outcome: string
-      finalization_status: string
-    }>
-  > {
-    const { $api } = useApi()
-    return await $api<
-      ApiResponse<{
-        project: Project
-        outcome: string
-        finalization_status: string
-      }>
-    >(`/projects/${id}/complete`, {
-      method: 'POST'
-    })
-  },
-
-  async archiveProject(id: string) {
-    const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${id}/archive`, {
-      method: 'POST'
-    })
-  }
+  // Delegated to ApplicationService (separated domain)
+  getMyApplications: ApplicationService.getMyApplications,
+  reviewApplication: ApplicationService.reviewApplication,
+  withdrawApplication: ApplicationService.withdrawApplication
 }

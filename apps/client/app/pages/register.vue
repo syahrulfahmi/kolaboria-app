@@ -9,11 +9,11 @@
 
     <AuthRegisterForm />
 
-    <div class="mt-6 text-center font-body-1">
+    <div class="mt-6 text-center font-body-2">
       Sudah punya akun?
       <NuxtLink
         to="/login"
-        class="font-body-1 text-primary-600 hover:text-primary-700"
+        class="font-body-2 text-primary-600 hover:text-primary-700"
       >
         Masuk di sini
       </NuxtLink>

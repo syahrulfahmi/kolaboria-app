@@ -15,13 +15,13 @@
     >
       <p class="k-eyebrow text-primary-400 mb-5">Saatnya Bergerak</p>
       <h2
-        class="text-3xl md:text-5xl font-black text-white leading-[1.08] tracking-tight mb-6"
+        class="font-title-1 md:text-5xl font-black text-white leading-[1.08] tracking-tight mb-6"
       >
         Bergabunglah & mulai<br />
-        <span class="text-primary-400">berkolaborasi hari ini.</span>
+        <span class="text-primary-300">berkolaborasi hari ini.</span>
       </h2>
       <p
-        class="text-white/60 text-[0.95rem] leading-relaxed mb-10 max-w-xl mx-auto"
+        class="text-white/75 font-paragraph-2 mb-10 max-w-xl mx-auto"
       >
         Lebih dari 2.000 talenta terampil dan ratusan proyek aktif
         menunggumu. Tidak perlu kartu kredit. Cukup daftar dan mulai.

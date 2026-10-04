@@ -1,20 +1,20 @@
 <template>
-  <footer class="relative bg-gray-900 py-12">
+  <footer class="relative bg-secondary-900 py-12">
     <div class="w-full px-6 sm:px-12 lg:px-24">
       <div class="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12 mb-12">
         <!-- Brand -->
         <div class="col-span-1 md:col-span-2 lg:col-span-2 pr-0 lg:pr-12">
           <div class="flex items-center gap-2 mb-4">
             <div
-              class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-900 font-bold text-lg leading-none"
+              class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-secondary-900 font-bold text-lg leading-none"
             >
               K
             </div>
-            <h3 class="text-2xl font-bold text-white tracking-tight">
+            <h3 class="font-title-1 text-white tracking-tight">
               Kolaboria
             </h3>
           </div>
-          <p class="text-gray-400 text-sm leading-relaxed max-w-sm">
+          <p class="text-neutral-400 font-paragraph-3 leading-relaxed max-w-sm">
             Ecosystem Marketplace untuk Skill Validation & Career Readiness.
             Menghubungkan ide brilian dengan talenta eksekutor terbaik untuk mewujudkan karya nyata.
           </p>
@@ -22,68 +22,40 @@
 
         <!-- Ekosistem -->
         <div class="col-span-1">
-          <h4 class="text-white text-body mb-4">Ekosistem</h4>
+          <h4 class="font-label-1 text-white mb-4">Ekosistem</h4>
           <ul class="space-y-2.5">
             <li>
               <NuxtLink
                 to="/register"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
+                class="text-neutral-400 hover:text-primary-300 transition-colors font-body-2"
                 >Inisiator Proyek</NuxtLink
               >
             </li>
             <li>
               <NuxtLink
                 to="/register"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
+                class="text-neutral-400 hover:text-primary-300 transition-colors font-body-2"
                 >Talenta / Kontributor</NuxtLink
               >
             </li>
           </ul>
         </div>
 
-        <!-- Eksplorasi -->
-        <!-- <div class="col-span-1">
-          <h4 class="text-white text-body mb-4">Eksplorasi</h4>
-          <ul class="space-y-2.5">
-            <li>
-              <NuxtLink
-                to="/projects"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Cari Proyek</NuxtLink
-              >
-            </li>
-            <li>
-              <NuxtLink
-                to="/talents"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Direktori Talenta</NuxtLink
-              >
-            </li>
-            <li>
-              <a
-                href="#how"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
-                >Cara Kerjanya</a
-              >
-            </li>
-          </ul>
-        </div> -->
-
         <!-- Kolaboria -->
         <div class="col-span-1">
-          <h4 class="text-white text-body mb-4">Informasi</h4>
+          <h4 class="font-label-1 text-white mb-4">Informasi</h4>
           <ul class="space-y-2.5">
             <li>
               <NuxtLink
                 to="/privacy-policy"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
+                class="text-neutral-400 hover:text-primary-300 transition-colors font-body-2"
                 >Kebijakan Privasi</NuxtLink
               >
             </li>
             <li>
               <NuxtLink
                 to="/terms-of-service"
-                class="text-gray-400 hover:text-primary-400 transition-colors text-sm"
+                class="text-neutral-400 hover:text-primary-300 transition-colors font-body-2"
                 >Syarat & Ketentuan</NuxtLink
               >
             </li>
@@ -93,9 +65,9 @@
 
       <!-- Bottom Bar -->
       <div
-        class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center"
+        class="pt-8 border-t border-secondary-800 flex flex-col md:flex-row justify-between items-center"
       >
-        <p class="text-gray-500 text-sm mb-4 md:mb-0">
+        <p class="text-neutral-500 font-body-3 mb-4 md:mb-0">
           © {{ year }} Kolaboria. Hak cipta dilindungi.
         </p>
         <div class="flex space-x-6">

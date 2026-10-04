@@ -50,7 +50,7 @@
       <MoleculeTicker
         v-else-if="error"
         variant="danger"
-        :message="error.message"
+        :message="getApiErrorMessage(error)"
         :closable="false"
       />
 
@@ -417,6 +417,7 @@
 </template>
 
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import type { Application } from '~/types/project'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
@@ -565,8 +566,8 @@ const handleWithdraw = (applicationId: string) => {
         await withdrawApplication(applicationId)
         toast.success('Lamaran berhasil ditarik.')
         await refresh()
-      } catch (err: any) {
-        toast.error(err?.message || 'Gagal membatalkan lamaran.')
+      } catch (err: unknown) {
+        toast.error(getApiErrorMessage(err, 'Gagal membatalkan lamaran.'))
       } finally {
         isWithdrawing.value = false
       }

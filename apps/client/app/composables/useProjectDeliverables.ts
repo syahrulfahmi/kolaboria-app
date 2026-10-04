@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '../utils/error'
 import type { Ref } from 'vue'
 import type {
   ContributionSnapshot,
@@ -35,7 +36,7 @@ export const useProjectDeliverables = (projectId: Ref<string | null | undefined>
       snapshots.value = nextSnapshots
       finalizationStatus.value = nextStatus
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Gagal memuat evidence project.'
+      error.value = getApiErrorMessage(err, 'Gagal memuat evidence project.')
       throw err
     } finally {
       loading.value = false

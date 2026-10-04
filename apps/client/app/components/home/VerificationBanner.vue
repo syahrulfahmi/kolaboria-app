@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../utils/error'
 import { ref } from 'vue'
 
 defineProps<{
@@ -31,8 +32,8 @@ const handleResend = async () => {
         clearInterval(interval)
       }
     }, 1000)
-  } catch (err: any) {
-    showError(err.message || 'Gagal mengirim ulang email.')
+  } catch (err: unknown) {
+    showError(getApiErrorMessage(err, 'Gagal mengirim ulang email.'))
   } finally {
     isResending.value = false
   }

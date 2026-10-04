@@ -2,10 +2,10 @@
 import type { NuxtError } from '#app'
 import { useRouter } from 'vue-router'
 import LandingFooter from './components/landing/LandingFooter.vue'
+import { getErrorPageContent } from './utils/error'
 
-defineProps({
-  error: Object as () => NuxtError
-})
+const props = defineProps<{ error: NuxtError }>()
+const content = computed(() => getErrorPageContent(props.error))
 
 const router = useRouter()
 const handleError = () => clearError({ redirect: '/' })
@@ -18,15 +18,15 @@ const handleBack = () => {
 }
 
 // Page metadata
-useHead({
-  title: 'Halaman Tidak Ditemukan - Kolaboria',
+useHead(() => ({
+  title: `${content.value.title} - Kolaboria`,
   meta: [
     {
       name: 'description',
-      content: 'Halaman yang kamu cari tidak ditemukan atau telah dipindahkan.'
+      content: content.value.message
     }
   ]
-})
+}))
 </script>
 
 <template>
@@ -63,21 +63,14 @@ useHead({
     <main
       class="flex-1 flex flex-col items-center justify-center relative px-6 py-20 z-10 w-full max-w-lg mx-auto text-center"
     >
-      <h1
-        class="text-display font-black text-gray-900 leading-none mb-4 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 to-gray-500 select-none"
-      >
-        404
-      </h1>
-
       <!-- Error Message -->
-      <h2
+      <h1
         class="text-3xl md:text-4xl font-black text-secondary-500 mb-4 tracking-tight"
       >
-        Halaman tidak ditemukan.
-      </h2>
+        {{ content.title }}
+      </h1>
       <p class="text-base text-secondary-400/80 mb-10 leading-relaxed">
-        Mungkin URL-nya salah ketik, atau halamannya sudah dipindahkan. Yuk,
-        kembali ke tempat yang lebih ramai!
+        {{ content.message }}
       </p>
 
       <!-- Actions -->

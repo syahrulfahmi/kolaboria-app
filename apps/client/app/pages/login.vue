@@ -16,11 +16,11 @@
 
     <AuthLoginForm />
 
-    <div class="mt-6 text-center font-body-1">
+    <div class="mt-6 text-center font-body-2">
       Belum punya akun?
       <NuxtLink
         to="/register"
-        class="font-body-1 text-primary-600 hover:text-primary-700"
+        class="font-body-2 text-primary-600 hover:text-primary-700"
       >
         Daftar sekarang
       </NuxtLink>

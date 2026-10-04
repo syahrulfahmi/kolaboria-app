@@ -2,6 +2,7 @@
   "name": "@kolaboria/client",
   "private": true,
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
@@ -10,7 +11,6 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@nuxtjs/supabase": "^1.5.1",
     "@vueuse/core": "^14.3.0",
     "jwt-decode": "^4.0.0",
     "nuxt": "^4.4.8",

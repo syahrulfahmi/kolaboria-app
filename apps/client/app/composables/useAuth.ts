@@ -1,23 +1,70 @@
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 import { AuthService } from '../services/auth.service'
-import type { User } from '../types/auth'
+import type { AuthResponsePayload, User } from '../types/auth'
 
 export const useAuth = () => {
-  const accessToken = useCookie('auth_token')
-  const refreshToken = useCookie('auth_refresh_token')
+  const authCookieOptions = {
+    path: '/',
+    sameSite: 'lax' as const,
+    secure: import.meta.env.PROD
+  }
+  const accessToken = useCookie<string | null>('auth_token', authCookieOptions)
+  const refreshToken = useCookie<string | null>(
+    'auth_refresh_token',
+    authCookieOptions
+  )
   const user = useState<User | null>('user', () => null)
 
   const isAuthenticated = computed(() => !!accessToken.value)
   const isVerified = computed(() => !!user.value?.emailVerifiedAt)
 
+  const applyAuthResponse = async (data?: AuthResponsePayload) => {
+    if (
+      !data?.access_token ||
+      !data.refresh_token ||
+      !data.name ||
+      !data.email
+    ) {
+      throw new Error('Response login tidak memuat data sesi yang lengkap')
+    }
+
+    let identity: DecodedToken
+    try {
+      identity = jwtDecode<DecodedToken>(data.access_token)
+    } catch {
+      throw new Error('Access token dari server tidak valid')
+    }
+    if (!identity.user_id || !identity.username) {
+      throw new Error('Access token tidak memuat identitas pengguna')
+    }
+
+    accessToken.value = data.access_token
+    refreshToken.value = data.refresh_token
+    user.value = {
+      id: identity.user_id,
+      username: identity.username,
+      name: data.name,
+      email: data.email,
+      emailVerifiedAt: data.email_verified_at
+    }
+
+    await nextTick()
+    if (
+      import.meta.client &&
+      (!hasCookieValue('auth_token', data.access_token) ||
+        !hasCookieValue('auth_refresh_token', data.refresh_token))
+    ) {
+      accessToken.value = null
+      refreshToken.value = null
+      user.value = null
+      throw new Error('Browser tidak menyimpan cookie sesi')
+    }
+  }
+
   const login = async (email: string, password: string) => {
     const res = await AuthService.login({ email, password })
-    if (res.data) {
-      accessToken.value = res.data.accessToken
-      refreshToken.value = res.data.refreshToken
-      user.value = res.data.user
-    }
+    await applyAuthResponse(res.data)
     return res
   }
 
@@ -59,11 +106,8 @@ export const useAuth = () => {
 
   const loginWithGoogleCallback = async (code: string) => {
     const res = await AuthService.loginWithGoogleCallback(code)
-    if (res.data) {
-      accessToken.value = res.data.accessToken
-      refreshToken.value = res.data.refreshToken
-      user.value = res.data.user
-    }
+    await applyAuthResponse(res.data)
+    return res
   }
 
   const resendVerification = async (email?: string) => {
@@ -85,7 +129,20 @@ export const useAuth = () => {
     try {
       const res = await AuthService.getMe()
       if (res.data) {
-        user.value = res.data
+        const identity = getDecodedToken()
+        if (!identity?.user_id || !identity.username) {
+          throw new Error('Token autentikasi tidak memuat identitas pengguna')
+        }
+
+        user.value = {
+          id: identity.user_id,
+          username: identity.username,
+          name: res.data.name,
+          email: res.data.email,
+          emailVerifiedAt: res.data.email_verified_at,
+          isActive: res.data.is_active,
+          createdAt: res.data.created_at
+        }
       }
       return user.value
     } catch (err) {
@@ -109,6 +166,19 @@ export const useAuth = () => {
     } catch (e) {
       console.error('Failed to parse JWT token:', e)
       return null
+    }
+  }
+
+  const hasCookieValue = (name: string, expectedValue: string) => {
+    try {
+      const cookie = document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${name}=`))
+      if (!cookie) return false
+      return decodeURIComponent(cookie.slice(name.length + 1)) === expectedValue
+    } catch {
+      return false
     }
   }
 

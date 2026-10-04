@@ -4,14 +4,15 @@ import type {
   RegistrationResponse,
   ResendVerificationResponse,
   AuthResponsePayload,
-  User
+  CurrentUserResponse
 } from '../types/auth'
 import type { ApiResponse } from '../types/api'
+import { API_ENDPOINTS } from '../constants/api-endpoints'
 
 export const AuthService = {
   async login(payload: LoginRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<AuthResponsePayload>>('/auth/login', {
+    return await $api<ApiResponse<AuthResponsePayload>>(API_ENDPOINTS.AUTH.LOGIN, {
       method: 'POST',
       body: payload
     })
@@ -19,7 +20,7 @@ export const AuthService = {
 
   async logout(refreshToken: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>('/auth/logout', {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.AUTH.LOGOUT, {
       method: 'POST',
       body: { refreshToken }
     })
@@ -27,7 +28,7 @@ export const AuthService = {
 
   async register(payload: RegisterRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<RegistrationResponse>>('/auth/register', {
+    return await $api<ApiResponse<RegistrationResponse>>(API_ENDPOINTS.AUTH.REGISTER, {
       method: 'POST',
       body: {
         name: payload.fullName,
@@ -65,7 +66,7 @@ export const AuthService = {
 
   async loginWithGoogleCallback(code: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<AuthResponsePayload>>('/auth/google', {
+    return await $api<ApiResponse<AuthResponsePayload>>(API_ENDPOINTS.AUTH.GOOGLE, {
       method: 'POST',
       body: { code }
     })
@@ -74,7 +75,7 @@ export const AuthService = {
   async resendVerification(email: string) {
     const { $api } = useApi()
     return await $api<ApiResponse<ResendVerificationResponse>>(
-      '/auth/resend-verification',
+      API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
       {
         method: 'POST',
         body: { email }
@@ -84,7 +85,7 @@ export const AuthService = {
 
   async verifyEmail(token: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>('/auth/verify-email', {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.AUTH.VERIFY_EMAIL, {
       method: 'GET',
       query: { token }
     })
@@ -92,7 +93,7 @@ export const AuthService = {
 
   async forgotPassword(email: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>('/auth/forgot-password', {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       method: 'POST',
       body: { email }
     })
@@ -100,7 +101,7 @@ export const AuthService = {
 
   async resetPassword(payload: { token: string; newPassword: string }) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>('/auth/reset-password', {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
       method: 'POST',
       body: {
         token: payload.token,
@@ -112,6 +113,6 @@ export const AuthService = {
 
   async getMe() {
     const { $api } = useApi()
-    return await $api<ApiResponse<User>>('/auth/me')
+    return await $api<ApiResponse<CurrentUserResponse>>(API_ENDPOINTS.AUTH.ME)
   }
 }

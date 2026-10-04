@@ -41,7 +41,7 @@
         </h2>
         <p
           :ref="(el) => revealItems(el, 2)"
-          class="reveal text-secondary-400/80 mt-4 font-paragraph-base text-sm sm:text-base leading-relaxed"
+          class="reveal text-secondary-600 mt-4 font-paragraph-2 leading-relaxed"
           style="--delay: 200ms"
         >
           Setiap paket mencakup manfaat untuk talenta dan inisiator. Pilih masa langganan yang cocok, lalu tingkatkan kapasitas kolaborasimu kapan saja.
@@ -54,13 +54,13 @@
         class="reveal flex justify-center mb-10"
         style="--delay: 250ms"
       >
-        <div class="inline-flex w-full max-w-sm items-center gap-1 rounded-full border border-black/[0.08] bg-white/80 p-1 shadow-xs">
+        <div class="inline-flex w-full max-w-sm items-center gap-1 rounded-full border border-neutral-200 bg-white/80 p-1 shadow-xs">
           <button
             type="button"
             @click="isYearly = false"
             :aria-pressed="!isYearly"
             :class="[
-              'flex-1 rounded-full px-4 py-2 text-xs font-bold transition-all duration-200',
+              'flex-1 rounded-full px-4 py-2 font-label-3 transition-all duration-200',
               !isYearly
                 ? 'bg-secondary-500 text-white shadow-xs'
                 : 'text-secondary-400 hover:text-secondary-600'
@@ -73,14 +73,14 @@
             @click="isYearly = true"
             :aria-pressed="isYearly"
             :class="[
-              'flex-1 rounded-full px-3 py-2 text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5',
+              'flex-1 rounded-full px-3 py-2 font-label-3 transition-all duration-200 flex items-center justify-center gap-1.5',
               isYearly
                 ? 'bg-secondary-500 text-white shadow-xs'
                 : 'text-secondary-400 hover:text-secondary-600'
             ]"
           >
             Tahunan
-            <span class="rounded-full bg-accent-400 px-1.5 py-0.5 text-[9px] font-black text-secondary-900">Hemat 25%</span>
+            <span class="rounded-full bg-accent-400 px-1.5 py-0.5 font-label-3 text-secondary-900">Hemat 25%</span>
           </button>
         </div>
       </div>
@@ -95,52 +95,52 @@
             'reveal relative flex h-full flex-col rounded-3xl border p-6 sm:p-7 transition-all duration-300',
             plan.bestOffer
               ? 'border-primary-400 bg-white shadow-xl shadow-primary-900/10 ring-2 ring-primary-300/70 lg:-translate-y-2'
-              : 'border-black/[0.08] bg-white/90 shadow-sm hover:border-primary-200 hover:shadow-lg'
+              : 'border-neutral-200 bg-white/90 shadow-sm hover:border-primary-200 hover:shadow-lg'
           ]"
           :style="{ '--delay': `${300 + index * 100}ms` }"
         >
           <span
             v-if="plan.bestOffer"
-            class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent-400 px-4 py-1 text-[10px] font-black uppercase tracking-wider text-secondary-900 shadow-sm"
+            class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent-400 px-4 py-1 font-label-3 uppercase tracking-wider text-secondary-900 shadow-sm"
           >
             Best offer
           </span>
 
           <div class="flex-1">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="text-xl font-bold text-secondary-500">{{ plan.name }}</h3>
+              <h3 class="font-title-2 text-secondary-900">{{ plan.name }}</h3>
               <span
                 v-if="plan.bestOffer"
-                class="rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-bold text-primary-600"
+                class="rounded-full bg-primary-50 px-2.5 py-1 font-label-3 text-primary-600"
               >
                 Paling seimbang
               </span>
             </div>
-            <p class="min-h-10 text-xs leading-relaxed text-secondary-400/80">{{ plan.description }}</p>
+            <p class="min-h-10 font-paragraph-4 leading-relaxed text-secondary-600">{{ plan.description }}</p>
 
-            <div class="mt-5 border-b border-black/[0.07] pb-5">
+            <div class="mt-5 border-b border-neutral-200 pb-5">
               <div class="flex items-baseline gap-1">
-                <span class="text-3xl font-black tracking-tight text-secondary-500">
+                <span class="text-3xl font-black tracking-tight text-secondary-900">
                   {{ isYearly ? plan.annualPrice : plan.monthlyPrice }}
                 </span>
-                <span class="text-xs font-medium text-secondary-400">
+                <span class="font-body-3 text-secondary-500">
                   {{ isYearly ? plan.annualPeriod : plan.monthlyPeriod }}
                 </span>
               </div>
-              <p class="mt-1 min-h-8 text-[11px] font-medium text-secondary-400">
+              <p class="mt-1 min-h-8 font-body-3 text-secondary-500">
                 {{ isYearly ? plan.annualNote : plan.monthlyNote }}
               </p>
             </div>
 
             <div class="mt-5">
-              <h4 class="mb-3 text-xs font-bold uppercase tracking-wide text-secondary-500">Untuk talenta</h4>
+              <h4 class="mb-3 font-label-3 uppercase tracking-wide text-secondary-700">Untuk talenta</h4>
               <ul class="space-y-2.5">
                 <li
                   v-for="feature in plan.talentFeatures"
                   :key="feature"
-                  class="flex items-start gap-2.5 text-xs text-secondary-500"
+                  class="flex items-start gap-2.5 font-body-3 text-secondary-700"
                 >
-                  <span class="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600" aria-hidden="true">
+                  <span class="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-success-100 text-success-700" aria-hidden="true">
                     <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                   </span>
                   <span class="leading-relaxed">{{ feature }}</span>
@@ -148,13 +148,13 @@
               </ul>
             </div>
 
-            <div class="mt-5 border-t border-black/[0.06] pt-5">
-              <h4 class="mb-3 text-xs font-bold uppercase tracking-wide text-secondary-500">Untuk inisiator</h4>
+            <div class="mt-5 border-t border-neutral-200 pt-5">
+              <h4 class="mb-3 font-label-3 uppercase tracking-wide text-secondary-700">Untuk inisiator</h4>
               <ul class="space-y-2.5">
                 <li
                   v-for="feature in plan.initiatorFeatures"
                   :key="feature"
-                  class="flex items-start gap-2.5 text-xs text-secondary-500"
+                  class="flex items-start gap-2.5 font-body-3 text-secondary-700"
                 >
                   <span class="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600" aria-hidden="true">
                     <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -173,21 +173,21 @@
         </article>
       </div>
       <!-- Trust Guarantees -->
-      <div class="mt-10 pt-6 flex flex-wrap justify-center items-center gap-6 sm:gap-12 text-xs text-secondary-400 font-medium text-center">
+      <div class="mt-10 pt-6 flex flex-wrap justify-center items-center gap-6 sm:gap-12 font-body-3 text-secondary-600 text-center">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
           <span>Tanpa kartu kredit saat mendaftar</span>
         </div>
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           <span>Ubah atau batalkan paket kapan saja</span>
         </div>
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
           <span>Data dan portofolio tetap tersimpan aman</span>

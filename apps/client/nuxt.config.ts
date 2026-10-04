@@ -10,7 +10,6 @@ export default defineNuxtConfig({
   devServer: {
     host: '127.0.0.1'
   },
-  modules: ['@nuxtjs/supabase'],
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()]
@@ -38,16 +37,8 @@ export default defineNuxtConfig({
     },
     '~/components'
   ],
-  supabase: {
-    url:
-      process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    key: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-    redirect: false
-  },
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
-      supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1',
       googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID

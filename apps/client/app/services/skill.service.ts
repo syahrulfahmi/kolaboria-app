@@ -1,16 +1,13 @@
+import { MasterService } from './master.service'
 import type { Skill, Tool } from '../types/skill'
-import type { ApiResponse } from '../types/api'
 
+/**
+ * SkillService - Backward compatible proxy to MasterService
+ * @deprecated Use MasterService directly for master data, or ProfileService for user skills
+ */
 export const SkillService = {
-  async getSkills(): Promise<Skill[]> {
-    const { $api } = useApi()
-    const res = await $api<ApiResponse<Skill[]>>('/master-data/skills')
-    return res.data || []
-  },
-
-  async getTools(): Promise<Tool[]> {
-    const { $api } = useApi()
-    const res = await $api<ApiResponse<Tool[]>>('/master-data/tools')
-    return res.data || []
-  }
+  getSkills: MasterService.getSkills,
+  getTools: MasterService.getTools
 }
+
+export type { Skill, Tool }

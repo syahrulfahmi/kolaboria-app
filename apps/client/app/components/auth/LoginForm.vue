@@ -5,9 +5,14 @@ import { getApiErrorMessage } from '../../utils/error'
 // ── Zod Schema ──────────────────────────────────────────────────────────────
 const loginSchema = z.object({
   email: z
-    .email('Format email tidak valid')
-    .refine((value) => value.trim().length > 0, 'Email harus diisi'),
-  password: z.string().min(8, 'Password minimal 8 karakter')
+    .string()
+    .trim()
+    .min(1, 'Email harus diisi')
+    .email('Format email tidak valid'),
+  password: z
+    .string()
+    .min(1, 'Password harus diisi')
+    .min(8, 'Password minimal 8 karakter')
 })
 
 type FieldErrors = Partial<Record<keyof z.infer<typeof loginSchema>, string>>
@@ -58,13 +63,19 @@ const handleLogin = async () => {
   isLoading.value = true
   try {
     const res = await login(result.data.email, result.data.password)
-    if (res?.data?.verificationResendAvailableAt) {
-      const { setAvailableAt } = useVerificationCooldown()
-      setAvailableAt(result.data.email, res.data.verificationResendAvailableAt)
+    if (res.data?.email_verified_at === null) {
+      await router.replace({
+        path: '/verify-email-notice',
+        query: { email: res.data.email || result.data.email }
+      })
+    } else {
+      await router.replace('/home')
     }
-    router.replace('/home')
   } catch (err: unknown) {
-    authError.value = 'Email atau password salah. Coba lagi'
+    authError.value = getApiErrorMessage(
+      err,
+      'Email atau password salah. Coba lagi'
+    )
   } finally {
     isLoading.value = false
   }
@@ -72,8 +83,10 @@ const handleLogin = async () => {
 
 const forgotPasswordSchema = z.object({
   email: z
+    .string()
+    .trim()
+    .min(1, 'Email harus diisi')
     .email('Format email tidak valid')
-    .refine((value) => value.trim().length > 0, 'Email harus diisi')
 })
 
 const handleForgotPassword = async () => {
@@ -141,8 +154,7 @@ const closeForgotModal = () => {
       <MoleculeInputField
         v-model="form.email"
         label="Email"
-        type="email"
-        placeholder="name@example.com"
+        placeholder="Masukkan email kamu"
         :error="fieldErrors.email"
         autocomplete="email"
       />
@@ -205,8 +217,7 @@ const closeForgotModal = () => {
           <MoleculeInputField
             v-model="forgotEmail"
             label="Alamat Email"
-            type="email"
-            placeholder="name@example.com"
+            placeholder="Masukkan email kamu"
             :error="forgotEmailError"
             autocomplete="email"
           />

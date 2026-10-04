@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../../utils/error'
 import { ref, computed } from 'vue'
 import type { Profile } from '~/types/profile'
 
@@ -56,11 +57,11 @@ const handleTogglePin = async (project: any) => {
       })
     }
     emit('refresh')
-  } catch (err: any) {
+  } catch (err: unknown) {
     addToast({
       variant: 'danger',
       title: 'Aksi gagal',
-      message: err.message || 'Gagal mengubah status karya unggulan.'
+      message: getApiErrorMessage(err, 'Gagal mengubah status karya unggulan.')
     })
   } finally {
     isActionLoading.value = false

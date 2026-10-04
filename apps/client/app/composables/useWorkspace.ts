@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '../utils/error'
 import type { Ref } from 'vue'
 import type {
   ActivityLog,
@@ -85,7 +86,7 @@ export const useWorkspace = (projectId: Ref<string | null | undefined>) => {
       tasks.value = await WorkspaceService.getTasks(requireProjectId())
       refreshOverview()
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Gagal memuat task.'
+      error.value = getApiErrorMessage(err, 'Gagal memuat task.')
       toast.error('Gagal memuat workspace.')
       throw err
     } finally {

@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '../utils/error'
 import { ProjectService } from '../services/project.service'
 import type {
   Project,
@@ -69,7 +70,7 @@ export const useProjects = () => {
   ): Promise<Project> => {
     const res = await ProjectService.createProject(payload)
     if (!res.data) {
-      throw new Error(res.message || 'Gagal membuat project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal membuat project.'))
     }
     return {
       ...res.data,
@@ -80,7 +81,7 @@ export const useProjects = () => {
   const publishProject = async (projectId: string): Promise<void> => {
     const res = await ProjectService.publishProject(projectId)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal mempublikasikan project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal mempublikasikan project.'))
     }
   }
 
@@ -90,7 +91,7 @@ export const useProjects = () => {
   ): Promise<void> => {
     const res = await ProjectService.updateProject(projectId, payload)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal memperbarui project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal memperbarui project.'))
     }
   }
 
@@ -100,10 +101,10 @@ export const useProjects = () => {
   ): Promise<Project> => {
     const res = await ProjectService.updateProjectFull(projectId, payload)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal memperbarui project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal memperbarui project.'))
     }
     if (!res.data) {
-      throw new Error(res.message || 'Project hasil perubahan tidak tersedia.')
+      throw new Error(getApiErrorMessage(res, 'Project hasil perubahan tidak tersedia.'))
     }
     return {
       ...res.data,
@@ -117,26 +118,26 @@ export const useProjects = () => {
   ): Promise<void> => {
     const res = await ProjectService.updateProjectStatus(projectId, status)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal memperbarui status project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal memperbarui status project.'))
     }
   }
 
   const startProject = async (projectId: string): Promise<void> => {
     const res = await ProjectService.startProject(projectId)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal memulai project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal memulai project.'))
     }
   }
 
   const completeProject = async (projectId: string) => {
     const res = await ProjectService.completeProject(projectId)
-    if (res.status >= 400) throw new Error(res.message || 'Gagal menyelesaikan project.')
-    return res.data
+    if (res && res.status >= 400) throw new Error(getApiErrorMessage(res, 'Gagal menyelesaikan project.'))
+    return res
   }
 
   const archiveProject = async (projectId: string): Promise<void> => {
     const res = await ProjectService.archiveProject(projectId)
-    if (res.status >= 400) throw new Error(res.message || 'Gagal mengarsipkan project.')
+    if (res && res.status >= 400) throw new Error(getApiErrorMessage(res, 'Gagal mengarsipkan project.'))
   }
 
   const getMyProjects = async (): Promise<Project[]> => {
@@ -168,7 +169,7 @@ export const useProjects = () => {
   ): Promise<void> => {
     const res = await ProjectService.applyToProject(payload.project_id, payload)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal melamar ke project.')
+      throw new Error(getApiErrorMessage(res, 'Gagal melamar ke project.'))
     }
   }
 
@@ -195,31 +196,21 @@ export const useProjects = () => {
   ): Promise<void> => {
     const res = await ProjectService.reviewApplication(applicationId, status, reviewerNote)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal meninjau lamaran.')
+      throw new Error(getApiErrorMessage(res, 'Gagal meninjau lamaran.'))
     }
   }
 
   const withdrawApplication = async (applicationId: string): Promise<void> => {
     const res = await ProjectService.withdrawApplication(applicationId)
     if (res.status >= 400) {
-      throw new Error(res.message || 'Gagal menarik lamaran.')
-    }
-  }
-
-  const getSkillTags = async () => {
-    try {
-      const res = await ProjectService.getSkillTags()
-      return res.data ?? []
-    } catch (err) {
-      console.error('Failed to get skill tags:', err)
-      return []
+      throw new Error(getApiErrorMessage(res, 'Gagal menarik lamaran.'))
     }
   }
 
   const getSkills = async () => {
     try {
       const res = await ProjectService.getSkills()
-      return res.data ?? []
+      return Array.isArray(res) ? res : (res as any)?.data ?? []
     } catch (err) {
       console.error('Failed to get skills:', err)
       return []
@@ -228,17 +219,17 @@ export const useProjects = () => {
 
   const leaveProject = async (projectId: string) => {
     const res = await ProjectService.leaveProject(projectId)
-    if (res.status >= 400) throw new Error(res.message || 'Gagal keluar dari project.')
+    if (res.status >= 400) throw new Error(getApiErrorMessage(res, 'Gagal keluar dari project.'))
   }
 
   const updateMemberStatus = async (projectId: string, memberId: string, status: 'active' | 'removed') => {
     const res = await ProjectService.updateMemberStatus(projectId, memberId, status)
-    if (res.status >= 400) throw new Error(res.message || 'Gagal memperbarui status member.')
+    if (res.status >= 400) throw new Error(getApiErrorMessage(res, 'Gagal memperbarui status member.'))
   }
 
   const changeMemberRole = async (projectId: string, memberId: string, projectRoleId: string) => {
     const res = await ProjectService.changeMemberRole(projectId, memberId, projectRoleId)
-    if (res.status >= 400) throw new Error(res.message || 'Gagal mengubah role member.')
+    if (res.status >= 400) throw new Error(getApiErrorMessage(res, 'Gagal mengubah role member.'))
   }
 
   return {
@@ -260,7 +251,6 @@ export const useProjects = () => {
     getProjectApplicants,
     reviewApplication,
     withdrawApplication,
-    getSkillTags,
     getSkills,
     leaveProject,
     updateMemberStatus,

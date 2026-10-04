@@ -1,23 +1,24 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { isAuthenticated, user, isVerified, fetchCurrentUser } = useAuth()
+  const { isAuthenticated, user, fetchCurrentUser } = useAuth()
 
   // 1. Authenticated check (let 'auth' middleware handle unauthenticated users)
   if (!isAuthenticated.value) return
 
   // Hydrate user if token exists but user state is null
-  if (!user.value) {
-    const fetchedUser = await fetchCurrentUser()
-    if (!fetchedUser) {
+  let currentUser = user.value
+  if (!currentUser) {
+    currentUser = await fetchCurrentUser()
+    if (!currentUser) {
       return navigateTo('/login')
     }
   }
 
-  // 2. Email Verified check (order: authenticated -> verified -> onboarded)
-  if (!isVerified.value) {
+  // /auth/me returns emailVerifiedAt; pending accounts can access only notice.
+  if (!currentUser.emailVerifiedAt) {
     if (to.path !== '/verify-email-notice') {
       return navigateTo({
         path: '/verify-email-notice',
-        query: user.value?.email ? { email: user.value.email } : {}
+        query: currentUser.email ? { email: currentUser.email } : {}
       })
     }
     return

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../../utils/error'
 import { ref, computed } from 'vue'
 import type { Profile } from '~/types/profile'
 import type { CareerHistory } from '~/composables/useCareer'
@@ -89,11 +90,11 @@ const handleSaveCareer = async () => {
 
     emit('refresh')
     showCareerForm.value = false
-  } catch (err: any) {
+  } catch (err: unknown) {
     addToast({
       variant: 'danger',
       title: 'Aksi gagal',
-      message: err.message || 'Terjadi kesalahan saat menyimpan riwayat karier.'
+      message: getApiErrorMessage(err, 'Terjadi kesalahan saat menyimpan riwayat karier.')
     })
   } finally {
     isActionLoading.value = false
@@ -112,11 +113,11 @@ const handleDeleteCareer = async (id: string | undefined) => {
       message: 'Pengalaman kerja berhasil dihapus.'
     })
     emit('refresh')
-  } catch (err: any) {
+  } catch (err: unknown) {
     addToast({
       variant: 'danger',
       title: 'Aksi gagal',
-      message: err.message || 'Gagal menghapus riwayat karier.'
+      message: getApiErrorMessage(err, 'Gagal menghapus riwayat karier.')
     })
   } finally {
     isActionLoading.value = false

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '../../../utils/error'
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type {
@@ -14,7 +15,7 @@ import EditTabStatus from '~/components/project/edit/EditTabStatus.vue'
 import ProjectStatusConfirmModal from '~/components/project/ProjectStatusConfirmModal.vue'
 import { WorkspaceService } from '~/services/workspace.service'
 
-import { SkillService } from '~/services/skill.service'
+import { MasterService } from '~/services/master.service'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
@@ -98,9 +99,9 @@ const hydrateForm = (source: Project) => {
 
 onMounted(async () => {
   try {
-    const [p, skills] = await Promise.all([
+    const [p, roles] = await Promise.all([
       getProjectBySlug(projectSlug),
-      SkillService.getSkills(),
+      MasterService.getContributionRoles(),
       loadTools()
     ])
 
@@ -121,9 +122,7 @@ onMounted(async () => {
 
     project.value = p
     deliverableCount.value = (await WorkspaceService.getDeliverables(p.id)).length
-    contributionRoles.value = skills.filter(
-      (skill) => skill.category !== 'Legacy project skill'
-    )
+    contributionRoles.value = roles
 
     hydrateForm(p)
 
@@ -134,10 +133,10 @@ onMounted(async () => {
         (a) => a.status === 'pending' || a.status === 'accepted'
       )
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     addToast({
       variant: 'danger',
-      message: error.message || 'Gagal memuat project.'
+      message: getApiErrorMessage(error, 'Gagal memuat project.')
     })
   } finally {
     pending.value = false
@@ -180,10 +179,10 @@ const handleSave = async () => {
     } else {
       addToast({ variant: 'success', message: 'Perubahan berhasil disimpan!' })
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     addToast({
       variant: 'danger',
-      message: error.message || 'Gagal menyimpan perubahan.'
+      message: getApiErrorMessage(error, 'Gagal menyimpan perubahan.')
     })
   } finally {
     isSubmitting.value = false
@@ -225,10 +224,10 @@ const handleStatusConfirm = async () => {
       })
       router.push('/projects/my-projects')
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     addToast({
       variant: 'danger',
-      message: error.message || 'Gagal memperbarui status.'
+      message: getApiErrorMessage(error, 'Gagal memperbarui status.')
     })
     isSubmitting.value = false
   }

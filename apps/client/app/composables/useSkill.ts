@@ -1,29 +1,10 @@
 import { ref } from 'vue'
-import { SkillService } from '../services/skill.service'
-import { useApi } from './useApi'
+import { MasterService } from '../services/master.service'
+import { ProfileService } from '../services/profile.service'
 import type { Skill, Tool } from '../types/skill'
 import type { UserSkill, UserTool } from '../types/profile'
-import type { ApiResponse } from '../types/api'
-
-interface UserSkillDTO {
-  id: string
-  skillId: string
-  name: string
-  category: string
-  slug: string
-  isPrimary: boolean
-}
-
-interface UserToolDTO {
-  id: string
-  toolId: string
-  name: string
-  category: string | null
-  slug: string
-}
 
 export const useSkill = () => {
-  const { $api } = useApi()
   const skills = ref<Skill[]>([])
   const tools = ref<Tool[]>([])
   const isLoadingSkills = ref(false)
@@ -32,7 +13,7 @@ export const useSkill = () => {
   const loadSkills = async () => {
     isLoadingSkills.value = true
     try {
-      skills.value = await SkillService.getSkills()
+      skills.value = await MasterService.getSkills()
     } catch (e) {
       console.error('Failed to load skills:', e)
     } finally {
@@ -43,7 +24,7 @@ export const useSkill = () => {
   const loadTools = async () => {
     isLoadingTools.value = true
     try {
-      tools.value = await SkillService.getTools()
+      tools.value = await MasterService.getTools()
     } catch (e) {
       console.error('Failed to load tools:', e)
     } finally {
@@ -51,10 +32,9 @@ export const useSkill = () => {
     }
   }
 
-  const getUserSkills = async (userId?: string): Promise<UserSkill[]> => {
+  const getUserSkills = async (_userId?: string): Promise<UserSkill[]> => {
     try {
-      // Pada Go backend, kita menarik daftar skill user aktif dari /profiles/me/skills
-      const res = await $api<ApiResponse<UserSkillDTO[]>>('/profiles/me/skills')
+      const res = await ProfileService.getMySkills()
       return (res.data || []).map((s) => ({
         id: s.id,
         skill_id: s.skillId,
@@ -68,30 +48,20 @@ export const useSkill = () => {
   }
 
   const addSkill = async (skillId: string, isPrimary = false) => {
-    await $api<ApiResponse<null>>('/profiles/me/skills', {
-      method: 'POST',
-      body: {
-        skillId,
-        isPrimary
-      }
-    })
+    await ProfileService.addSkill({ skillId, isPrimary })
   }
 
   const removeSkill = async (userSkillId: string) => {
-    await $api<ApiResponse<null>>(`/profiles/me/skills/${userSkillId}`, {
-      method: 'DELETE'
-    })
+    await ProfileService.removeSkill(userSkillId)
   }
 
   const setPrimarySkill = async (userSkillId: string) => {
-    await $api<ApiResponse<null>>(`/profiles/me/skills/${userSkillId}/primary`, {
-      method: 'PATCH'
-    })
+    await ProfileService.setPrimarySkill(userSkillId)
   }
 
-  const getUserTools = async (userId?: string): Promise<UserTool[]> => {
+  const getUserTools = async (_userId?: string): Promise<UserTool[]> => {
     try {
-      const res = await $api<ApiResponse<UserToolDTO[]>>('/profiles/me/tools')
+      const res = await ProfileService.getMyTools()
       return (res.data || []).map((t) => ({
         id: t.id,
         tool_id: t.toolId,
@@ -104,18 +74,11 @@ export const useSkill = () => {
   }
 
   const addUserTool = async (toolId: string) => {
-    await $api<ApiResponse<null>>('/profiles/me/tools', {
-      method: 'POST',
-      body: {
-        toolId
-      }
-    })
+    await ProfileService.addTool({ toolId })
   }
 
   const removeUserTool = async (userToolId: string) => {
-    await $api<ApiResponse<null>>(`/profiles/me/tools/${userToolId}`, {
-      method: 'DELETE'
-    })
+    await ProfileService.removeTool(userToolId)
   }
 
   return {
