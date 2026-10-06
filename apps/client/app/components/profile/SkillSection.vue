@@ -1,36 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { UserSkill, UserTool } from '../../types/profile'
+import type { ProfileSkill, ProfileTool } from '../../types/profile-page'
 
 const props = defineProps<{
-  skills: UserSkill[]
-  tools: UserTool[]
+  skills: ProfileSkill[]
+  tools: ProfileTool[]
 }>()
 
 const primarySkill = computed(() =>
-  props.skills.find((skill) => skill.is_primary)
+  props.skills.find((skill) => skill.isPrimary)
 )
 const secondarySkills = computed(() =>
-  props.skills.filter((skill) => !skill.is_primary)
+  props.skills.filter((skill) => !skill.isPrimary)
 )
 </script>
 
 <template>
   <section class="bg-white rounded-2xl p-6 md:p-8 border border-neutral-200">
     <h3 class="font-label-1 mb-5 flex items-center gap-2">
-      <svg
-        class="w-5 h-5 text-neutral-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-        />
-      </svg>
+      <Icon name="lucide:briefcase-business" class="w-5 h-5 text-neutral-500" />
       Keahlian Utama
     </h3>
 
@@ -40,7 +28,7 @@ const secondarySkills = computed(() =>
         variant="primary"
         class="border border-primary-200"
       >
-        <span class="mr-1">★</span> {{ primarySkill.skills?.name }}
+        <span class="mr-1">★</span> {{ primarySkill.name }}
       </AtomicTag>
 
       <AtomicTag
@@ -48,7 +36,7 @@ const secondarySkills = computed(() =>
         :key="skill.id"
         variant="default"
       >
-        {{ skill.skills?.name }}
+        {{ skill.name }}
       </AtomicTag>
     </div>
 
@@ -67,7 +55,7 @@ const secondarySkills = computed(() =>
           :key="userTool.id"
           variant="default"
         >
-          {{ userTool.tools?.name }}
+          {{ userTool.name }}
         </AtomicTag>
       </div>
 

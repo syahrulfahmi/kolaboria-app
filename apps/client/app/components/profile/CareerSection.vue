@@ -1,27 +1,17 @@
 <script setup lang="ts">
+import type { CareerJourney } from '../../types/profile-page'
+import { formatCareerPeriod } from '../../utils/career-period'
+
 defineProps<{
-  careerJourneys?: any[]
+  careerJourneys: CareerJourney[]
   isOwner: boolean
-  username: string
 }>()
 </script>
 
 <template>
   <section class="bg-white rounded-2xl p-6 md:p-8 border border-neutral-200">
     <h3 class="font-label-1 mb-8 flex items-center gap-2">
-      <svg
-        class="w-6 h-6 text-primary-600"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-        />
-      </svg>
+      <Icon name="lucide:trending-up" class="w-6 h-6 text-primary-600" />
       Perjalanan Karier
     </h3>
 
@@ -55,7 +45,7 @@ defineProps<{
         <!-- Career Items -->
         <div
           v-for="(career, idx) in careerJourneys"
-          :key="idx"
+          :key="career.id"
           class="relative flex gap-6 items-start group cursor-default"
         >
           <!-- Timeline Dot -->
@@ -79,7 +69,7 @@ defineProps<{
                 {{ career.title }}
               </h4>
               <span class="font-label-1 text-neutral-500">
-                {{ career.start_year }} - {{ career.end_year || 'Sekarang' }}
+                {{ formatCareerPeriod(career.startYear, career.startMonth, career.endYear, career.endMonth) }}
               </span>
             </div>
             <p class="font-label-1 text-primary-600 mb-2">

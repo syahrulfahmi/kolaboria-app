@@ -10,11 +10,17 @@ const meta: Meta<typeof MoleculeDatePicker> = {
     docs: {
       description: {
         component:
-          'Input tanggal kustom tanpa library eksternal. Menampilkan kalender premium dengan navigasi bulan, highlight hari ini, dan dua mode: single date dan date range. Sepenuhnya sesuai design system Kolaboria.'
+          'Pilihan tanggal atau bulan dan tahun, dengan mode single/range. Desktop menggunakan popover; mobile menggunakan bottom sheet. Pilihan tahun memakai dropdown design system yang dapat dicari.'
       }
     }
   },
   argTypes: {
+    granularity: {
+      control: 'radio',
+      options: ['day', 'month'],
+      description: 'Ketelitian pilihan: tanggal harian atau bulan dan tahun.',
+      table: { defaultValue: { summary: 'day' } }
+    },
     mode: {
       control: 'radio',
       options: ['single', 'range'],
@@ -79,6 +85,26 @@ export const SingleDate: Story = {
       return { args, date }
     },
     template: `<div class="max-w-xs"><MoleculeDatePicker v-bind="args" v-model="date" /></div>`
+  })
+}
+
+export const MonthAndYear: Story = {
+  args: {
+    label: 'Mulai',
+    placeholder: 'Pilih bulan dan tahun',
+    granularity: 'month',
+    mode: 'single',
+    required: true,
+    minDate: new Date(1950, 0, 1),
+    maxDate: new Date()
+  },
+  render: (args) => ({
+    components: { MoleculeDatePicker },
+    setup() {
+      const date = ref<Date | null>(null)
+      return { args, date }
+    },
+    template: `<div class="max-w-sm"><MoleculeDatePicker v-bind="args" v-model="date" /></div>`
   })
 }
 

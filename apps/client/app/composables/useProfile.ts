@@ -7,57 +7,69 @@ import type {
   TalentProfile
 } from '../types/profile'
 import { getProfileCompletionItems } from '../utils/profileCompletion'
-import type { ApiResponse } from '../types/api'
 import type { ExperienceCard } from '../types/experience'
+import type { ProfileResponse, UpdateProfileRequest } from '../types/profile-api'
 
-// Helper function to map camelCase REST API response properties to snake_case used by frontend components
-function mapProfile(data: any): Profile | null {
+function mapProfile(data: ProfileResponse | null | undefined): Profile | null {
   if (!data) return null
-
-  let formattedLocation = data.location ?? null
-  if (data.address) {
-    const parts = [data.address.regency, data.address.province].filter(Boolean)
-    if (parts.length > 0) {
-      formattedLocation = parts.join(', ')
-    }
-  }
+  const legacyAddress =
+    typeof data.address === 'object' && data.address ? data.address : null
+  const address = data.village
+    ? {
+        id: '',
+        provinceId: 0,
+        province: data.village.province,
+        regencyId: 0,
+        regency: data.village.regency,
+        districtId: 0,
+        district: data.village.district,
+        villageId: data.village.village_id,
+        village: data.village.village,
+        address: typeof data.address === 'string' ? data.address : '',
+        postalCode: data.village.postal_code
+      }
+    : legacyAddress
+      ? legacyAddress
+      : typeof data.address === 'string' && data.address
+        ? {
+            id: '',
+            provinceId: 0,
+            province: '',
+            regencyId: 0,
+            regency: '',
+            districtId: 0,
+            district: '',
+            villageId: 0,
+            village: '',
+            address: data.address,
+            postalCode: ''
+          }
+        : null
+  const legacyLocation = legacyAddress
+    ? [legacyAddress.regency, legacyAddress.province].filter(Boolean).join(', ')
+    : null
 
   return {
     id: data.id,
     username: data.username,
-    full_name: data.fullName ?? data.full_name ?? null,
-    account_type: data.accountType ?? data.account_type ?? null,
-    system_role: data.systemRole ?? data.system_role ?? null,
+    full_name: data.full_name ?? data.fullName ?? null,
+    account_type: (data.account_type ?? data.accountType ?? null) as Profile['account_type'],
+    system_role: (data.system_role ?? data.systemRole ?? null) as Profile['system_role'],
     avatar: data.avatar ?? null,
     headline: data.headline ?? null,
     bio: data.bio ?? null,
-    location: formattedLocation,
-    availability_status:
-      data.availabilityStatus ?? data.availability_status ?? null,
-    external_links: data.externalLinks ?? data.external_links ?? {},
+    location: data.location ?? legacyLocation,
+    availability_status: (data.availability_status ?? data.availabilityStatus ?? null) as Profile['availability_status'],
+    external_links: data.external_links ?? data.externalLinks ?? {},
     rating: data.rating ?? 0,
-    review_count: data.reviewCount ?? data.review_count ?? 0,
-    completion_score: data.completionScore ?? data.completion_score ?? 0,
-    is_verified: data.isVerified ?? data.is_verified ?? false,
-    last_active_at: data.lastActiveAt ?? data.last_active_at,
-    created_at: data.createdAt ?? data.created_at,
-    updated_at: data.updatedAt ?? data.updated_at,
-    verified_experiences: (data.verifiedExperiences ?? data.verified_experiences ?? []) as ExperienceCard[],
-    address: data.address
-      ? {
-          id: data.address.id,
-          provinceId: data.address.provinceId ?? data.address.province_id,
-          province: data.address.province,
-          regencyId: data.address.regencyId ?? data.address.regency_id,
-          regency: data.address.regency,
-          districtId: data.address.districtId ?? data.address.district_id,
-          district: data.address.district,
-          villageId: data.address.villageId ?? data.address.village_id,
-          village: data.address.village,
-          address: data.address.address,
-          postalCode: data.address.postalCode ?? data.address.postal_code
-        }
-      : null
+    review_count: data.review_count ?? data.reviewCount ?? 0,
+    completion_score: data.completion_score ?? data.completionScore ?? 0,
+    is_verified: data.is_verified ?? data.isVerified ?? false,
+    last_active_at: data.last_active_at ?? data.lastActiveAt ?? '',
+    created_at: data.created_at ?? data.createdAt ?? '',
+    updated_at: data.updated_at ?? data.updatedAt ?? '',
+    verified_experiences: (data.verified_experiences ?? data.verifiedExperiences ?? []) as ExperienceCard[],
+    address
   }
 }
 
@@ -65,7 +77,7 @@ let activeProfilePromise: Promise<Profile | null> | null = null
 
 export const useProfile = () => {
   const profile = useState<Profile | null>('current_profile', () => null)
-  const talentProfileState = useState<any | null>(
+  const talentProfileState = useState<TalentProfile | null>(
     'current_talent_profile',
     () => null
   )
@@ -94,15 +106,23 @@ export const useProfile = () => {
           mapped.username = currentUsername.value || ''
         }
         profile.value = mapped
-        if (res.data?.talentProfile) {
+        const talent = res.data?.talent_profile ?? (res.data?.talentProfile
+          ? {
+              experience_level: res.data.talentProfile.experienceLevel,
+              goal: res.data.talentProfile.goal
+            }
+          : null)
+        if (talent) {
           talentProfileState.value = {
             user_id: mapped?.id,
-            experience_level: res.data.talentProfile.experienceLevel,
-            goal: res.data.talentProfile.goal,
-            project_count: res.data.talentProfile.projectCount,
-            completed_projects: res.data.talentProfile.completedProjects,
-            contribution_score: res.data.talentProfile.contributionScore
+            experience_level: talent.experience_level,
+            goal: talent.goal,
+            project_count: 0,
+            completed_projects: 0,
+            contribution_score: 0
           }
+        } else {
+          talentProfileState.value = null
         }
         return mapped
       } catch (err) {
@@ -146,35 +166,27 @@ export const useProfile = () => {
   }
 
   // Action: update profile
-  const updateProfile = async (payload: any) => {
-    const apiPayload: any = {}
-    if (payload.full_name !== undefined) apiPayload.fullName = payload.full_name
-    if (payload.headline !== undefined) apiPayload.headline = payload.headline
-    if (payload.bio !== undefined) apiPayload.bio = payload.bio
-    if (payload.location !== undefined) apiPayload.location = payload.location
-    if (payload.availability_status !== undefined)
-      apiPayload.availabilityStatus = payload.availability_status
-    if (payload.external_links !== undefined)
-      apiPayload.externalLinks = payload.external_links
-    if (payload.address !== undefined) apiPayload.address = payload.address
-    if (payload.village_id !== undefined)
-      apiPayload.villageId = payload.village_id
-    if (payload.villageId !== undefined)
-      apiPayload.villageId = payload.villageId
-    if (payload.goal !== undefined) apiPayload.goal = payload.goal
-
-    const res = await ProfileService.updateProfile(apiPayload)
+  const updateProfile = async (payload: UpdateProfileRequest) => {
+    const res = await ProfileService.updateProfile(payload)
     if (res.data) {
       profile.value = mapProfile(res.data)
-      if (res.data.talentProfile) {
+      const talent = res.data.talent_profile ?? (res.data.talentProfile
+        ? {
+            experience_level: res.data.talentProfile.experienceLevel,
+            goal: res.data.talentProfile.goal
+          }
+        : null)
+      if (talent) {
         talentProfileState.value = {
           user_id: profile.value?.id,
-          experience_level: res.data.talentProfile.experienceLevel,
-          goal: res.data.talentProfile.goal,
-          project_count: res.data.talentProfile.projectCount,
-          completed_projects: res.data.talentProfile.completedProjects,
-          contribution_score: res.data.talentProfile.contributionScore
+          experience_level: talent.experience_level,
+          goal: talent.goal,
+          project_count: 0,
+          completed_projects: 0,
+          contribution_score: 0
         }
+      } else {
+        talentProfileState.value = null
       }
     }
     return res
@@ -199,15 +211,20 @@ export const useProfile = () => {
     }
     try {
       const res = await ProfileService.getProfile()
-      const talent = res.data?.talentProfile || null
+      const talent = res.data?.talent_profile ?? (res.data?.talentProfile
+        ? {
+            experience_level: res.data.talentProfile.experienceLevel,
+            goal: res.data.talentProfile.goal
+          }
+        : null)
       if (talent) {
         const mappedTalent = {
           user_id: userId,
-          experience_level: talent.experienceLevel,
+          experience_level: talent.experience_level,
           goal: talent.goal,
-          project_count: talent.projectCount,
-          completed_projects: talent.completedProjects,
-          contribution_score: talent.contributionScore
+          project_count: 0,
+          completed_projects: 0,
+          contribution_score: 0
         }
         if (profile.value?.id === userId) {
           talentProfileState.value = mappedTalent
@@ -219,13 +236,6 @@ export const useProfile = () => {
       console.error('Failed to get talent profile:', err)
       return null
     }
-  }
-
-  // Update Talent Profile
-  const updateTalentProfile = async (payload: { goal?: string | null }) => {
-    console.warn(
-      'Update talent profile (goal) belum didukung oleh Go API backend saat ini.'
-    )
   }
 
   const getProfileWithRelations = async (
@@ -243,28 +253,34 @@ export const useProfile = () => {
       const profile = mapProfile(res.data)
       if (!profile) return null
 
-      const talentProfile = res.data.talentProfile
+      const talent = res.data.talent_profile ?? (res.data.talentProfile
+        ? {
+            experience_level: res.data.talentProfile.experienceLevel,
+            goal: res.data.talentProfile.goal
+          }
+        : null)
+      const talentProfile = talent
         ? {
             user_id: profile.id,
-            experience_level: res.data.talentProfile.experienceLevel,
-            goal: res.data.talentProfile.goal,
-            project_count: res.data.talentProfile.projectCount,
-            completed_projects: res.data.talentProfile.completedProjects,
-            contribution_score: res.data.talentProfile.contributionScore
+            experience_level: talent.experience_level,
+            goal: talent.goal,
+            project_count: 0,
+            completed_projects: 0,
+            contribution_score: 0
           }
         : null
 
-      const skills = (res.data.skills || []).map((s: any) => ({
+      const skills = (res.data.skills || []).map((s) => ({
         id: s.id,
-        skill_id: s.skillId,
-        is_primary: s.isPrimary,
-        skills: { name: s.name, category: s.category }
+        skill_id: s.skill_id ?? s.skillId ?? '',
+        is_primary: s.is_primary ?? s.isPrimary ?? false,
+        skills: { name: s.name, category: '' }
       }))
 
-      const tools = (res.data.tools || []).map((t: any) => ({
+      const tools = (res.data.tools || []).map((t) => ({
         id: t.id,
-        tool_id: t.toolId,
-        tools: { name: t.name, category: t.category }
+        tool_id: t.tool_id ?? t.toolId ?? '',
+        tools: { name: t.name, category: null }
       }))
 
       return { profile, talentProfile, skills, tools }
@@ -277,15 +293,17 @@ export const useProfile = () => {
     }
   }
 
-  const getPublicCareers = async (username: string): Promise<any[]> => {
+  const getPublicCareers = async (username: string) => {
     try {
       const res = await ProfileService.getPublicCareers(username)
       return (res.data || []).map((ch) => ({
         id: ch.id,
         title: ch.title,
         company: ch.company,
-        start_year: ch.startYear,
-        end_year: ch.endYear || null,
+        start_year: ch.start_year ?? ch.startYear ?? 0,
+        start_month: ch.start_month ?? null,
+        end_year: ch.end_year ?? ch.endYear ?? null,
+        end_month: ch.end_month ?? null,
         description: ch.description || ''
       }))
     } catch (err) {
@@ -294,7 +312,7 @@ export const useProfile = () => {
     }
   }
 
-  const getPublicPortfolio = async (username: string): Promise<any[]> => {
+  const getPublicPortfolio = async (username: string) => {
     try {
       const res = await ProfileService.getPublicPortfolio(username)
       return (res.data || []).map((p) => ({
@@ -319,7 +337,6 @@ export const useProfile = () => {
     getProfileByUsername,
     getTalentProfile,
     updateProfile,
-    updateTalentProfile,
     submitOnboarding,
     checkOnboardingStatus,
     getChecklist,

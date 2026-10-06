@@ -4,6 +4,14 @@ import { ref, computed, reactive } from 'vue'
 import type { Profile, TalentProfile } from '~/types/profile'
 import { LocationService } from '~/services/location.service'
 
+definePageMeta({
+  homeNavbar: {
+    variant: 'back-path',
+    title: 'Informasi Dasar',
+    mainHorizontalPadding: 'none'
+  }
+})
+
 const props = defineProps<{
   profile: Profile
   talentProfile: TalentProfile | null
@@ -14,7 +22,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
-const { updateProfile, updateTalentProfile } = useProfile()
+const { updateProfile } = useProfile()
 const { add: addToast } = useToast()
 
 const isSaving = ref(false)
@@ -44,7 +52,10 @@ const isDirty = computed(() => {
 const initialLocationLabel = computed(() => {
   if (props.profile.address) {
     const { village, district, regency, province } = props.profile.address
-    return [village, district, regency, province].filter(Boolean).join(', ')
+    const label = [village, district, regency, province]
+      .filter(Boolean)
+      .join(', ')
+    if (label) return label
   }
   return props.profile.location || ''
 })
@@ -72,9 +83,25 @@ const handleLocationSearch = async (query: string) => {
 }
 
 const handleSave = async () => {
+  if (!form.value.full_name.trim()) {
+    addToast({
+      variant: 'warning',
+      title: 'Nama wajib diisi',
+      message: 'Masukkan nama lengkap sebelum menyimpan profil.'
+    })
+    return
+  }
+
   isSaving.value = true
   try {
-    await updateProfile(form.value)
+    await updateProfile({
+      fullName: form.value.full_name.trim(),
+      headline: form.value.headline.trim() || null,
+      bio: form.value.bio.trim() || null,
+      villageId: form.value.village_id,
+      address: form.value.address.trim() || null,
+      goal: form.value.goal.trim() || null
+    })
     Object.assign(initialForm, form.value)
     emit('refresh')
 
@@ -89,7 +116,10 @@ const handleSave = async () => {
     addToast({
       variant: 'danger',
       title: 'Gagal menyimpan',
-      message: getApiErrorMessage(err, 'Terjadi kesalahan saat menyimpan perubahan.')
+      message: getApiErrorMessage(
+        err,
+        'Terjadi kesalahan saat menyimpan perubahan.'
+      )
     })
   } finally {
     isSaving.value = false
@@ -109,69 +139,86 @@ defineExpose({
 </script>
 
 <template>
-  <form class="flex flex-col gap-6" @submit.prevent="handleSave">
-    <!-- INFORMASI DASAR SECTION -->
-    <section class="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
-      <div class="mb-6">
-        <p class="font-title-2 text-primary-700">Informasi Dasar</p>
-        <h2 class="mt-1 font-title-3">Identitas Pengguna</h2>
-      </div>
+  <form
+    class="divide-y divide-neutral-200 rounded-lg lg:border lg:border-neutral-200 bg-white"
+    @submit.prevent="handleSave"
+  >
+    <section class="py-6 px-4">
+      <header class="mb-5">
+        <h2 class="font-title-3">Identitas</h2>
+        <p class="mt-1.5 font-body-2 text-secondary">
+          Informasi yang ditampilkan pada profilmu ketika berinteraksi dengan
+          project dan pengguna lain.
+        </p>
+      </header>
 
-      <MoleculeInputField
-        v-model="form.full_name"
-        label="Nama Lengkap"
-        placeholder="Masukkan nama lengkap kamu"
-        required
-        :disabled="isSaving"
-      />
+      <div class="flex flex-col gap-5">
+        <MoleculeInputField
+          v-model="form.full_name"
+          label="Nama Lengkap"
+          placeholder="Masukkan nama lengkap kamu"
+          required
+          :disabled="isSaving"
+        />
 
-      <div class="mt-5">
         <MoleculeInputField
           v-model="form.headline"
           label="Headline"
           placeholder="Contoh: Frontend Developer | UI/UX Enthusiast"
+          hint="Gunakan peran atau fokus profesional yang paling menggambarkan dirimu."
           :disabled="isSaving"
         />
-      </div>
 
-      <div class="mt-5">
-        <MoleculeAutocomplete
-          v-model="form.village_id"
-          label="Lokasi"
-          placeholder="Cari kelurahan, kecamatan, kota..."
-          :options="locationOptions"
-          :loading="isLoadingLocations"
-          :initial-label="initialLocationLabel"
-          :disabled="isSaving"
-          @search="handleLocationSearch"
-        />
-      </div>
+        <div class="flex flex-col gap-1.5">
+          <MoleculeAutocomplete
+            v-model="form.village_id"
+            label="Lokasi"
+            placeholder="Cari kelurahan, kecamatan, kota..."
+            :options="locationOptions"
+            :loading="isLoadingLocations"
+            :initial-label="initialLocationLabel"
+            :disabled="isSaving"
+            @search="handleLocationSearch"
+          />
+        </div>
 
-      <div class="mt-5">
         <MoleculeTextarea
           v-model="form.address"
           label="Alamat Lengkap"
           rows="2"
+          max-length="500"
           placeholder="Jalan, nomor rumah, RT/RW, dan detail alamat lainnya."
           :disabled="isSaving"
         />
       </div>
+    </section>
 
-      <div class="mt-5">
+    <section class="py-6 px-4">
+      <header class="mb-5">
+        <h2 class="font-title-3">Tentang kamu</h2>
+        <p class="mt-1.5 font-body-2 text-secondary">
+          Ceritakan fokus, kemampuan, dan jenis kontribusi atau project yang
+          kamu minati.
+        </p>
+      </header>
+
+      <div class="flex flex-col gap-5">
         <MoleculeTextarea
           v-model="form.bio"
           label="Bio"
-          rows="4"
+          rows="3"
+          max-length="300"
+          show-counter
           placeholder="Ceritakan fokus, pengalaman, atau cara kamu berkontribusi."
           :disabled="isSaving"
         />
-      </div>
 
-      <div class="mt-5">
         <MoleculeTextarea
           v-model="form.goal"
-          label="Goal"
-          rows="4"
+          label="Tujuan Kolaborasi"
+          rows="6"
+          max-length="200"
+          show-counter
           placeholder="Contoh: Mencari pengalaman project nyata dan mentor untuk berkembang."
           :disabled="isSaving"
         />

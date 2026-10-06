@@ -53,7 +53,7 @@ const displayPortfolioUrl = computed(() => {
       Tentang Saya
     </h3>
 
-    <div v-if="!bio" class="font-body-1 mb-6 whitespace-pre-wrap">
+    <div v-if="bio" class="font-body-1 mb-6 whitespace-pre-wrap">
       {{ bio }}
     </div>
     <div v-else class="mb-6">

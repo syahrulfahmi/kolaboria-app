@@ -2,41 +2,8 @@
   <div class="relative flex items-center w-full">
     <!-- Icon Left (Search or Loading) -->
     <div class="absolute left-4 text-neutral-400">
-      <svg
-        v-if="loading"
-        class="animate-spin h-5 w-5 text-primary-400"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        ></circle>
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.3 0 0 5.3 0 12h4z"
-        ></path>
-      </svg>
-      <svg
-        v-else
-        class="h-5 w-5"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-          clip-rule="evenodd"
-        />
-      </svg>
+      <Icon name="lucide:loader-circle" v-if="loading" class="animate-spin h-5 w-5 text-primary-400" />
+      <Icon name="lucide:search" v-else class="h-5 w-5" aria-hidden="true" />
     </div>
 
     <!-- Input -->
@@ -59,16 +26,7 @@
         class="flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-300"
         aria-label="Clear search"
       >
-        <svg
-          class="h-4 w-4"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-          />
-        </svg>
+        <Icon name="lucide:x" class="h-4 w-4" />
       </button>
     </div>
   </div>

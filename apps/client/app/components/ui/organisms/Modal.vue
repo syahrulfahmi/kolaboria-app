@@ -3,8 +3,11 @@
     <Transition name="modal-fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-49 overflow-hidden"
-        aria-labelledby="modal-title"
+        class="fixed inset-0 overflow-hidden"
+        :class="mobileFullscreen ? 'z-[60]' : 'z-49'"
+        :aria-labelledby="
+          mobileFullscreen ? 'modal-title-mobile' : 'modal-title'
+        "
         role="dialog"
         aria-modal="true"
       >
@@ -20,16 +23,53 @@
         >
           <div
             class="modal-panel pointer-events-auto relative flex flex-col transform overflow-hidden rounded-t-2xl sm:rounded-xl bg-white text-left shadow-xl w-full max-h-[90dvh] sm:max-h-[90vh] sm:my-8"
-            :class="sizeClass"
+            :class="[sizeClass, mobileFullscreen && 'modal-panel--mobile-fullscreen']"
             @click.stop
           >
             <!-- Mobile drag handle -->
             <div
               class="mx-auto w-12 h-1.5 bg-neutral-200 rounded-full mt-3 mb-1 shrink-0 sm:hidden"
             />
-            <!-- Header -->
+            <div
+              v-if="mobileFullscreen"
+              class="flex shrink-0 items-center gap-3 border-b border-neutral-200 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:hidden"
+            >
+              <button
+                v-if="showClose"
+                type="button"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                aria-label="Tutup dialog"
+                @click="close"
+              >
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <h3
+                v-if="title"
+                id="modal-title-mobile"
+                class="min-w-0 flex-1 truncate text-center font-label-1 text-neutral-900"
+              >
+                {{ title }}
+              </h3>
+              <span v-if="showClose" class="h-9 w-9 shrink-0" aria-hidden="true" />
+            </div>
+
+            <!-- Desktop and default modal header -->
             <div
               class="py-3 px-5 flex items-start justify-between gap-4 shrink-0"
+              :class="mobileFullscreen && 'hidden sm:flex'"
             >
               <div class="w-full">
                 <h3
@@ -72,10 +112,16 @@
               </button>
             </div>
 
-            <hr class="border-neutral-200 shrink-0" v-if="showClose" />
+            <hr
+              v-if="showClose && !mobileFullscreen"
+              class="border-neutral-200 shrink-0"
+            />
 
             <!-- Body -->
-            <div class="p-5 overflow-y-auto flex-1 min-h-0">
+            <div
+              class="p-5 overflow-y-auto flex-1 min-h-0"
+              :class="mobileFullscreen && 'px-4 py-5 sm:p-5'"
+            >
               <slot></slot>
             </div>
 
@@ -127,7 +173,8 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted, computed } from 'vue'
+import { computed } from 'vue'
+import { useOverlayScrollLock } from '../../../composables/useOverlayScrollLock'
 
 const props = defineProps({
   modelValue: {
@@ -149,6 +196,10 @@ const props = defineProps({
   showClose: {
     type: Boolean,
     default: true
+  },
+  mobileFullscreen: {
+    type: Boolean,
+    default: false
   },
   size: {
     type: String,
@@ -212,26 +263,7 @@ const handleBackdropClick = () => {
   }
 }
 
-// Lock body scroll when modal is open
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (typeof document !== 'undefined') {
-      if (isOpen) {
-        document.body.style.overflow = 'hidden'
-      } else {
-        document.body.style.overflow = ''
-      }
-    }
-  }
-)
-
-// Prevent scroll lock from persisting if component unmounts while open
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = ''
-  }
-})
+useOverlayScrollLock(() => props.modelValue)
 </script>
 
 <style scoped>
@@ -253,6 +285,16 @@ onUnmounted(() => {
 .modal-fade-enter-from .modal-panel,
 .modal-fade-leave-to .modal-panel {
   transform: translateY(100%);
+}
+
+@media (max-width: 639px) {
+  .modal-panel--mobile-fullscreen {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
 }
 
 /* Desktop (sm+): zoom + slight translateY */

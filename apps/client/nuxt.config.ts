@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
+  modules: ['@nuxt/icon'],
   // The application shell and authenticated product areas are client-rendered
   // by default. Public routes opt back into SSR below.
   ssr: false,
@@ -13,6 +14,14 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()]
+  },
+  icon: {
+    provider: 'none',
+    clientBundle: {
+      scan: true,
+      icons: ['lucide:arrow-left'],
+      includeCustomCollections: false
+    }
   },
   components: [
     {

@@ -13,16 +13,23 @@
     <div class="relative" ref="triggerRef">
       <div
         class="flex min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 transition-all duration-150 focus:outline-none"
-        tabindex="0"
+        :tabindex="disabled ? -1 : 0"
+        role="combobox"
+        aria-haspopup="listbox"
+        :aria-expanded="isOpen"
+        :aria-controls="isOpen ? listId : undefined"
+        :aria-label="label || placeholder"
+        :aria-disabled="disabled || undefined"
         :class="[
           error
             ? 'border-red-300 focus-within:border-red-500 focus:border-red-500'
             : 'border-neutral-300 hover:border-primary-300 focus-within:border-primary-500 focus:border-primary-500',
           disabled
-            ? 'cursor-not-allowed bg-neutral-100 opacity-75 focus-within:border-neutral-300 focus:border-neutral-300'
+            ? 'cursor-not-allowed border-neutral-300 bg-neutral-200! text-neutral-500 opacity-100 focus-within:border-neutral-300 focus:border-neutral-300'
             : ''
         ]"
         @click="toggleDropdown"
+        @keydown="handleKeydown"
       >
         <!-- Single Value Mode -->
         <template v-if="!multiple">
@@ -30,9 +37,13 @@
             <span
               v-if="!searchable || !isOpen"
               class="absolute inset-0 flex items-center truncate pl-1"
-              :class="[
-                !selectedSingle ? 'text-neutral-400' : 'text-neutral-900'
-              ]"
+              :class="
+                disabled
+                  ? 'text-neutral-500'
+                  : !selectedSingle
+                    ? 'text-neutral-400'
+                    : 'text-neutral-900'
+              "
               style="pointer-events: none"
             >
               {{ selectedSingle ? selectedSingle.label : placeholder }}
@@ -43,8 +54,11 @@
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
-              class="w-full border-none bg-transparent p-0 pl-1 text-sm focus:outline-none focus:ring-0 text-neutral-900 placeholder:text-neutral-400"
-              :class="{ 'opacity-0': !isOpen }"
+              class="w-full border-none bg-transparent p-0 pl-1 text-sm focus:outline-none focus:ring-0 placeholder:text-neutral-400"
+              :class="[
+                { 'opacity-0': !isOpen },
+                disabled ? 'text-neutral-500' : 'text-neutral-900'
+              ]"
               :placeholder="selectedSingle ? selectedSingle.label : placeholder"
               :disabled="disabled"
               @focus="handleFocus"
@@ -71,16 +85,7 @@
               @click.stop="removeOption(val)"
               class="group -mr-1 flex h-4 w-4 items-center justify-center rounded-sm hover:bg-primary-200/50"
             >
-              <svg
-                class="h-3 w-3 text-primary-600 group-hover:text-primary-800"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-                />
-              </svg>
+              <Icon name="lucide:x" class="h-3 w-3 text-primary-600 group-hover:text-primary-800" />
             </button>
           </span>
 
@@ -112,46 +117,24 @@
           >
         </template>
 
-        <svg
-          class="h-5 w-5 text-neutral-400 transition-transform duration-200 ml-auto"
-          :class="{ 'rotate-180 text-primary-400': isOpen }"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <Icon name="lucide:chevron-down" class="h-5 w-5 text-neutral-400 transition-transform duration-200 ml-auto" :class="{ 'rotate-180 text-primary-400': isOpen }" aria-hidden="true" />
       </div>
-
-      <Teleport to="body">
-        <transition
-          enter-active-class="transition-all ease-out duration-150"
-          :enter-from-class="
-            openUpward
-              ? 'transform opacity-0 translate-y-3'
-              : 'transform opacity-0 -translate-y-3'
-          "
-          enter-to-class="transform opacity-100 translate-y-0"
-          leave-active-class="transition-all ease-in duration-150"
-          leave-from-class="transform opacity-100 translate-y-0"
-          :leave-to-class="
-            openUpward
-              ? 'transform opacity-0 translate-y-3'
-              : 'transform opacity-0 -translate-y-3'
-          "
-        >
+      <transition
+        enter-active-class="transition-all ease-out duration-150"
+        :enter-from-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
+        enter-to-class="transform opacity-100 translate-y-0"
+        leave-active-class="transition-all ease-in duration-150"
+        leave-from-class="transform opacity-100 translate-y-0"
+        :leave-to-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
+      >
           <div
             v-if="isOpen && !disabled"
             ref="dropdownListRef"
             class="fixed z-[9999] max-h-60 overflow-auto rounded-xl bg-white shadow-lg shadow-secondary-900/10 ring-1 ring-black/5 focus:outline-none flex flex-col"
             :style="dropdownStyle"
+            @keydown="handleKeydown"
           >
-            <ul role="listbox" class="py-1.5 flex-1 overflow-y-auto">
+            <ul :id="listId" role="listbox" class="py-1.5 flex-1 overflow-y-auto">
               <!-- Loading Skeleton -->
               <template v-if="loading">
                 <li
@@ -171,7 +154,7 @@
 
               <template v-else>
                 <li
-                  v-for="option in filteredOptions"
+                  v-for="(option, index) in filteredOptions"
                   :key="String(option.value)"
                   @click.stop="selectOption(option)"
                   class="relative cursor-pointer select-none py-2.5 pl-4 pr-9 text-sm text-neutral-800 transition-colors border-l-2"
@@ -187,6 +170,9 @@
                       : ''
                   ]"
                   role="option"
+                  tabindex="-1"
+                  @focus="activeOptionIndex = index"
+                  @mousedown.prevent
                   :aria-selected="isSelected(option)"
                 >
                   <span class="block truncate">{{ option.label }}</span>
@@ -194,18 +180,7 @@
                     v-if="isSelected(option)"
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary-500"
                   >
-                    <svg
-                      class="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Icon name="lucide:check" class="h-5 w-5" aria-hidden="true" />
                   </span>
                 </li>
                 <li
@@ -218,32 +193,17 @@
             </ul>
           </div>
         </transition>
-      </Teleport>
-    </div>
-
-    <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
-      <svg
-        class="h-3.5 w-3.5 text-red-500 shrink-0"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
-          clip-rule="evenodd"
-        />
-      </svg>
-      <span class="font-body-3 text-red-500">{{ error }}</span>
-    </div>
-    <span v-else-if="hint" class="font-body-3 text-secondary mt-1">{{
-      hint
-    }}</span>
+      </div>
+      <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
+        <Icon name="lucide:circle-alert" class="h-3.5 w-3.5 text-red-500 shrink-0" aria-hidden="true" />
+        <span class="font-body-3 text-red-500">{{ error }}</span>
+      </div>
+      <span v-else-if="hint" class="font-body-3 text-secondary mt-1">{{ hint }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, useId, watch } from 'vue'
 
 interface Option {
   label: string
@@ -265,6 +225,7 @@ const props = defineProps<{
   max?: number
   loading?: boolean
   selectedValues?: (string | number)[]
+  teleport?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -278,6 +239,8 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const triggerRef = ref<HTMLElement | null>(null)
 const dropdownListRef = ref<HTMLElement | null>(null)
 const searchInputRef = ref<HTMLInputElement | null>(null)
+const listId = useId()
+const activeOptionIndex = ref(0)
 const searchQuery = ref('')
 const openUpward = ref(false)
 const dropdownStyle = ref<Record<string, string>>({})
@@ -323,6 +286,18 @@ const DROPDOWN_MAX_HEIGHT = 240
 const calculatePosition = () => {
   if (!triggerRef.value) return
 
+  if (props.teleport === false) {
+    openUpward.value = false
+    dropdownStyle.value = {
+      position: 'absolute',
+      left: '0',
+      top: 'calc(100% + 4px)',
+      width: '100%',
+      zIndex: '9999'
+    }
+    return
+  }
+
   const rect = triggerRef.value.getBoundingClientRect()
   const spaceBelow = window.innerHeight - rect.bottom
   const spaceAbove = rect.top
@@ -351,6 +326,7 @@ const toggleDropdown = () => {
   isOpen.value = !isOpen.value
 
   if (isOpen.value) {
+    activeOptionIndex.value = Math.max(0, filteredOptions.value.findIndex(isSelected))
     if (!hasOpened.value) {
       hasOpened.value = true
       emit('open')
@@ -365,6 +341,68 @@ const toggleDropdown = () => {
     searchQuery.value = ''
   }
 }
+
+const focusActiveOption = async () => {
+  await nextTick()
+  const option = dropdownListRef.value?.querySelectorAll<HTMLElement>('[role="option"]')[activeOptionIndex.value]
+  option?.focus({ preventScroll: true })
+  option?.scrollIntoView({ block: 'nearest' })
+}
+
+const focusTrigger = () => {
+  const trigger = triggerRef.value?.firstElementChild
+  if (trigger instanceof HTMLElement) trigger.focus()
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (props.disabled) return
+  if (event.key === 'Escape' && isOpen.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    isOpen.value = false
+    searchQuery.value = ''
+    focusTrigger()
+    return
+  }
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!isOpen.value) toggleDropdown()
+    else activeOptionIndex.value = Math.max(0, Math.min(
+      activeOptionIndex.value + (event.key === 'ArrowDown' ? 1 : -1),
+      filteredOptions.value.length - 1
+    ))
+    void focusActiveOption()
+    return
+  }
+  const isTyping = event.target instanceof HTMLInputElement
+  if (event.key === 'Enter' || (event.key === ' ' && !isTyping)) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!isOpen.value) toggleDropdown()
+    else {
+      const option = filteredOptions.value[activeOptionIndex.value]
+      if (option) {
+        selectOption(option)
+        if (!props.multiple) focusTrigger()
+      }
+    }
+  }
+  if (event.key === 'Tab') {
+    isOpen.value = false
+    searchQuery.value = ''
+  }
+}
+
+watch(filteredOptions, options => {
+  activeOptionIndex.value = Math.max(0, options.findIndex(isSelected))
+})
+watch(() => props.disabled, disabled => {
+  if (disabled) {
+    isOpen.value = false
+    searchQuery.value = ''
+  }
+})
 
 const selectOption = (option: Option) => {
   if (props.disabled) return

@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { z } from 'zod'
+import { computed, ref, watch } from 'vue'
 import type { CareerHistory } from '~/composables/useCareer'
+import type { DateValue, RangeValue } from '~/components/ui/molecules/DatePicker.vue'
+import { toMonthDate } from '~/utils/year-month'
+import {
+  careerHistoryFormSchema,
+  type CareerHistoryFormValues
+} from '~/data/career-history-validation'
 
 const props = defineProps<{
   initialData?: CareerHistory | null
@@ -9,176 +14,191 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'save', payload: CareerHistory): void
-  (e: 'cancel'): void
+  (event: 'save', payload: CareerHistory): void
 }>()
 
-const isEdit = computed(() => !!props.initialData?.id)
-
-// Form State
-const title = ref(props.initialData?.title || '')
-const company = ref(props.initialData?.company || '')
-const startYear = ref<number | string>(
-  props.initialData?.start_year || new Date().getFullYear()
+const title = ref(props.initialData?.title ?? '')
+const company = ref(props.initialData?.company ?? '')
+const startDate = ref<Date | null>(
+  toMonthDate(props.initialData?.start_year, props.initialData?.start_month)
 )
-const isCurrent = ref(
-  props.initialData ? props.initialData.end_year === null : true
+const endDate = ref<Date | null>(
+  toMonthDate(props.initialData?.end_year, props.initialData?.end_month)
 )
-const endYear = ref<number | string>(
-  props.initialData?.end_year || new Date().getFullYear()
+const minDate = new Date(1950, 0, 1)
+const maxDate = new Date()
+const isCurrent = ref(props.initialData?.end_year == null)
+const startHint = computed(() =>
+  !startDate.value && props.initialData?.start_year
+    ? `Tahun tersimpan: ${props.initialData.start_year}. Lengkapi bulan mulai.`
+    : undefined
 )
-const description = ref(props.initialData?.description || '')
-
-// Zod Schema
-const schema = z
-  .object({
-    title: z.string().min(2, 'Posisi/jabatan harus diisi.'),
-    company: z.string().min(2, 'Nama perusahaan harus diisi.'),
-    start_year: z.coerce
-      .number()
-      .min(1950, 'Tahun tidak valid.')
-      .max(new Date().getFullYear(), 'Tahun tidak boleh melebihi tahun ini.'),
-    end_year: z.coerce.number().optional().nullable()
-  })
-  .superRefine((data, ctx) => {
-    if (!isCurrent.value) {
-      if (!data.end_year) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Tahun selesai harus diisi jika tidak dicentang.',
-          path: ['end_year']
-        })
-      } else if (data.end_year < data.start_year) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Tahun selesai tidak boleh kurang dari tahun mulai.',
-          path: ['end_year']
-        })
-      }
-    }
-  })
-
+const endHint = computed(() =>
+  !isCurrent.value && !endDate.value && props.initialData?.end_year
+    ? `Tahun tersimpan: ${props.initialData.end_year}. Lengkapi bulan selesai.`
+    : undefined
+)
+const description = ref(props.initialData?.description ?? '')
 const errors = ref<Record<string, string>>({})
 
+const updateStartDate = (value: DateValue | RangeValue) => {
+  startDate.value = value instanceof Date ? value : null
+}
+const updateEndDate = (value: DateValue | RangeValue) => {
+  endDate.value = value instanceof Date ? value : null
+}
+watch(isCurrent, current => {
+  if (current) {
+    endDate.value = null
+    delete errors.value.end_year
+    delete errors.value.end_month
+  }
+})
+
 const handleSubmit = () => {
+  if (props.loading) return
   errors.value = {}
 
-  const payloadData = {
+  const validation = careerHistoryFormSchema.safeParse({
     title: title.value,
     company: company.value,
-    start_year: startYear.value,
-    end_year: isCurrent.value ? null : endYear.value
-  }
-
-  const validation = schema.safeParse(payloadData)
+    start_year: startDate.value?.getFullYear() ?? null,
+    start_month: startDate.value ? startDate.value.getMonth() + 1 : null,
+    end_year: isCurrent.value ? null : endDate.value?.getFullYear() ?? null,
+    end_month: isCurrent.value || !endDate.value ? null : endDate.value.getMonth() + 1,
+    description: description.value,
+    is_current: isCurrent.value
+  })
 
   if (!validation.success) {
-    validation.error.issues.forEach((issue) => {
-      if (issue.path[0]) {
-        errors.value[issue.path[0] as string] = issue.message
+    for (const issue of validation.error.issues) {
+      const field = issue.path[0]
+      if (typeof field === 'string' && !errors.value[field]) {
+        errors.value[field] = issue.message
       }
-    })
+    }
     return
   }
 
+  const values: CareerHistoryFormValues = validation.data
+
   emit('save', {
-    ...validation.data,
-    description: description.value || null
-  } as CareerHistory)
+    id: props.initialData?.id,
+    title: values.title,
+    company: values.company,
+    start_year: values.start_year,
+    start_month: values.start_month,
+    end_year: values.is_current ? null : values.end_year,
+    end_month: values.is_current ? null : values.end_month,
+    description: values.description || null
+  })
 }
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-6">
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-      <!-- Jabatan -->
-      <div class="sm:col-span-2">
+  <form
+    id="career-history-form"
+    class="space-y-6 sm:space-y-7"
+    @submit.prevent="handleSubmit"
+  >
+    <section class="space-y-4">
+      <header class="space-y-1">
+        <h4 class="font-label-1 text-neutral-900">Informasi pengalaman</h4>
+        <p class="font-body-3 text-secondary">
+          Informasi utama yang akan ditampilkan pada profil.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-4">
         <MoleculeInputField
-          id="title"
-          label="Jabatan / Posisi"
+          id="career-title"
           v-model="title"
-          placeholder="Contoh: Frontend Engineer"
+          label="Peran / Posisi"
+          placeholder="Contoh: Frontend Developer"
           :error="errors.title"
+          :disabled="loading"
+          required
+          maxlength="150"
         />
-      </div>
-
-      <!-- Perusahaan -->
-      <div class="sm:col-span-2">
         <MoleculeInputField
-          id="company"
-          label="Perusahaan / Organisasi"
+          id="career-company"
           v-model="company"
-          placeholder="Contoh: PT Kolaboria Nusantara"
+          label="Perusahaan / Organisasi / Project"
+          placeholder="Contoh: Kolaboria"
           :error="errors.company"
+          :disabled="loading"
+          required
+          maxlength="150"
         />
       </div>
+    </section>
 
-      <!-- Tahun Mulai -->
-      <div>
-        <MoleculeInputField
-          id="start_year"
-          type="number"
-          label="Tahun Mulai"
-          v-model="startYear"
-          placeholder="Contoh: 2021"
-          :error="errors.start_year"
+    <section class="space-y-4 border-t border-neutral-200 pt-5 sm:pt-6">
+      <header class="space-y-1">
+        <h4 class="font-label-1 text-neutral-900">Periode</h4>
+        <p class="font-body-3 text-secondary">
+          Pilih bulan dan tahun pengalaman ini berlangsung.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-x-5">
+        <MoleculeDatePicker
+          :model-value="startDate"
+          granularity="month"
+          label="Mulai"
+          placeholder="Pilih bulan dan tahun"
+          :initial-view-year="initialData?.start_year"
+          :hint="startHint"
+          :error="errors.start_month || errors.start_year"
+          :disabled="loading"
+          required
+          :min-date="minDate"
+          :max-date="maxDate"
+          @update:model-value="updateStartDate"
         />
-      </div>
-
-      <!-- Tahun Selesai -->
-      <div>
-        <MoleculeInputField
-          id="end_year"
-          type="number"
-          label="Tahun Selesai"
-          v-model="endYear"
-          :disabled="isCurrent"
-          placeholder="Contoh: 2023"
-          :error="errors.end_year"
-        />
-
-        <div class="mt-3">
-          <AtomicCheckbox v-model="isCurrent" label="Masih bekerja di sini" />
+        <div class="space-y-3">
+          <MoleculeDatePicker
+            :model-value="endDate"
+            granularity="month"
+            label="Selesai"
+            :placeholder="isCurrent ? 'Masih berlangsung' : 'Pilih bulan dan tahun'"
+            :initial-view-year="initialData?.end_year ?? undefined"
+            :hint="endHint"
+            :error="errors.end_month || errors.end_year"
+            :disabled="loading || isCurrent"
+            :required="!isCurrent"
+            :min-date="startDate || minDate"
+            :max-date="maxDate"
+            @update:model-value="updateEndDate"
+          />
+          <AtomicCheckbox
+            v-model="isCurrent"
+            label="Saya masih menjalani pengalaman ini"
+            :disabled="loading"
+          />
         </div>
       </div>
+    </section>
 
-      <!-- Deskripsi -->
-      <div class="sm:col-span-2 flex flex-col gap-1.5">
-        <label
-          for="description"
-          class="text-xs text-body tracking-wide uppercase text-neutral-500"
-        >
-          Deskripsi (Opsional)
-        </label>
-        <textarea
-          id="description"
-          v-model="description"
-          rows="4"
-          placeholder="Ceritakan peran, tanggung jawab, dan pencapaian kamu di sini"
-          class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-body text-neutral-900 transition-all duration-150 focus:border-primary-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
-        ></textarea>
-      </div>
-    </div>
+    <section class="space-y-4 border-t border-neutral-200 pt-5 sm:pt-6">
+      <header class="space-y-1">
+        <h4 class="font-label-1 text-neutral-900">Kontribusi</h4>
+        <p class="font-body-3 text-secondary">
+          Ceritakan peran, tanggung jawab, atau hasil yang relevan.
+        </p>
+      </header>
 
-    <div
-      class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200"
-    >
-      <AtomicButton
-        type="button"
-        variant="outline"
-        @click="emit('cancel')"
+      <MoleculeTextarea
+        id="career-description"
+        v-model="description"
+        label="Deskripsi (opsional)"
+        placeholder="Jelaskan kontribusi dan hasil yang kamu berikan."
+        :error="errors.description"
         :disabled="loading"
-      >
-        Batal
-      </AtomicButton>
-      <AtomicButton
-        type="submit"
-        variant="primary"
-        :loading="loading"
-        :disabled="loading"
-      >
-        Simpan
-      </AtomicButton>
-    </div>
+        :max-length="2000"
+        :show-counter="true"
+        :rows="4"
+      />
+    </section>
   </form>
 </template>

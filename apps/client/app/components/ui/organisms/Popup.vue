@@ -113,9 +113,7 @@
           </div>
 
           <!-- Content -->
-          <h3
-            class="text-xl text-body tracking-tight text-secondary-900 leading-snug"
-          >
+          <h3 class="mt-3 font-title-2 leading-snug text-primary">
             {{ title }}
           </h3>
 
@@ -123,7 +121,7 @@
           <div
             v-if="description"
             v-dompurify-html="description"
-            class="mt-3 text-sm leading-relaxed text-neutral-500"
+            class="mt-3 font-body-2 leading-relaxed text-primary"
           ></div>
 
           <!-- Actions -->

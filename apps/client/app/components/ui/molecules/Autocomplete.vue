@@ -41,37 +41,11 @@
           @click="clearSelection"
           class="text-neutral-400 hover:text-neutral-600 focus:outline-none mr-1"
         >
-          <svg
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <Icon name="lucide:x" class="h-4 w-4" />
         </button>
 
         <!-- Chevron Down / Up -->
-        <svg
-          class="h-5 w-5 text-neutral-400 transition-transform duration-200"
-          :class="{ 'rotate-180 text-primary-400': isOpen }"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-          @click.stop="toggleDropdown"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <Icon name="lucide:chevron-down" class="h-5 w-5 text-neutral-400 transition-transform duration-200" :class="{ 'rotate-180 text-primary-400': isOpen }" aria-hidden="true" @click.stop="toggleDropdown" />
       </div>
 
       <!-- Suggestion List (Teleported) -->
@@ -136,18 +110,7 @@
                     v-if="option.value === modelValue"
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary-500"
                   >
-                    <svg
-                      class="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Icon name="lucide:check" class="h-5 w-5" />
                   </span>
                 </li>
 
@@ -166,18 +129,7 @@
 
     <!-- Error message -->
     <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
-      <svg
-        class="h-3.5 w-3.5 text-red-500 shrink-0"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z"
-          clip-rule="evenodd"
-        />
-      </svg>
+      <Icon name="lucide:circle-alert" class="h-3.5 w-3.5 text-red-500 shrink-0" />
       <span class="text-caption text-red-500">{{ error }}</span>
     </div>
   </div>

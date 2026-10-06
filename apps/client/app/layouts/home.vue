@@ -1,27 +1,58 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import type { Profile } from '../types/profile'
+import { getProfileEditPageMeta } from '../data/profile-edit-navigation'
+import type { HomeNavbarConfig } from '../types/home-navbar'
 
 const { logout: signOut, user } = useAuth()
 const { getProfile } = useProfile()
 const router = useRouter()
+const route = useRoute()
 
 const isMobileMenuOpen = ref(false)
 const isUserDropdownOpen = ref(false)
 const mobileMenuRef = ref<HTMLElement | null>(null)
 const mobileMenuButtonRef = ref<HTMLElement | null>(null)
 const userMenuRef = ref<HTMLElement | null>(null)
-const userProfile = ref<any>(null)
+const userProfile = ref<Profile | null>(null)
 
 const profilePath = '/profile/me'
+const profileEditPageMeta = computed(() => getProfileEditPageMeta(route.path))
+const isProfileEditRoute = computed(() => profileEditPageMeta.value !== null)
+const mobileNavbar = computed<HomeNavbarConfig | null>(
+  () => route.meta.homeNavbar ?? null
+)
+const isProfileEditFormRoute = computed(
+  () => isProfileEditRoute.value && !profileEditPageMeta.value?.isMenu
+)
+let desktopMediaQuery: MediaQueryList | null = null
 
 const displayName = computed(
   () => userProfile.value?.full_name || user.value?.name || 'User'
 )
 
-onMounted(async () => {
-  if (user.value) {
+const loadNavbarProfile = async () => {
+  const isProfileOverview = /^\/profile\/[^/]+\/?$/.test(route.path)
+  const shouldLoadForCurrentRoute =
+    !mobileNavbar.value || desktopMediaQuery?.matches === true
+
+  if (user.value && !isProfileOverview && shouldLoadForCurrentRoute) {
     userProfile.value = await getProfile()
   }
+}
+
+const handleViewportChange = (event: MediaQueryListEvent) => {
+  if (event.matches) void loadNavbarProfile()
+}
+
+onMounted(() => {
+  desktopMediaQuery = window.matchMedia('(min-width: 1024px)')
+  void loadNavbarProfile()
+  desktopMediaQuery.addEventListener('change', handleViewportChange)
+})
+
+onBeforeUnmount(() => {
+  desktopMediaQuery?.removeEventListener('change', handleViewportChange)
 })
 
 useClickOutside(
@@ -40,15 +71,25 @@ const handleLogout = async () => {
   await signOut()
   router.push('/login')
 }
+
+const handleMobileNavbarBack = () => {
+  router.back()
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+  <div
+    class="min-h-screen bg-neutral-50 font-sans text-neutral-900"
+    :class="isProfileEditFormRoute ? 'flex flex-col' : ''"
+  >
     <nav
       class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur"
     >
-      <div class="mx-auto max-w-4/5 px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between gap-6">
+      <div class="mx-auto lg:max-w-4/5 px-4 sm:px-6 lg:px-8">
+        <div
+          class="h-16 items-center justify-between gap-6"
+          :class="mobileNavbar ? 'hidden lg:flex' : 'flex'"
+        >
           <div class="flex items-center gap-8">
             <NuxtLink
               to="/home"
@@ -191,6 +232,29 @@ const handleLogout = async () => {
             </button>
           </div>
         </div>
+
+        <div
+          v-if="mobileNavbar?.variant === 'back-path'"
+          class="flex h-16 items-center lg:hidden"
+        >
+          <AtomicIconButton
+            variant="ghost"
+            size="lg"
+            class="-ml-4 mr-4"
+            :aria-label="`Kembali dari ${mobileNavbar.title}`"
+            title="Kembali"
+            @click="handleMobileNavbarBack"
+          >
+            <Icon
+              name="lucide:arrow-left"
+              class="h-24 w-24 text-neutral-900"
+              aria-hidden="true"
+            />
+          </AtomicIconButton>
+          <h1 class="min-w-0 truncate font-title-3 text-secondary-900">
+            {{ mobileNavbar.title }}
+          </h1>
+        </div>
       </div>
 
       <transition
@@ -259,7 +323,13 @@ const handleLogout = async () => {
       </transition>
     </nav>
 
-    <main class="mx-auto max-w-4/5 py-8 lg:px-8">
+    <main
+      class="mx-auto w-full lg:max-w-4/5 py-4"
+      :class="[
+        mobileNavbar?.mainHorizontalPadding === 'none' ? 'px-0' : 'px-4',
+        isProfileEditFormRoute ? 'flex flex-1 flex-col pb-0 lg:pb-4' : ''
+      ]"
+    >
       <slot />
     </main>
   </div>

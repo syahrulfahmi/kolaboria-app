@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ExperienceCard as ExperienceCardType } from '../../types/experience'
-const props = defineProps<{ experience: ExperienceCardType; owner?: boolean }>()
+import type { ExperienceCardSummary } from '../../types/experience'
+
+const props = defineProps<{ experience: ExperienceCardSummary; owner?: boolean }>()
 const href = computed(() =>
   props.owner
     ? `/profile/me/experiences/${props.experience.slug}`

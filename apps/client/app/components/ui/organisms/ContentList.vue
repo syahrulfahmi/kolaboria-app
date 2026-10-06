@@ -12,11 +12,13 @@ const props = withDefaults(
     modelValue?: number
     mode?: 'free' | 'stepper'
     sticky?: boolean
+    layout?: 'default' | 'rows'
   }>(),
   {
     modelValue: 0,
     mode: 'free',
-    sticky: true
+    sticky: true,
+    layout: 'default'
   }
 )
 
@@ -38,19 +40,35 @@ const handleClick = (index: number) => {
 
 <template>
   <div :class="sticky ? 'lg:sticky lg:top-24' : ''">
-    <div class="bg-white rounded-2xl border border-neutral-200 p-2">
-      <nav class="flex flex-col space-y-1" role="navigation">
+    <div
+      :class="
+        layout === 'rows'
+          ? 'bg-white'
+          : 'rounded-2xl border border-neutral-200 bg-white p-2'
+      "
+    >
+      <nav
+        class="flex flex-col"
+        :class="layout === 'rows' ? '' : 'space-y-1'"
+        role="navigation"
+      >
         <button
           v-for="(item, index) in items"
           :key="index"
           type="button"
-          class="group flex items-center gap-3 px-4 py-3 font-label-1 rounded-xl transition-all duration-150 text-left w-full"
+          class="group flex w-full items-center text-left"
           :class="[
-            modelValue === index
-              ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-500'
-              : isLocked(index)
-                ? 'text-neutral-400 cursor-not-allowed'
-                : 'text-secondary hover:bg-neutral-50 hover:text-secondary-900 border-l-2 border-transparent'
+            layout === 'rows'
+              ? 'min-h-16 gap-3 border-b border-neutral-100 px-3 py-3 transition-colors duration-150 last:border-b-0 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500'
+              : 'gap-3 rounded-xl px-4 py-3 font-label-1 transition-all duration-150',
+            layout !== 'rows' && modelValue === index
+              ? 'border-l-2 border-primary-500 bg-primary-50 text-primary-700'
+              : layout !== 'rows' && isLocked(index)
+                ? 'cursor-not-allowed text-neutral-400'
+                : layout !== 'rows'
+                  ? 'border-l-2 border-transparent text-secondary hover:bg-neutral-50 hover:text-secondary-900'
+                  : '',
+            isLocked(index) ? 'cursor-not-allowed' : ''
           ]"
           :disabled="isLocked(index)"
           :aria-current="modelValue === index ? 'page' : undefined"
@@ -61,14 +79,16 @@ const handleClick = (index: number) => {
             v-if="item.icon"
             class="shrink-0 transition-colors"
             :class="[
-              modelValue === index
-                ? 'text-primary-600'
-                : 'text-neutral-400 group-hover:text-neutral-600'
+              layout === 'rows'
+                ? 'grid h-9 w-9 place-items-center rounded-xl bg-primary-50 text-primary-600'
+                : modelValue === index
+                  ? 'text-primary-600'
+                  : 'text-neutral-400 group-hover:text-neutral-600'
             ]"
           >
             <svg
               v-if="item.icon === 'user'"
-              class="w-5 h-5"
+              class="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -82,7 +102,7 @@ const handleClick = (index: number) => {
             </svg>
             <svg
               v-else-if="item.icon === 'code'"
-              class="w-5 h-5"
+              class="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -96,7 +116,7 @@ const handleClick = (index: number) => {
             </svg>
             <svg
               v-else-if="item.icon === 'briefcase'"
-              class="w-5 h-5"
+              class="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -110,7 +130,7 @@ const handleClick = (index: number) => {
             </svg>
             <svg
               v-else-if="item.icon === 'academic-cap'"
-              class="w-5 h-5"
+              class="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -162,22 +182,57 @@ const handleClick = (index: number) => {
           </span>
 
           <!-- Label + Description -->
-          <span class="flex flex-col min-w-0">
-            <span class="truncate">{{ item.label }}</span>
+          <span
+            class="min-w-0"
+            :class="
+              layout === 'rows'
+                ? 'flex flex-1 flex-row flex-wrap items-baseline gap-x-1.5 gap-y-0.5'
+                : 'flex flex-1 flex-col'
+            "
+          >
+            <span
+              :class="
+                layout === 'rows'
+                  ? 'font-label-2 text-secondary-900'
+                  : 'truncate'
+              "
+              >{{ item.label }}</span
+            >
             <span
               v-if="item.description"
-              class="mt-0.5 text-xs font-normal truncate"
+              class="font-normal"
               :class="
-                modelValue === index
-                  ? 'text-primary-500'
-                  : isLocked(index)
-                    ? 'text-neutral-300'
-                    : 'text-neutral-400'
+                layout === 'rows'
+                  ? 'font-body-3 text-secondary/75'
+                  : [
+                      'mt-0.5 truncate text-xs',
+                      modelValue === index
+                        ? 'text-primary-500'
+                        : isLocked(index)
+                          ? 'text-neutral-300'
+                          : 'text-neutral-400'
+                    ]
               "
             >
               {{ item.description }}
             </span>
           </span>
+
+          <svg
+            v-if="layout === 'rows'"
+            aria-hidden="true"
+            class="h-4 w-4 shrink-0 text-neutral-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
         </button>
       </nav>
     </div>

@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { CareerService } from '../services/career.service'
+import type { CareerHistoryRequest } from '../types/profile-api'
 
 export interface CareerHistory {
   id?: string
@@ -7,25 +8,29 @@ export interface CareerHistory {
   title: string
   company: string
   start_year: number
+  start_month: number | null
   end_year: number | null
+  end_month: number | null
   description: string | null
 }
 
 export const useCareer = () => {
   const isCareerLoading = ref(false)
 
-  const getCareerHistories = async (userId?: string) => {
+  const getCareerHistories = async (_userId?: string) => {
     isCareerLoading.value = true
     try {
       const res = await CareerService.getMyCareerHistories()
-      return (res.data || []).map((c: any) => ({
+      return (res.data || []).map((c) => ({
         id: c.id,
         title: c.title,
         company: c.company,
-        start_year: c.startYear,
-        end_year: c.endYear || null,
-        description: c.description || null
-      })) as CareerHistory[]
+        start_year: c.start_year,
+        start_month: c.start_month ?? null,
+        end_year: c.end_year,
+        end_month: c.end_month ?? null,
+        description: c.description
+      }))
     } catch (error) {
       console.error('Error fetching career histories:', error)
       return []
@@ -34,31 +39,19 @@ export const useCareer = () => {
     }
   }
 
-  const addCareerHistory = async (payload: CareerHistory) => {
+  const addCareerHistory = async (payload: CareerHistoryRequest) => {
     isCareerLoading.value = true
     try {
-      await CareerService.createCareerHistory({
-        title: payload.title,
-        company: payload.company,
-        startYear: payload.start_year,
-        endYear: payload.end_year,
-        description: payload.description
-      })
+      await CareerService.createCareerHistory(payload)
     } finally {
       isCareerLoading.value = false
     }
   }
 
-  const updateCareerHistory = async (id: string, payload: Partial<CareerHistory>) => {
+  const updateCareerHistory = async (id: string, payload: CareerHistoryRequest) => {
     isCareerLoading.value = true
     try {
-      await CareerService.updateCareerHistory(id, {
-        title: payload.title!,
-        company: payload.company!,
-        startYear: payload.start_year!,
-        endYear: payload.end_year,
-        description: payload.description
-      })
+      await CareerService.updateCareerHistory(id, payload)
     } finally {
       isCareerLoading.value = false
     }

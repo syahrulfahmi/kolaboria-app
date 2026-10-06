@@ -21,6 +21,7 @@ type FieldErrors = Partial<Record<keyof z.infer<typeof loginSchema>, string>>
 const router = useRouter()
 const { login, forgotPassword } = useAuth()
 const { add: addToast } = useToast()
+const REMEMBERED_EMAIL_STORAGE_KEY = 'kolaboria.rememberedEmail'
 
 const form = ref({
   email: '',
@@ -31,6 +32,21 @@ const form = ref({
 const fieldErrors = ref<FieldErrors>({})
 const authError = ref('')
 const isLoading = ref(false)
+
+onMounted(() => {
+  try {
+    const rememberedEmail = localStorage.getItem(
+      REMEMBERED_EMAIL_STORAGE_KEY
+    )
+
+    if (rememberedEmail) {
+      form.value.email = rememberedEmail
+      form.value.rememberMe = true
+    }
+  } catch {
+    // Login remains available when browser storage is unavailable.
+  }
+})
 
 // Forgot Password Modal
 const showForgotModal = ref(false)
@@ -57,6 +73,16 @@ const handleLogin = async () => {
       password: flat.password?.[0]
     }
     return
+  }
+
+  try {
+    if (form.value.rememberMe) {
+      localStorage.setItem(REMEMBERED_EMAIL_STORAGE_KEY, result.data.email)
+    } else {
+      localStorage.removeItem(REMEMBERED_EMAIL_STORAGE_KEY)
+    }
+  } catch {
+    // Login remains available when browser storage is unavailable.
   }
 
   // Submit

@@ -2,40 +2,46 @@ import type { SubmitOnboardingRequest } from '../types/profile'
 import { useApi } from '../composables/useApi'
 import { API_ENDPOINTS } from '../constants/api-endpoints'
 import type { ApiResponse } from '../types/api'
+import type {
+  AddSkillRequest,
+  AddToolRequest,
+  ProfileResponse,
+  UpdateProfileRequest,
+  UserSkillResponse,
+  UserToolResponse
+} from '../types/profile-api'
 import { CareerService } from './career.service'
 import { PortfolioService } from './portfolio.service'
 
 export interface UserSkillDTO {
   id: string
-  skillId: string
+  skill_id: string
   name: string
-  category: string
   slug: string
-  isPrimary: boolean
+  is_primary: boolean
 }
 
 export interface UserToolDTO {
   id: string
-  toolId: string
+  tool_id: string
   name: string
-  category: string | null
   slug: string
 }
 
 export const ProfileService = {
   async getProfile() {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>(API_ENDPOINTS.PROFILE.ME)
+    return await $api<ApiResponse<ProfileResponse>>(API_ENDPOINTS.PROFILE.ME)
   },
 
   async getProfileByUsername(username: string) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>(API_ENDPOINTS.PROFILE.BY_USERNAME(username))
+    return await $api<ApiResponse<ProfileResponse>>(API_ENDPOINTS.PROFILE.BY_USERNAME(username))
   },
 
-  async updateProfile(payload: any) {
+  async updateProfile(payload: UpdateProfileRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<any>>(API_ENDPOINTS.PROFILE.ME, {
+    return await $api<ApiResponse<ProfileResponse>>(API_ENDPOINTS.PROFILE.ME, {
       method: 'PATCH',
       body: payload
     })
@@ -69,9 +75,9 @@ export const ProfileService = {
     return await $api<ApiResponse<UserSkillDTO[]>>(API_ENDPOINTS.PROFILE.MY_SKILLS)
   },
 
-  async addSkill(payload: { skillId: string; isPrimary?: boolean }) {
+  async addSkill(payload: AddSkillRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROFILE.MY_SKILLS, {
+    return await $api<ApiResponse<UserSkillResponse>>(API_ENDPOINTS.PROFILE.MY_SKILLS, {
       method: 'POST',
       body: payload
     })
@@ -96,9 +102,9 @@ export const ProfileService = {
     return await $api<ApiResponse<UserToolDTO[]>>(API_ENDPOINTS.PROFILE.MY_TOOLS)
   },
 
-  async addTool(payload: { toolId: string }) {
+  async addTool(payload: AddToolRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROFILE.MY_TOOLS, {
+    return await $api<ApiResponse<UserToolResponse>>(API_ENDPOINTS.PROFILE.MY_TOOLS, {
       method: 'POST',
       body: payload
     })

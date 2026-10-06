@@ -1,38 +1,56 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type {
   Profile,
   TalentProfile,
   UserSkill,
   UserTool
 } from '../../../types/profile'
-import type { Skill, Tool } from '../../../types/skill'
 import type { CareerHistory } from '~/composables/useCareer'
+import {
+  canShowProfileEditActions,
+  PROFILE_EDIT_MENU_ITEMS,
+  PROFILE_EDIT_ROOT_PATH
+} from '~/data/profile-edit-navigation'
 
 definePageMeta({
   layout: 'home',
-  middleware: ['auth', 'onboarding-guard']
+  middleware: ['auth', 'onboarding-guard'],
+  homeNavbar: {
+    variant: 'back-path',
+    title: 'Edit Profil'
+  }
 })
 
 const route = useRoute()
+const hasFlushHomeContent = computed(
+  () => route.meta.homeNavbar?.mainHorizontalPadding === 'none'
+)
 
 const { getProfile, getTalentProfile } = useProfile()
 const { getUserSkills, getUserTools } = useSkill()
-const { getCompletedProjects, getPinnedProjectIds } = usePortfolio()
 const { getCareerHistories } = useCareer()
 
 const profile = ref<Profile | null>(null)
 const talentProfile = ref<TalentProfile | null>(null)
 const userSkills = ref<UserSkill[]>([])
 const userTools = ref<UserTool[]>([])
-const completedProjects = ref<any[]>([])
-const pinnedProjectIds = ref<string[]>([])
 const careerHistories = ref<CareerHistory[]>([])
+const isEditMenu = computed(() => route.path === PROFILE_EDIT_ROOT_PATH)
 
-const pageRef = ref<any>(null)
+interface EditablePageHandle {
+  isDirty?: boolean
+  isSaving?: boolean
+  handleSave?: () => void
+  handleCancel?: () => void
+}
+const pageRef = ref<EditablePageHandle | null>(null)
 
 const isDirty = computed(() => pageRef.value?.isDirty ?? false)
 const isSaving = computed(() => pageRef.value?.isSaving ?? false)
+const showSaveActions = computed(() =>
+  canShowProfileEditActions(route.path, pageRef.value !== null)
+)
 
 const { triggerCancel } = useFormGuard(() => isDirty.value)
 
@@ -44,7 +62,20 @@ const onCancel = () => {
   triggerCancel('/profile/me')
 }
 
-const loadEditableData = async () => {
+interface EditableData {
+  profile: Profile
+  talentProfile: TalentProfile | null
+  userSkills: UserSkill[]
+  userTools: UserTool[]
+  careerHistories: CareerHistory[]
+}
+
+const loadEditableData = async (): Promise<EditableData | null> => {
+  const section = PROFILE_EDIT_MENU_ITEMS.find(
+    (item) => item.path === route.path
+  )
+  if (!section) return null
+
   const p = await getProfile()
   if (!p)
     throw createError({
@@ -53,79 +84,63 @@ const loadEditableData = async () => {
       fatal: true
     })
 
-  const [skills, tools, talent, completedProjs, pinnedIds, careers] =
-    await Promise.all([
-      getUserSkills(p.id),
-      getUserTools(p.id),
-      getTalentProfile(p.id),
-      getCompletedProjects(p.id),
-      getPinnedProjectIds(p.id),
-      getCareerHistories(p.id)
-    ])
+  let talent: TalentProfile | null = null
+  let skills: UserSkill[] = []
+  let tools: UserTool[] = []
+  let careers: CareerHistory[] = []
+
+  switch (section.key) {
+    case 'basic':
+      talent = await getTalentProfile(p.id)
+      break
+    case 'skills':
+      ;[skills, tools] = await Promise.all([
+        getUserSkills(p.id),
+        getUserTools(p.id)
+      ])
+      break
+    case 'career':
+      careers = await getCareerHistories(p.id)
+      break
+  }
 
   return {
     profile: p,
     talentProfile: talent,
     userSkills: skills,
     userTools: tools,
-    completedProjects: completedProjs,
-    pinnedProjectIds: pinnedIds,
     careerHistories: careers
   }
 }
 
-const { data, refresh } = await useAsyncData(
-  'profile-edit-me',
-  loadEditableData
-)
-
-if (data.value) {
-  profile.value = data.value.profile
-  talentProfile.value = data.value.talentProfile
-  userSkills.value = data.value.userSkills
-  userTools.value = data.value.userTools
-  completedProjects.value = data.value.completedProjects
-  pinnedProjectIds.value = data.value.pinnedProjectIds
-  careerHistories.value = data.value.careerHistories
+const applyEditableData = (editableData: EditableData | null) => {
+  profile.value = editableData?.profile ?? null
+  talentProfile.value = editableData?.talentProfile ?? null
+  userSkills.value = editableData?.userSkills ?? []
+  userTools.value = editableData?.userTools ?? []
+  careerHistories.value = editableData?.careerHistories ?? []
 }
 
+const { data } = await useAsyncData('profile-edit-me', loadEditableData, {
+  watch: [() => route.path]
+})
+
+watch(data, applyEditableData, { immediate: true })
+
 const refreshEditableData = async () => {
-  await refresh()
-  if (data.value) {
-    profile.value = data.value.profile
-    talentProfile.value = data.value.talentProfile
-    userSkills.value = data.value.userSkills
-    userTools.value = data.value.userTools
-    completedProjects.value = data.value.completedProjects
-    pinnedProjectIds.value = data.value.pinnedProjectIds
-    careerHistories.value = data.value.careerHistories
-  }
+  applyEditableData(await loadEditableData())
 }
 
 useHead({
   title: 'Edit Profil - Kolaboria'
 })
 
-// Navigation Tabs
-const tabs = [
-  { name: 'Dasar', path: '/profile/me/edit/basic', icon: 'user' },
-  { name: 'Skills & Tools', path: '/profile/me/edit/skills', icon: 'code' },
-  { name: 'Portofolio', path: '/profile/me/edit/portfolio', icon: 'briefcase' },
-  {
-    name: 'Riwayat Karier',
-    path: '/profile/me/edit/career',
-    icon: 'academic-cap'
-  }
-]
-
-const currentPath = computed(() => route.path)
-
 const activeTabIndex = computed({
   get() {
-    return tabs.findIndex((tab) => route.path === tab.path)
+    return PROFILE_EDIT_MENU_ITEMS.findIndex((tab) => route.path === tab.path)
   },
   set(index) {
-    const tab = tabs[index]
+    const tab = PROFILE_EDIT_MENU_ITEMS[index]
     if (tab) {
       navigateTo(tab.path)
     }
@@ -133,19 +148,22 @@ const activeTabIndex = computed({
 })
 
 const contentListItems = computed(() =>
-  tabs.map((tab) => ({
-    label: tab.name,
+  PROFILE_EDIT_MENU_ITEMS.map((tab) => ({
+    label: tab.label,
     icon: tab.icon
   }))
 )
 </script>
 
 <template>
-  <div class="mx-auto pb-8 relative">
+  <div
+    class="relative mx-auto w-full"
+    :class="isEditMenu ? 'pb-8' : 'flex flex-1 flex-col pb-0 lg:pb-8'"
+  >
     <!-- Header Mini Preview -->
     <div
-      v-if="profile"
-      class="mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-white rounded-2xl border border-neutral-200 p-6"
+      v-if="profile && !isEditMenu"
+      class="mb-8 hidden flex-col items-start gap-6 rounded-2xl border border-neutral-200 bg-white p-6 sm:flex-row sm:items-center lg:flex"
     >
       <!-- Avatar -->
       <AtomicAvatar
@@ -198,9 +216,15 @@ const contentListItems = computed(() =>
     </div>
 
     <!-- Main Revamped Grid Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8 items-start">
+    <div
+      class="grid flex-1 grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]"
+      :class="isEditMenu ? 'items-start' : 'items-stretch'"
+    >
       <!-- Sidebar / Navigation -->
-      <aside class="w-full lg:sticky lg:top-[80px] lg:w-60 shrink-0 z-20">
+      <aside
+        v-if="!isEditMenu"
+        class="hidden w-full shrink-0 lg:sticky lg:top-[80px] lg:block lg:self-start"
+      >
         <!-- Desktop Sidebar (Content List) -->
         <OrganismContentList
           v-model="activeTabIndex"
@@ -209,55 +233,40 @@ const contentListItems = computed(() =>
           :sticky="false"
           class="hidden lg:block bg-white rounded-2xl overflow-hidden"
         />
-
-        <!-- Mobile Horizontal Tab (Scrollable & Sticky) -->
-        <nav
-          class="flex lg:hidden sticky top-16 z-20 overflow-x-auto gap-2 py-3 px-4 sm:px-6 bg-neutral-50/95 backdrop-blur-md border-b border-neutral-200 -mx-4 sm:-mx-6 scrollbar-hide"
-        >
-          <NuxtLink
-            v-for="tab in tabs"
-            :key="tab.name"
-            :to="tab.path"
-            class="flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold shrink-0 shadow-sm border transition-all duration-150"
-            :class="[
-              currentPath === tab.path
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-white text-neutral-600 border-neutral-200'
-            ]"
-          >
-            {{ tab.name }}
-          </NuxtLink>
-        </nav>
       </aside>
 
       <!-- Main Nested Page Render -->
-      <main class="w-full min-w-0">
-        <NuxtPage v-slot="{ Component }" v-if="profile">
+      <main class="flex w-full min-w-0 flex-col">
+        <NuxtPage v-slot="{ Component }">
+          <component v-if="isEditMenu" :is="Component" ref="pageRef" />
           <component
+            v-else-if="profile"
             :is="Component"
             ref="pageRef"
             :profile="profile"
             :talentProfile="talentProfile"
             :userSkills="userSkills"
             :userTools="userTools"
-            :completedProjects="completedProjects"
-            :pinnedProjectIds="pinnedProjectIds"
             :careerHistories="careerHistories"
-            @update:userSkills="(val: any) => (userSkills = val)"
-            @update:userTools="(val: any) => (userTools = val)"
+            @update:userSkills="(val: UserSkill[]) => (userSkills = val)"
+            @update:userTools="(val: UserTool[]) => (userTools = val)"
             @refresh="refreshEditableData"
           />
         </NuxtPage>
 
+        <div v-if="showSaveActions" class="flex-1" aria-hidden="true" />
+
         <!-- STICKY ACTION BAR -->
         <div
-          v-if="pageRef"
-          class="sticky bottom-6 z-30 mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end bg-white/95 backdrop-blur-sm p-4 rounded-2xl border border-neutral-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-fade-in"
+          v-if="showSaveActions"
+          class="sticky bottom-0 z-30 mt-6 flex items-center gap-2 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur-sm animate-fade-in lg:bottom-6 lg:mx-0 lg:justify-end lg:gap-3 lg:rounded-2xl lg:border lg:p-4"
+          :class="hasFlushHomeContent ? 'mx-0' : '-mx-4'"
         >
           <AtomicButton
             type="button"
             variant="outline"
-            class="w-full sm:w-auto hover:bg-neutral-50"
+            size="md"
+            class="w-20 shrink-0 hover:bg-neutral-50 lg:w-auto lg:px-5 lg:py-2.5"
             :disabled="isSaving"
             @click="onCancel"
           >
@@ -266,7 +275,8 @@ const contentListItems = computed(() =>
           <AtomicButton
             type="button"
             variant="primary"
-            class="w-full sm:w-auto"
+            size="md"
+            class="min-w-0 flex-1 lg:w-auto lg:flex-none lg:px-5 lg:py-2.5"
             :loading="isSaving"
             :disabled="isSaving"
             @click="onSave"
@@ -284,15 +294,3 @@ const contentListItems = computed(() =>
     />
   </div>
 </template>
-
-<style scoped>
-/* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-</style>

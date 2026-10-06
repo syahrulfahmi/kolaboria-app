@@ -3,9 +3,11 @@
     <Transition name="drawer-fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-[60] overflow-hidden"
+        class="fixed inset-0 overflow-hidden"
+        :style="{ zIndex }"
         role="dialog"
         aria-modal="true"
+        :aria-labelledby="title ? titleId : undefined"
       >
         <!-- Backdrop: no blur, darker overlay -->
         <div
@@ -19,8 +21,11 @@
         >
           <!-- Panel -->
           <div
-            class="drawer-panel pointer-events-auto relative flex flex-col bg-white shadow-2xl w-full max-h-[85vh] sm:max-h-none sm:h-full sm:max-w-xl overflow-hidden"
+            ref="panelRef"
+            tabindex="-1"
+            class="drawer-panel pointer-events-auto relative flex flex-col rounded-t-2xl sm:rounded-none bg-white shadow-lg w-full max-h-[85dvh] sm:max-h-none sm:h-full sm:max-w-xl overflow-hidden"
             @click.stop
+            @keydown.tab="handleTab"
           >
             <!-- Mobile drag handle indicator -->
             <div
@@ -35,6 +40,7 @@
                 <slot name="header">
                   <h3
                     v-if="title"
+                    :id="titleId"
                     class="text-base font-bold text-neutral-900 leading-snug truncate"
                   >
                     {{ title }}
@@ -53,9 +59,10 @@
                 <slot name="header-actions">
                   <button
                     v-if="showClose"
+                    type="button"
                     @click="close"
                     class="flex-shrink-0 hover:cursor-pointer p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
-                    aria-label="Close"
+                    aria-label="Tutup panel"
                   >
                     <svg
                       class="h-5 w-5"
@@ -76,7 +83,7 @@
             </div>
 
             <!-- Body (scrollable) -->
-            <div class="flex-1 overflow-y-auto">
+            <div class="min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
               <slot />
             </div>
 
@@ -115,12 +122,17 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { nextTick, ref, useId, watch } from 'vue'
+import { useOverlayScrollLock } from '../../../composables/useOverlayScrollLock'
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true
+  },
+  zIndex: {
+    type: Number,
+    default: 60
   },
   title: {
     type: String,
@@ -163,6 +175,31 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'close', 'primary', 'secondary'])
+const titleId = useId()
+const panelRef = ref<HTMLElement | null>(null)
+
+const handleTab = (event: KeyboardEvent) => {
+  const elements = Array.from(panelRef.value?.querySelectorAll<HTMLElement>(
+    'button:not(:disabled), input:not(:disabled), a[href], [tabindex="0"]'
+  ) ?? []).filter(element => element.getClientRects().length > 0)
+  const first = elements[0]
+  const last = elements[elements.length - 1]
+  if (!first || !last) return
+  const active = document.activeElement
+  if (!(active instanceof HTMLElement) || !elements.includes(active) ||
+    (event.shiftKey && active === first) || (!event.shiftKey && active === last)) {
+    event.preventDefault()
+    const target = event.shiftKey ? last : first
+    target.focus()
+  }
+}
+
+watch(() => props.modelValue, async open => {
+  if (open) {
+    await nextTick()
+    panelRef.value?.focus({ preventScroll: true })
+  }
+}, { immediate: true })
 
 const close = () => {
   emit('update:modelValue', false)
@@ -175,22 +212,7 @@ const handleBackdropClick = () => {
   }
 }
 
-// Lock body scroll when drawer is open
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = isOpen ? 'hidden' : ''
-    }
-  }
-)
-
-// Prevent scroll lock from persisting if component unmounts while open
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = ''
-  }
-})
+useOverlayScrollLock(() => props.modelValue)
 </script>
 
 <style scoped>
@@ -219,6 +241,15 @@ onUnmounted(() => {
   .drawer-fade-enter-from .drawer-panel,
   .drawer-fade-leave-to .drawer-panel {
     transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-fade-enter-active,
+  .drawer-fade-leave-active,
+  .drawer-fade-enter-active .drawer-panel,
+  .drawer-fade-leave-active .drawer-panel {
+    transition: none;
   }
 }
 </style>

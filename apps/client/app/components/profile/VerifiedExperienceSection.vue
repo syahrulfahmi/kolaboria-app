@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ExperienceCard } from '../../types/experience'
-defineProps<{ experiences: ExperienceCard[]; isOwner?: boolean }>()
+import type { ProfileExperience } from '../../types/profile-page'
+defineProps<{ experiences: ProfileExperience[]; isOwner?: boolean }>()
 </script>
 <template>
   <section aria-labelledby="verified-experiences-title" class="space-y-4">
