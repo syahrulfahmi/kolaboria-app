@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { CareerHistory } from '~/composables/useCareer'
-import type { DateValue, RangeValue } from '~/components/ui/molecules/DatePicker.vue'
+import type {
+  DateValue,
+  RangeValue
+} from '~/components/ui/molecules/DatePicker.vue'
 import { toMonthDate } from '~/utils/year-month'
 import {
   careerHistoryFormSchema,
@@ -47,7 +50,7 @@ const updateStartDate = (value: DateValue | RangeValue) => {
 const updateEndDate = (value: DateValue | RangeValue) => {
   endDate.value = value instanceof Date ? value : null
 }
-watch(isCurrent, current => {
+watch(isCurrent, (current) => {
   if (current) {
     endDate.value = null
     delete errors.value.end_year
@@ -64,8 +67,9 @@ const handleSubmit = () => {
     company: company.value,
     start_year: startDate.value?.getFullYear() ?? null,
     start_month: startDate.value ? startDate.value.getMonth() + 1 : null,
-    end_year: isCurrent.value ? null : endDate.value?.getFullYear() ?? null,
-    end_month: isCurrent.value || !endDate.value ? null : endDate.value.getMonth() + 1,
+    end_year: isCurrent.value ? null : (endDate.value?.getFullYear() ?? null),
+    end_month:
+      isCurrent.value || !endDate.value ? null : endDate.value.getMonth() + 1,
     description: description.value,
     is_current: isCurrent.value
   })
@@ -103,7 +107,7 @@ const handleSubmit = () => {
   >
     <section class="space-y-4">
       <header class="space-y-1">
-        <h4 class="font-label-1 text-neutral-900">Informasi pengalaman</h4>
+        <h4 class="font-body-1 text-neutral-900">Informasi pengalaman</h4>
         <p class="font-body-3 text-secondary">
           Informasi utama yang akan ditampilkan pada profil.
         </p>
@@ -161,7 +165,9 @@ const handleSubmit = () => {
             :model-value="endDate"
             granularity="month"
             label="Selesai"
-            :placeholder="isCurrent ? 'Masih berlangsung' : 'Pilih bulan dan tahun'"
+            :placeholder="
+              isCurrent ? 'Masih berlangsung' : 'Pilih bulan dan tahun'
+            "
             :initial-view-year="initialData?.end_year ?? undefined"
             :hint="endHint"
             :error="errors.end_month || errors.end_year"

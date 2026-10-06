@@ -261,7 +261,7 @@ defineExpose({
     class="divide-y divide-neutral-200 rounded-lg lg:border lg:border-neutral-200 bg-white px-4"
   >
     <header class="hidden border-b border-neutral-200 py-6 lg:block">
-      <h1 class="font-title-1">Skills &amp; Tools</h1>
+      <h1 class="font-title-2">Skills &amp; Tools</h1>
       <p class="mt-2 max-w-3xl font-body-2 text-secondary">
         Tunjukkan kemampuan dan teknologi yang kamu kuasai agar project owner
         memahami kontribusi yang bisa kamu berikan.
@@ -283,261 +283,261 @@ defineExpose({
     </section>
 
     <template v-else>
-    <section class="py-6">
-      <header class="mb-5">
-        <h2 class="font-title-3">Keahlian</h2>
-        <p class="mt-1.5 font-body-3 text-secondary">
-          Pilih kemampuan yang paling menggambarkan peranmu dan tentukan satu
-          sebagai keahlian utama.
-        </p>
-      </header>
+      <section class="py-6">
+        <header class="mb-5">
+          <h2 class="font-title-3">Keahlian</h2>
+          <p class="mt-1.5 font-body-3 text-secondary">
+            Pilih kemampuan yang paling menggambarkan peranmu dan tentukan satu
+            sebagai keahlian utama.
+          </p>
+        </header>
 
-      <div class="flex items-end gap-2 sm:gap-3">
-        <div class="min-w-0 flex-2">
-          <MoleculeDropdown
-            v-model="selectedSkillId"
-            placeholder="Pilih keahlian"
-            :options="skillOptions"
-            :selected-values="userSkills.map((skill) => skill.skill_id)"
-            searchable
-            :loading="isLoadingSkills"
-            :error="skillCatalogError || undefined"
-            :disabled="isLoading"
-            @open="loadSkillCatalog"
-          />
-        </div>
-        <AtomicButton
-          type="button"
-          variant="primary"
-          size="md"
-          class="h-11 shrink-0 whitespace-nowrap"
-          aria-label="Tambah keahlian"
-          :disabled="!selectedSkillId || isLoading"
-          @click="handleAddSkill"
-        >
-          <template #icon-left>
-            <svg
-              class="h-4 w-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </template>
-          <span>Tambah</span>
-        </AtomicButton>
-      </div>
-
-      <div
-        v-if="skillCatalogError"
-        class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
-      >
-        <button
-          type="button"
-          class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
-          :disabled="isLoadingSkills"
-          aria-label="Coba muat ulang daftar keahlian"
-          @click="loadSkillCatalog"
-        >
-          Coba lagi
-        </button>
-      </div>
-
-      <ul
-        v-if="userSkills.length"
-        class="mt-4 grid gap-2 md:mt-5 md:block md:divide-y md:divide-neutral-100 md:overflow-hidden md:rounded-xl md:border md:border-neutral-200"
-      >
-        <li
-          v-for="skill in userSkills"
-          :key="skill.id"
-          class="grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-2 rounded-xl border border-neutral-200 p-3.5 transition-colors hover:bg-neutral-50/60 md:grid-cols-[minmax(0,1fr)_7rem_10rem_2.5rem] md:gap-4 md:rounded-none md:border-0 md:px-4 md:py-3.5"
-        >
-          <div class="min-w-0">
-            <p class="truncate font-label-1 text-neutral-900">
-              {{ skill.skills?.name }}
-            </p>
-            <p class="mt-0.5 font-body-3 text-secondary">
-              {{ skill.skills?.category || 'Keahlian profesional' }}
-            </p>
-          </div>
-
-          <AtomicIconButton
-            variant="ghost"
-            size="md"
-            class="col-start-2 row-start-1 justify-self-end text-neutral-400 hover:text-danger-600 hover:bg-danger-50 md:col-start-4"
-            :aria-label="`Hapus keahlian ${skill.skills?.name || ''}`"
-            title="Hapus keahlian"
-            :disabled="isLoading"
-            @click="confirmRemoveSkill(skill)"
-          >
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </AtomicIconButton>
-
-          <div
-            class="col-start-1 row-start-2 md:col-start-2 md:row-start-1 md:justify-self-center"
-          >
-            <AtomicTag :variant="skill.is_primary ? 'primary' : 'default'">
-              {{ skill.is_primary ? 'Utama' : 'Pendukung' }}
-            </AtomicTag>
-          </div>
-
-          <div
-            class="col-start-1 row-start-3 flex min-h-8 items-center md:col-start-3 md:row-start-1 md:justify-self-end"
-          >
-            <AtomicButton
-              v-if="!skill.is_primary"
-              variant="ghost-primary"
-              size="sm"
+        <div class="flex items-end gap-2 sm:gap-3">
+          <div class="min-w-0 flex-2">
+            <MoleculeDropdown
+              v-model="selectedSkillId"
+              placeholder="Pilih keahlian"
+              :options="skillOptions"
+              :selected-values="userSkills.map((skill) => skill.skill_id)"
+              searchable
+              :loading="isLoadingSkills"
+              :error="skillCatalogError || undefined"
               :disabled="isLoading"
-              @click="handleSetPrimarySkill(skill.id)"
-            >
-              Jadikan utama
-            </AtomicButton>
+              @open="loadSkillCatalog"
+            />
           </div>
-        </li>
-      </ul>
-
-      <p v-else class="mt-4 font-body-2 text-secondary">
-        Belum ada keahlian. Pilih skill untuk menambahkan keahlian utama dan
-        pendukung.
-      </p>
-
-      <p class="mt-4 flex items-start gap-2 font-body-3 text-secondary">
-        <svg
-          class="mt-0.5 h-4 w-4 shrink-0 text-primary-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="9" stroke-width="1.5" />
-          <path
-            stroke-linecap="round"
-            stroke-width="1.5"
-            d="M12 11v5m0-8h.01"
-          />
-        </svg>
-        <span>
-          Keahlian utama membantu project owner memahami fokus kontribusimu
-          dengan cepat.
-        </span>
-      </p>
-    </section>
-
-    <section class="py-6">
-      <header class="mb-5">
-        <h2 class="font-title-3">Tools &amp; Teknologi</h2>
-        <p class="mt-1.5 font-body-3 text-secondary">
-          Teknologi, software, atau platform yang biasa kamu gunakan ketika
-          mengerjakan project.
-        </p>
-      </header>
-
-      <div class="flex items-end gap-2 sm:gap-3">
-        <div class="min-w-0 flex-1">
-          <MoleculeDropdown
-            v-model="selectedToolId"
-            placeholder="Pilih tool atau teknologi"
-            :options="toolOptions"
-            :selected-values="userTools.map((tool) => tool.tool_id)"
-            searchable
-            :loading="isLoadingTools"
-            :error="toolCatalogError || undefined"
-            :disabled="isLoading || userTools.length >= maxTools"
-            @open="loadToolCatalog"
-          />
+          <AtomicButton
+            type="button"
+            variant="primary"
+            size="md"
+            class="h-11 shrink-0 whitespace-nowrap"
+            aria-label="Tambah keahlian"
+            :disabled="!selectedSkillId || isLoading"
+            @click="handleAddSkill"
+          >
+            <template #icon-left>
+              <svg
+                class="h-4 w-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </template>
+            <span>Tambah</span>
+          </AtomicButton>
         </div>
-        <AtomicButton
-          type="button"
-          variant="primary"
-          size="md"
-          class="h-11 shrink-0 whitespace-nowrap"
-          aria-label="Tambah tool"
-          :disabled="
-            !selectedToolId || isLoading || userTools.length >= maxTools
-          "
-          @click="handleAddTool"
+
+        <div
+          v-if="skillCatalogError"
+          class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
         >
-          <template #icon-left>
-            <svg
-              class="h-4 w-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
+          <button
+            type="button"
+            class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
+            :disabled="isLoadingSkills"
+            aria-label="Coba muat ulang daftar keahlian"
+            @click="loadSkillCatalog"
+          >
+            Coba lagi
+          </button>
+        </div>
+
+        <ul
+          v-if="userSkills.length"
+          class="mt-4 grid gap-2 md:mt-5 md:block md:divide-y md:divide-neutral-100 md:overflow-hidden md:rounded-xl md:border md:border-neutral-200"
+        >
+          <li
+            v-for="skill in userSkills"
+            :key="skill.id"
+            class="grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-2 rounded-xl border border-neutral-200 p-3.5 transition-colors hover:bg-neutral-50/60 md:grid-cols-[minmax(0,1fr)_7rem_10rem_2.5rem] md:gap-4 md:rounded-none md:border-0 md:px-4 md:py-3.5"
+          >
+            <div class="min-w-0">
+              <p class="truncate font-label-1 text-neutral-900">
+                {{ skill.skills?.name }}
+              </p>
+              <p class="mt-0.5 font-body-3 text-secondary">
+                {{ skill.skills?.category || 'Keahlian profesional' }}
+              </p>
+            </div>
+
+            <AtomicIconButton
+              variant="ghost"
+              size="md"
+              class="col-start-2 row-start-1 justify-self-end text-neutral-400 hover:text-danger-600 hover:bg-danger-50 md:col-start-4"
+              :aria-label="`Hapus keahlian ${skill.skills?.name || ''}`"
+              title="Hapus keahlian"
+              :disabled="isLoading"
+              @click="confirmRemoveSkill(skill)"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </template>
-          <span>Tambah</span>
-        </AtomicButton>
-      </div>
+              <svg
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </AtomicIconButton>
 
-      <div
-        v-if="toolCatalogError"
-        class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
-      >
-        <button
-          type="button"
-          class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
-          :disabled="isLoadingTools"
-          aria-label="Coba muat ulang daftar tools"
-          @click="loadToolCatalog"
+            <div
+              class="col-start-1 row-start-2 md:col-start-2 md:row-start-1 md:justify-self-center"
+            >
+              <AtomicTag :variant="skill.is_primary ? 'primary' : 'default'">
+                {{ skill.is_primary ? 'Utama' : 'Pendukung' }}
+              </AtomicTag>
+            </div>
+
+            <div
+              class="col-start-1 row-start-3 flex min-h-8 items-center md:col-start-3 md:row-start-1 md:justify-self-end"
+            >
+              <AtomicButton
+                v-if="!skill.is_primary"
+                variant="ghost-primary"
+                size="sm"
+                :disabled="isLoading"
+                @click="handleSetPrimarySkill(skill.id)"
+              >
+                Jadikan utama
+              </AtomicButton>
+            </div>
+          </li>
+        </ul>
+
+        <p v-else class="mt-4 font-body-2 text-secondary">
+          Belum ada keahlian. Pilih skill untuk menambahkan keahlian utama dan
+          pendukung.
+        </p>
+
+        <p class="mt-4 flex items-start gap-2 font-body-3 text-secondary">
+          <svg
+            class="mt-0.5 h-4 w-4 shrink-0 text-primary-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke-width="1.5" />
+            <path
+              stroke-linecap="round"
+              stroke-width="1.5"
+              d="M12 11v5m0-8h.01"
+            />
+          </svg>
+          <span>
+            Keahlian utama membantu project owner memahami fokus kontribusimu
+            dengan cepat.
+          </span>
+        </p>
+      </section>
+
+      <section class="py-6">
+        <header class="mb-5">
+          <h2 class="font-title-3">Tools &amp; Teknologi</h2>
+          <p class="mt-1.5 font-body-3 text-secondary">
+            Teknologi, software, atau platform yang biasa kamu gunakan ketika
+            mengerjakan project.
+          </p>
+        </header>
+
+        <div class="flex items-end gap-2 sm:gap-3">
+          <div class="min-w-0 flex-1">
+            <MoleculeDropdown
+              v-model="selectedToolId"
+              placeholder="Pilih tool atau teknologi"
+              :options="toolOptions"
+              :selected-values="userTools.map((tool) => tool.tool_id)"
+              searchable
+              :loading="isLoadingTools"
+              :error="toolCatalogError || undefined"
+              :disabled="isLoading || userTools.length >= maxTools"
+              @open="loadToolCatalog"
+            />
+          </div>
+          <AtomicButton
+            type="button"
+            variant="primary"
+            size="md"
+            class="h-11 shrink-0 whitespace-nowrap"
+            aria-label="Tambah tool"
+            :disabled="
+              !selectedToolId || isLoading || userTools.length >= maxTools
+            "
+            @click="handleAddTool"
+          >
+            <template #icon-left>
+              <svg
+                class="h-4 w-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </template>
+            <span>Tambah</span>
+          </AtomicButton>
+        </div>
+
+        <div
+          v-if="toolCatalogError"
+          class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
         >
-          Coba lagi
-        </button>
-      </div>
+          <button
+            type="button"
+            class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
+            :disabled="isLoadingTools"
+            aria-label="Coba muat ulang daftar tools"
+            @click="loadToolCatalog"
+          >
+            Coba lagi
+          </button>
+        </div>
 
-      <p
-        v-if="userTools.length >= maxTools"
-        class="mt-2 font-body-3 text-secondary"
-      >
-        Maksimal {{ maxTools }} tools. Hapus satu tool untuk menambahkan yang
-        lain.
-      </p>
-
-      <div v-if="userTools.length" class="mt-4 flex flex-wrap gap-2">
-        <AtomicTag
-          v-for="tool in userTools"
-          :key="tool.id"
-          variant="default"
-          class="py-1.5 pl-3 pr-2"
-          closable
-          @close="handleRemoveTool(tool.id)"
+        <p
+          v-if="userTools.length >= maxTools"
+          class="mt-2 font-body-3 text-secondary"
         >
-          <span class="mr-1">{{ tool.tools?.name }}</span>
-        </AtomicTag>
-      </div>
+          Maksimal {{ maxTools }} tools. Hapus satu tool untuk menambahkan yang
+          lain.
+        </p>
 
-      <p v-else class="mt-4 font-body-2 text-secondary">
-        Belum ada tools. Tambahkan teknologi yang biasa kamu gunakan.
-      </p>
-    </section>
+        <div v-if="userTools.length" class="mt-4 flex flex-wrap gap-2">
+          <AtomicTag
+            v-for="tool in userTools"
+            :key="tool.id"
+            variant="default"
+            class="py-1.5 pl-3 pr-2"
+            closable
+            @close="handleRemoveTool(tool.id)"
+          >
+            <span class="mr-1">{{ tool.tools?.name }}</span>
+          </AtomicTag>
+        </div>
+
+        <p v-else class="mt-4 font-body-2 text-secondary">
+          Belum ada tools. Tambahkan teknologi yang biasa kamu gunakan.
+        </p>
+      </section>
     </template>
   </div>
 </template>

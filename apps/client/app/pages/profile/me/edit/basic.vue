@@ -185,7 +185,7 @@ defineExpose({
   >
     <section class="py-6 px-4">
       <header class="mb-5">
-        <h2 class="font-title-3">Identitas</h2>
+        <h2 class="font-title-2">Identitas</h2>
         <p class="mt-1.5 font-body-2 text-secondary">
           Informasi yang ditampilkan pada profilmu ketika berinteraksi dengan
           project dan pengguna lain.
@@ -235,7 +235,7 @@ defineExpose({
 
     <section class="py-6 px-4">
       <header class="mb-5">
-        <h2 class="font-title-3">Tentang kamu</h2>
+        <h2 class="font-title-2">Tentang kamu</h2>
         <p class="mt-1.5 font-body-2 text-secondary">
           Ceritakan fokus, kemampuan, dan jenis kontribusi atau project yang
           kamu minati.
@@ -258,9 +258,6 @@ defineExpose({
             Tingkat Pengalaman
             <span class="text-primary-400" aria-hidden="true">*</span>
           </legend>
-          <p class="font-body-3 text-secondary mb-3">
-            Pilih tingkat yang paling menggambarkan pengalamanmu.
-          </p>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <button
               v-for="level in PROFILE_EXPERIENCE_LEVELS"
