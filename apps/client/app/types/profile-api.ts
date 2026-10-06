@@ -7,6 +7,7 @@ export interface UpdateProfileRequest {
   villageId?: number | null
   address?: string | null
   goal?: string | null
+  experienceLevel?: ExperienceLevel
 }
 
 export interface AddSkillRequest {

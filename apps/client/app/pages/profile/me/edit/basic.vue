@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '../../../../utils/error'
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
+import { PROFILE_EXPERIENCE_LEVELS } from '~/data/experience-levels'
 import type { Profile, TalentProfile } from '~/types/profile'
+import type { ExperienceLevel } from '~/types/profile-api'
 import { LocationService } from '~/services/location.service'
 
 definePageMeta({
@@ -27,16 +29,43 @@ const { add: addToast } = useToast()
 
 const isSaving = ref(false)
 
-const initialForm = reactive({
+interface BasicProfileForm {
+  full_name: string
+  headline: string
+  bio: string
+  goal: string
+  experience_level: ExperienceLevel | ''
+  address: string
+  village_id: number | null
+}
+
+const initialForm = reactive<BasicProfileForm>({
   full_name: props.profile.full_name || '',
   headline: props.profile.headline || '',
   bio: props.profile.bio || '',
   goal: props.talentProfile?.goal || '',
+  experience_level: props.talentProfile?.experience_level ?? '',
   address: props.profile.address?.address || '',
   village_id: props.profile.address?.villageId || null
 })
 
 const form = ref({ ...initialForm })
+
+watch(
+  () => props.talentProfile?.experience_level,
+  (experienceLevel) => {
+    if (
+      !experienceLevel ||
+      form.value.experience_level !== initialForm.experience_level
+    ) {
+      return
+    }
+
+    initialForm.experience_level = experienceLevel
+    form.value.experience_level = experienceLevel
+  },
+  { immediate: true }
+)
 
 const isDirty = computed(() => {
   return (
@@ -44,6 +73,7 @@ const isDirty = computed(() => {
     form.value.headline !== initialForm.headline ||
     form.value.bio !== initialForm.bio ||
     form.value.goal !== initialForm.goal ||
+    form.value.experience_level !== initialForm.experience_level ||
     form.value.address !== initialForm.address ||
     form.value.village_id !== initialForm.village_id
   )
@@ -92,6 +122,15 @@ const handleSave = async () => {
     return
   }
 
+  if (!form.value.experience_level) {
+    addToast({
+      variant: 'warning',
+      title: 'Tingkat pengalaman wajib dipilih',
+      message: 'Pilih tingkat pengalaman sebelum menyimpan profil.'
+    })
+    return
+  }
+
   isSaving.value = true
   try {
     await updateProfile({
@@ -100,7 +139,8 @@ const handleSave = async () => {
       bio: form.value.bio.trim() || null,
       villageId: form.value.village_id,
       address: form.value.address.trim() || null,
-      goal: form.value.goal.trim() || null
+      goal: form.value.goal.trim() || null,
+      experienceLevel: form.value.experience_level
     })
     Object.assign(initialForm, form.value)
     emit('refresh')
@@ -212,6 +252,40 @@ defineExpose({
           placeholder="Ceritakan fokus, pengalaman, atau cara kamu berkontribusi."
           :disabled="isSaving"
         />
+
+        <fieldset>
+          <legend class="font-label-1 mb-2">
+            Tingkat Pengalaman
+            <span class="text-primary-400" aria-hidden="true">*</span>
+          </legend>
+          <p class="font-body-3 text-secondary mb-3">
+            Pilih tingkat yang paling menggambarkan pengalamanmu.
+          </p>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <button
+              v-for="level in PROFILE_EXPERIENCE_LEVELS"
+              :key="level.value"
+              type="button"
+              :aria-pressed="form.experience_level === level.value"
+              :disabled="isSaving"
+              class="flex min-h-16 flex-col items-center justify-center rounded-lg border p-3 text-center transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+              :class="
+                form.experience_level === level.value
+                  ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm shadow-primary-100'
+                  : 'border-neutral-200 bg-white text-neutral-600 hover:border-primary-300 hover:bg-primary-50/50'
+              "
+              @click="form.experience_level = level.value"
+            >
+              <span class="font-body-2">{{ level.label }}</span>
+              <span
+                v-if="level.description"
+                class="font-body-3 mt-1 text-secondary"
+              >
+                {{ level.description }}
+              </span>
+            </button>
+          </div>
+        </fieldset>
 
         <MoleculeTextarea
           v-model="form.goal"

@@ -14,10 +14,13 @@ definePageMeta({
 const props = defineProps<{
   userSkills: UserSkill[]
   userTools: UserTool[]
+  isLoadingData: boolean
+  errorMessage: string | null
 }>()
 
 const emit = defineEmits<{
   refresh: []
+  retryLoad: []
   'update:userSkills': [skills: UserSkill[]]
   'update:userTools': [tools: UserTool[]]
 }>()
@@ -43,9 +46,35 @@ const { add: addToast } = useToast()
 const { show: showPopup } = usePopup()
 
 const isLoading = ref(false)
+const skillCatalogError = ref<string | null>(null)
+const toolCatalogError = ref<string | null>(null)
 const selectedSkillId = ref<string | null>(null)
 const selectedToolId = ref<string | null>(null)
 const maxTools = 5
+
+const loadSkillCatalog = async () => {
+  skillCatalogError.value = null
+  try {
+    await loadSkills({ throwOnError: true })
+  } catch (err: unknown) {
+    skillCatalogError.value = getApiErrorMessage(
+      err,
+      'Daftar keahlian belum berhasil dimuat. Coba lagi.'
+    )
+  }
+}
+
+const loadToolCatalog = async () => {
+  toolCatalogError.value = null
+  try {
+    await loadTools({ throwOnError: true })
+  } catch (err: unknown) {
+    toolCatalogError.value = getApiErrorMessage(
+      err,
+      'Daftar tools belum berhasil dimuat. Coba lagi.'
+    )
+  }
+}
 
 const skillOptions = computed(() =>
   availableSkills.value.map((skill) => {
@@ -239,6 +268,21 @@ defineExpose({
       </p>
     </header>
 
+    <section v-if="isLoadingData" class="py-6">
+      <MoleculeLoading label="Memuat skills dan tools..." />
+    </section>
+
+    <section v-else-if="errorMessage" class="py-6" role="alert">
+      <OrganismEmptyState
+        title="Skills dan tools belum bisa dimuat"
+        :description="errorMessage"
+        icon="document"
+        action="Coba lagi"
+        @action="emit('retryLoad')"
+      />
+    </section>
+
+    <template v-else>
     <section class="py-6">
       <header class="mb-5">
         <h2 class="font-title-3">Keahlian</h2>
@@ -257,8 +301,9 @@ defineExpose({
             :selected-values="userSkills.map((skill) => skill.skill_id)"
             searchable
             :loading="isLoadingSkills"
+            :error="skillCatalogError || undefined"
             :disabled="isLoading"
-            @open="loadSkills"
+            @open="loadSkillCatalog"
           />
         </div>
         <AtomicButton
@@ -288,6 +333,21 @@ defineExpose({
           </template>
           <span>Tambah</span>
         </AtomicButton>
+      </div>
+
+      <div
+        v-if="skillCatalogError"
+        class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
+      >
+        <button
+          type="button"
+          class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
+          :disabled="isLoadingSkills"
+          aria-label="Coba muat ulang daftar keahlian"
+          @click="loadSkillCatalog"
+        >
+          Coba lagi
+        </button>
       </div>
 
       <ul
@@ -402,8 +462,9 @@ defineExpose({
             :selected-values="userTools.map((tool) => tool.tool_id)"
             searchable
             :loading="isLoadingTools"
+            :error="toolCatalogError || undefined"
             :disabled="isLoading || userTools.length >= maxTools"
-            @open="loadTools"
+            @open="loadToolCatalog"
           />
         </div>
         <AtomicButton
@@ -437,6 +498,21 @@ defineExpose({
         </AtomicButton>
       </div>
 
+      <div
+        v-if="toolCatalogError"
+        class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-200 bg-danger-50 px-3 py-2"
+      >
+        <button
+          type="button"
+          class="font-label-2 text-danger-700 underline underline-offset-2 disabled:opacity-60"
+          :disabled="isLoadingTools"
+          aria-label="Coba muat ulang daftar tools"
+          @click="loadToolCatalog"
+        >
+          Coba lagi
+        </button>
+      </div>
+
       <p
         v-if="userTools.length >= maxTools"
         class="mt-2 font-body-3 text-secondary"
@@ -462,5 +538,6 @@ defineExpose({
         Belum ada tools. Tambahkan teknologi yang biasa kamu gunakan.
       </p>
     </section>
+    </template>
   </div>
 </template>

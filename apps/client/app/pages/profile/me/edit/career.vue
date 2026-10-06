@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '../../../../utils/error'
 import { ref, computed } from 'vue'
-import type { Profile } from '~/types/profile'
 import type { CareerHistory } from '~/composables/useCareer'
 import { formatCareerPeriod } from '~/utils/career-period'
 
 definePageMeta({
   homeNavbar: {
     variant: 'back-path',
-    title: 'Riwayat Karier',
+    title: 'Riwayat Karier'
   }
 })
 
 const props = defineProps<{
-  profile: Profile
   careerHistories: CareerHistory[]
+  isLoadingData: boolean
+  errorMessage: string | null
 }>()
 
 const emit = defineEmits<{
   refresh: []
+  retryLoad: []
 }>()
 
 const router = useRouter()
@@ -133,6 +134,28 @@ defineExpose({
 
 <template>
   <div class="flex flex-col gap-6">
+    <section
+      v-if="isLoadingData"
+      class="rounded-2xl border border-neutral-200 bg-white"
+    >
+      <MoleculeLoading label="Memuat riwayat karier..." />
+    </section>
+
+    <section
+      v-else-if="errorMessage"
+      class="rounded-2xl border border-neutral-200 bg-white"
+      role="alert"
+    >
+      <OrganismEmptyState
+        title="Riwayat karier belum bisa dimuat"
+        :description="errorMessage"
+        icon="document"
+        action="Coba lagi"
+        @action="emit('retryLoad')"
+      />
+    </section>
+
+    <template v-else>
     <section class="rounded-2xl border border-neutral-200 bg-white">
       <header
         class="flex flex-col gap-4 border-b border-neutral-200 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-7"
@@ -374,5 +397,6 @@ defineExpose({
         </AtomicButton>
       </template>
     </OrganismModal>
+    </template>
   </div>
 </template>

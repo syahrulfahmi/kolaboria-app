@@ -1,22 +1,12 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '../../utils/error'
 import { z } from 'zod'
+import {
+  EXPERIENCE_LEVELS,
+  EXPERIENCE_LEVEL_VALUES
+} from '../../data/experience-levels'
 
 // ── Constants and validation ────────────────────────────────────────────────
-const EXPERIENCE_LEVEL_VALUES = [
-  'Beginner',
-  'Intermediate',
-  'Advanced',
-  'Expert'
-] as const
-
-const EXPERIENCE_LEVELS = [
-  { value: EXPERIENCE_LEVEL_VALUES[0], desc: '0–1 tahun' },
-  { value: EXPERIENCE_LEVEL_VALUES[1], desc: '1–3 tahun' },
-  { value: EXPERIENCE_LEVEL_VALUES[2], desc: '3–5 tahun' },
-  { value: EXPERIENCE_LEVEL_VALUES[3], desc: '5+ tahun' }
-]
-
 const MAX_TOOLS = 3
 
 const onboardingFieldsSchema = z.object({

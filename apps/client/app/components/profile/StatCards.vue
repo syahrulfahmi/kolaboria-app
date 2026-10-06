@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  completedProjects: number
-  publicExperiences: number
+  completedProjects: number | null
+  publicExperiences: number | null
   skillCount: number
 }>()
 
@@ -29,7 +29,7 @@ const items = computed(() => [
           {{ item.label }}
         </dt>
         <dd class="font-display text-2xl font-semibold tabular-nums text-secondary-900 sm:text-3xl">
-          {{ item.value }}
+          {{ item.value ?? '—' }}
         </dd>
       </div>
     </dl>

@@ -17,7 +17,10 @@ export interface CareerHistory {
 export const useCareer = () => {
   const isCareerLoading = ref(false)
 
-  const getCareerHistories = async (_userId?: string) => {
+  const getCareerHistories = async (
+    _userId?: string,
+    options: { throwOnError?: boolean } = {}
+  ) => {
     isCareerLoading.value = true
     try {
       const res = await CareerService.getMyCareerHistories()
@@ -33,6 +36,7 @@ export const useCareer = () => {
       }))
     } catch (error) {
       console.error('Error fetching career histories:', error)
+      if (options.throwOnError) throw error
       return []
     } finally {
       isCareerLoading.value = false

@@ -5,18 +5,18 @@ import type {
 
 export interface ProfileIdentity {
   username: string
-  fullName: string
+  fullName: string | null
   avatar: string | null
-  headline: string
-  location: string
-  bio: string
+  headline: string | null
+  location: string | null
+  bio: string | null
   externalLinks: Record<string, string>
   isVerified: boolean
 }
 
 export interface ProfileTalentDetails {
-  experienceLevel: string
-  collaborationGoal: string
+  experienceLevel: string | null
+  collaborationGoal: string | null
 }
 
 export interface ProfileSkill {
@@ -53,7 +53,7 @@ export interface CareerJourney {
   startMonth: number | null
   endYear: string | null
   endMonth: number | null
-  description: string
+  description: string | null
 }
 
 export interface PortfolioItem {
@@ -69,11 +69,11 @@ export interface PortfolioItem {
 export interface ProfilePageData {
   profile: ProfileIdentity
   talent: ProfileTalentDetails
-  completedProjects: number
+  completedProjects: number | null
   skills: ProfileSkill[]
   tools: ProfileTool[]
   projects: FeaturedProject[]
-  experiences: ProfileExperience[]
+  experiences: ProfileExperience[] | null
   careerJourneys: CareerJourney[]
   portfolio: PortfolioItem[]
 }

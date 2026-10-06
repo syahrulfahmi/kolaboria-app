@@ -1,3 +1,6 @@
+import type { ExperienceCard } from './experience'
+import type { ExperienceLevel } from './profile-api'
+
 // --- Request ---
 export interface SubmitOnboardingRequest {
   primarySkillId: string
@@ -48,7 +51,7 @@ export interface Profile {
 
 export interface TalentProfile {
   user_id: string
-  experience_level: string
+  experience_level: ExperienceLevel
   goal: string | null
   project_count: number
   completed_projects: number
@@ -75,4 +78,3 @@ export interface ContributionStats {
   project_completed: number
   contribution_score: number
 }
-import type { ExperienceCard } from './experience'

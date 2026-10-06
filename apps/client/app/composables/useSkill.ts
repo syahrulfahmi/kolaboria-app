@@ -5,34 +5,41 @@ import type { Skill, Tool } from '../types/skill'
 import type { UserSkill, UserTool } from '../types/profile'
 
 export const useSkill = () => {
+  type FetchOptions = { throwOnError?: boolean }
+
   const skills = ref<Skill[]>([])
   const tools = ref<Tool[]>([])
   const isLoadingSkills = ref(false)
   const isLoadingTools = ref(false)
 
-  const loadSkills = async () => {
+  const loadSkills = async (options: FetchOptions = {}) => {
     isLoadingSkills.value = true
     try {
       skills.value = await MasterService.getSkills()
     } catch (e) {
       console.error('Failed to load skills:', e)
+      if (options.throwOnError) throw e
     } finally {
       isLoadingSkills.value = false
     }
   }
 
-  const loadTools = async () => {
+  const loadTools = async (options: FetchOptions = {}) => {
     isLoadingTools.value = true
     try {
       tools.value = await MasterService.getTools()
     } catch (e) {
       console.error('Failed to load tools:', e)
+      if (options.throwOnError) throw e
     } finally {
       isLoadingTools.value = false
     }
   }
 
-  const getUserSkills = async (_userId?: string): Promise<UserSkill[]> => {
+  const getUserSkills = async (
+    _userId?: string,
+    options: FetchOptions = {}
+  ): Promise<UserSkill[]> => {
     try {
       const res = await ProfileService.getMySkills()
       return (res.data || []).map((s) => ({
@@ -43,6 +50,7 @@ export const useSkill = () => {
       }))
     } catch (err) {
       console.error('Failed to get user skills:', err)
+      if (options.throwOnError) throw err
       return []
     }
   }
@@ -59,7 +67,10 @@ export const useSkill = () => {
     await ProfileService.setPrimarySkill(userSkillId)
   }
 
-  const getUserTools = async (_userId?: string): Promise<UserTool[]> => {
+  const getUserTools = async (
+    _userId?: string,
+    options: FetchOptions = {}
+  ): Promise<UserTool[]> => {
     try {
       const res = await ProfileService.getMyTools()
       return (res.data || []).map((t) => ({
@@ -69,6 +80,7 @@ export const useSkill = () => {
       }))
     } catch (err) {
       console.error('Failed to get user tools:', err)
+      if (options.throwOnError) throw err
       return []
     }
   }

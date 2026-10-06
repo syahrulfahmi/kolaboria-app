@@ -85,7 +85,7 @@ const handleMobileNavbarBack = () => {
     <nav
       class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur"
     >
-      <div class="mx-auto lg:max-w-4/5 px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto lg:max-w-4/6">
         <div
           class="h-16 items-center justify-between gap-6"
           :class="mobileNavbar ? 'hidden lg:flex' : 'flex'"
@@ -324,7 +324,7 @@ const handleMobileNavbarBack = () => {
     </nav>
 
     <main
-      class="mx-auto w-full lg:max-w-4/5 py-4"
+      class="mx-auto w-full lg:max-w-4/6 py-4"
       :class="[
         mobileNavbar?.mainHorizontalPadding === 'none' ? 'px-0' : 'px-4',
         isProfileEditFormRoute ? 'flex flex-1 flex-col pb-0 lg:pb-4' : ''

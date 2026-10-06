@@ -9,9 +9,9 @@ const props = defineProps<{
 
 const publicExperienceCount = computed(
   () =>
-    props.data.experiences.filter(
+    props.data.experiences?.filter(
       (experience) => experience.visibility === 'public'
-    ).length
+    ).length ?? null
 )
 </script>
 

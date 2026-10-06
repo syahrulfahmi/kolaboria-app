@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { getApiErrorMessage } from '~/utils/error'
 import type {
   Profile,
   TalentProfile,
@@ -37,6 +38,14 @@ const userSkills = ref<UserSkill[]>([])
 const userTools = ref<UserTool[]>([])
 const careerHistories = ref<CareerHistory[]>([])
 const isEditMenu = computed(() => route.path === PROFILE_EDIT_ROOT_PATH)
+const skillsPath = PROFILE_EDIT_MENU_ITEMS.find(
+  (item) => item.key === 'skills'
+)?.path
+const careerPath = PROFILE_EDIT_MENU_ITEMS.find(
+  (item) => item.key === 'career'
+)?.path
+const isSkillsSection = computed(() => route.path === skillsPath)
+const isCareerSection = computed(() => route.path === careerPath)
 
 interface EditablePageHandle {
   isDirty?: boolean
@@ -95,12 +104,12 @@ const loadEditableData = async (): Promise<EditableData | null> => {
       break
     case 'skills':
       ;[skills, tools] = await Promise.all([
-        getUserSkills(p.id),
-        getUserTools(p.id)
+        getUserSkills(p.id, { throwOnError: true }),
+        getUserTools(p.id, { throwOnError: true })
       ])
       break
     case 'career':
-      careers = await getCareerHistories(p.id)
+      careers = await getCareerHistories(p.id, { throwOnError: true })
       break
   }
 
@@ -121,15 +130,33 @@ const applyEditableData = (editableData: EditableData | null) => {
   careerHistories.value = editableData?.careerHistories ?? []
 }
 
-const { data } = await useAsyncData('profile-edit-me', loadEditableData, {
-  watch: [() => route.path]
-})
+const { data, pending, error, refresh } = await useAsyncData(
+  'profile-edit-me',
+  loadEditableData,
+  { watch: [() => route.path] }
+)
 
 watch(data, applyEditableData, { immediate: true })
 
 const refreshEditableData = async () => {
-  applyEditableData(await loadEditableData())
+  await refresh()
 }
+
+const skillsLoadError = computed(() => {
+  if (!isSkillsSection.value || !error.value) return null
+  return getApiErrorMessage(
+    error.value,
+    'Skills dan tools belum berhasil dimuat. Silakan coba lagi.'
+  )
+})
+
+const careerLoadError = computed(() => {
+  if (!isCareerSection.value || !error.value) return null
+  return getApiErrorMessage(
+    error.value,
+    'Riwayat karier belum berhasil dimuat. Silakan coba lagi.'
+  )
+})
 
 useHead({
   title: 'Edit Profil - Kolaboria'
@@ -240,16 +267,33 @@ const contentListItems = computed(() =>
         <NuxtPage v-slot="{ Component }">
           <component v-if="isEditMenu" :is="Component" ref="pageRef" />
           <component
+            v-else-if="isSkillsSection"
+            :is="Component"
+            ref="pageRef"
+            :user-skills="userSkills"
+            :user-tools="userTools"
+            :is-loading-data="pending"
+            :error-message="skillsLoadError"
+            @update:userSkills="(val: UserSkill[]) => (userSkills = val)"
+            @update:userTools="(val: UserTool[]) => (userTools = val)"
+            @retry-load="refreshEditableData"
+          />
+          <component
+            v-else-if="isCareerSection"
+            :is="Component"
+            ref="pageRef"
+            :career-histories="careerHistories"
+            :is-loading-data="pending"
+            :error-message="careerLoadError"
+            @refresh="refreshEditableData"
+            @retry-load="refreshEditableData"
+          />
+          <component
             v-else-if="profile"
             :is="Component"
             ref="pageRef"
             :profile="profile"
             :talentProfile="talentProfile"
-            :userSkills="userSkills"
-            :userTools="userTools"
-            :careerHistories="careerHistories"
-            @update:userSkills="(val: UserSkill[]) => (userSkills = val)"
-            @update:userTools="(val: UserTool[]) => (userTools = val)"
             @refresh="refreshEditableData"
           />
         </NuxtPage>

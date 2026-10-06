@@ -12,12 +12,17 @@ const props = defineProps<{
 
 const experienceLabel = computed(() => {
   switch (props.experienceLevel) {
+    case 'Beginner':
     case 'entry':
       return 'Pemula (0-2 Tahun)'
+    case 'Intermediate':
     case 'mid':
       return 'Menengah (3-5 Tahun)'
+    case 'Advanced':
     case 'senior':
-      return 'Senior (5+ Tahun)'
+      return 'Mahir'
+    case 'Expert':
+      return 'Ahli'
     default:
       return 'Belum diatur'
   }
