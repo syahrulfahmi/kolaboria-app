@@ -10,6 +10,7 @@
         type="radio"
         class="peer sr-only"
         :value="value"
+        :name="name"
         :checked="isChecked"
         :disabled="disabled"
         @change="handleChange"
@@ -32,8 +33,19 @@
         ></div>
       </div>
     </div>
-    <span v-if="label" class="text-sm font-medium text-neutral-800 select-none">
-      {{ label }}
+    <span v-if="label" class="flex min-w-0 flex-col select-none">
+      <span
+        :class="
+          description
+            ? 'font-label-2 text-primary'
+            : 'font-body-2 text-primary'
+        "
+      >
+        {{ label }}
+      </span>
+      <span v-if="description" class="mt-0.5 font-body-3 text-muted">
+        {{ description }}
+      </span>
     </span>
   </label>
 </template>
@@ -43,6 +55,8 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   label?: string
+  description?: string
+  name?: string
   modelValue?: string | number | boolean
   value: string | number | boolean
   disabled?: boolean

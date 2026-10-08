@@ -119,14 +119,15 @@
 
         <Icon name="lucide:chevron-down" class="h-5 w-5 text-neutral-400 transition-transform duration-200 ml-auto" :class="{ 'rotate-180 text-primary-400': isOpen }" aria-hidden="true" />
       </div>
-      <transition
-        enter-active-class="transition-all ease-out duration-150"
-        :enter-from-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
-        enter-to-class="transform opacity-100 translate-y-0"
-        leave-active-class="transition-all ease-in duration-150"
-        leave-from-class="transform opacity-100 translate-y-0"
-        :leave-to-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
-      >
+      <Teleport to="body" :disabled="props.teleport === false">
+        <transition
+          enter-active-class="transition-all ease-out duration-150"
+          :enter-from-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
+          enter-to-class="transform opacity-100 translate-y-0"
+          leave-active-class="transition-all ease-in duration-150"
+          leave-from-class="transform opacity-100 translate-y-0"
+          :leave-to-class="openUpward ? 'transform opacity-0 translate-y-3' : 'transform opacity-0 -translate-y-3'"
+        >
           <div
             v-if="isOpen && !disabled"
             ref="dropdownListRef"
@@ -193,6 +194,7 @@
             </ul>
           </div>
         </transition>
+      </Teleport>
       </div>
       <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
         <Icon name="lucide:circle-alert" class="h-3.5 w-3.5 text-red-500 shrink-0" aria-hidden="true" />
@@ -211,22 +213,27 @@ interface Option {
 }
 
 // Props supporting both Single and Multiple modes
-const props = defineProps<{
-  label?: string
-  modelValue?: string | number | (string | number)[] | null
-  options: Option[]
-  placeholder?: string
-  error?: string
-  hint?: string
-  disabled?: boolean
-  required?: boolean
-  multiple?: boolean
-  searchable?: boolean
-  max?: number
-  loading?: boolean
-  selectedValues?: (string | number)[]
-  teleport?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    label?: string
+    modelValue?: string | number | (string | number)[] | null
+    options: Option[]
+    placeholder?: string
+    error?: string
+    hint?: string
+    disabled?: boolean
+    required?: boolean
+    multiple?: boolean
+    searchable?: boolean
+    max?: number
+    loading?: boolean
+    selectedValues?: (string | number)[]
+    teleport?: boolean
+  }>(),
+  {
+    teleport: true
+  }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string | number | (string | number)[] | null]
@@ -282,36 +289,47 @@ const isSelected = (option: Option) => {
 }
 
 const DROPDOWN_MAX_HEIGHT = 240
+const DROPDOWN_GAP = 4
+const DROPDOWN_VIEWPORT_PADDING = 8
 
 const calculatePosition = () => {
   if (!triggerRef.value) return
 
-  if (props.teleport === false) {
-    openUpward.value = false
-    dropdownStyle.value = {
-      position: 'absolute',
-      left: '0',
-      top: 'calc(100% + 4px)',
-      width: '100%',
-      zIndex: '9999'
-    }
-    return
-  }
-
   const rect = triggerRef.value.getBoundingClientRect()
-  const spaceBelow = window.innerHeight - rect.bottom
-  const spaceAbove = rect.top
+  const spaceBelow = Math.max(
+    0,
+    window.innerHeight - rect.bottom - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
+  )
+  const spaceAbove = Math.max(
+    0,
+    rect.top - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
+  )
+  const optionsList = dropdownListRef.value?.querySelector<HTMLElement>(
+    '[role="listbox"]'
+  )
+  const contentHeight = Math.min(
+    optionsList?.scrollHeight || DROPDOWN_MAX_HEIGHT,
+    DROPDOWN_MAX_HEIGHT
+  )
 
-  openUpward.value = spaceBelow < DROPDOWN_MAX_HEIGHT && spaceAbove > spaceBelow
+  openUpward.value = spaceBelow < contentHeight && spaceAbove > spaceBelow
+  const availableHeight = openUpward.value ? spaceAbove : spaceBelow
+  const maxHeight = Math.min(DROPDOWN_MAX_HEIGHT, availableHeight)
+  const isLocalPosition = props.teleport === false
 
   dropdownStyle.value = {
-    position: 'fixed',
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
+    position: isLocalPosition ? 'absolute' : 'fixed',
+    left: isLocalPosition ? '0' : `${rect.left}px`,
+    width: isLocalPosition ? '100%' : `${rect.width}px`,
     zIndex: '9999',
+    maxHeight: `${maxHeight}px`,
     ...(openUpward.value
-      ? { bottom: `${window.innerHeight - rect.top + 4}px` }
-      : { top: `${rect.bottom + 4}px` })
+      ? isLocalPosition
+        ? { bottom: `calc(100% + ${DROPDOWN_GAP}px)` }
+        : { bottom: `${window.innerHeight - rect.top + DROPDOWN_GAP}px` }
+      : isLocalPosition
+        ? { top: `calc(100% + ${DROPDOWN_GAP}px)` }
+        : { top: `${rect.bottom + DROPDOWN_GAP}px` })
   }
 }
 
@@ -331,8 +349,8 @@ const toggleDropdown = () => {
       hasOpened.value = true
       emit('open')
     }
-    calculatePosition()
     nextTick(() => {
+      calculatePosition()
       if (props.searchable) {
         searchInputRef.value?.focus()
       }
@@ -394,8 +412,18 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-watch(filteredOptions, options => {
+watch(filteredOptions, async options => {
   activeOptionIndex.value = Math.max(0, options.findIndex(isSelected))
+  if (isOpen.value) {
+    await nextTick()
+    calculatePosition()
+  }
+})
+watch(() => props.loading, async () => {
+  if (isOpen.value) {
+    await nextTick()
+    calculatePosition()
+  }
 })
 watch(() => props.disabled, disabled => {
   if (disabled) {

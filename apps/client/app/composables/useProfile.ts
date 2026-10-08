@@ -156,11 +156,11 @@ export const useProfile = () => {
   }
 
   // Fetch status onboarding
-  const checkOnboardingStatus = async (force = false): Promise<boolean> => {
+  const checkOnboardingStatus = async (force = false, options: { throwOnError?: boolean } = {}): Promise<boolean> => {
     if (isOnboarded.value !== null && !force) {
       return isOnboarded.value
     }
-    const status = await ProfileService.checkOnboardingStatus()
+    const status = await ProfileService.checkOnboardingStatus(options)
     isOnboarded.value = status
     return status
   }

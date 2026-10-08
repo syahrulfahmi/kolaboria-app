@@ -3,12 +3,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // 1. Authenticated check (let 'auth' middleware handle unauthenticated users)
   if (!isAuthenticated.value) return
+  const isCreate = /^\/projects\/create\/?$/.test(to.path)
 
   // Hydrate user if token exists but user state is null
   let currentUser = user.value
   if (!currentUser) {
-    currentUser = await fetchCurrentUser()
+    currentUser = await fetchCurrentUser({ preserveSessionOnError: isCreate })
     if (!currentUser) {
+      if (isCreate && isAuthenticated.value) return
       return navigateTo('/login')
     }
   }
@@ -26,7 +28,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // 3. Onboarding check (only reached if user is verified)
   const { checkOnboardingStatus } = useProfile()
-  const isOnboarded = await checkOnboardingStatus()
+  let isOnboarded: boolean
+  try {
+    isOnboarded = await checkOnboardingStatus(false, { throwOnError: isCreate })
+  } catch {
+    // Let the create page retry the lookup without treating an outage as a
+    // negative onboarding result. Its editor stays unavailable until loaded.
+    if (isCreate) return
+    throw new Error('Status onboarding belum tersedia.')
+  }
 
   if (isOnboarded) {
     // If user is onboarded and tries to access after-register, direct to home

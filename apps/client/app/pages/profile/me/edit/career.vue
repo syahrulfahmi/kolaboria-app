@@ -195,7 +195,7 @@ defineExpose({
           </AtomicButton>
         </header>
 
-        <div class="space-y-6 p-5 sm:p-7">
+        <div class="space-y-6 p-4 lg:p-5 sm:p-7">
           <aside
             class="flex gap-3 rounded-xl border border-primary-100 bg-primary-50/50 p-4"
             aria-label="Panduan mengisi pengalaman"

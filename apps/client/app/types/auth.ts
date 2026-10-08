@@ -1,4 +1,10 @@
 // --- Request ---
+export type SystemRole = 'user' | 'admin'
+export interface InitiableOrganization {
+  id: string
+  name: string
+  slug: string
+}
 export interface LoginRequest {
   email: string
   password: string
@@ -19,9 +25,15 @@ export interface User {
   emailVerifiedAt: string | null
   isActive?: boolean
   createdAt?: string
+  systemRole?: SystemRole
+  initiableOrganizations?: InitiableOrganization[]
 }
 
 export interface CurrentUserResponse {
+  id?: string
+  username?: string
+  system_role?: SystemRole
+  initiable_organizations?: InitiableOrganization[]
   name: string
   email: string
   email_verified_at: string | null
@@ -38,6 +50,7 @@ export interface RegistrationResponse extends User, VerificationCooldown {}
 export interface ResendVerificationResponse extends VerificationCooldown {}
 
 export interface AuthResponsePayload {
+  system_role?: SystemRole
   access_token: string
   refresh_token: string
   name: string

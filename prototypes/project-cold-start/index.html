@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8f5" />
+    <title>Project Studio — Kolaboria</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Kolaboria beranda">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>kolaboria</span>
+        </a>
+        <div class="topbar-right">
+          <span class="prototype-label"><span class="status-dot"></span> Prototipe interaktif</span>
+          <button class="avatar avatar-dark" type="button" aria-label="Profil Fahmi">F</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="prototype-note">
+          <span class="note-icon" aria-hidden="true">i</span>
+          <p>Simulasi lokal untuk mengeksplorasi alur. Data tidak disimpan ke server.</p>
+          <button class="note-close" type="button" aria-label="Tutup pemberitahuan">×</button>
+        </div>
+
+        <section class="page-heading">
+          <div>
+            <div class="breadcrumb">Project <span>/</span> Project Studio</div>
+            <h1>Project yang jelas mengundang tim yang tepat.</h1>
+            <p>Siapa yang menggagas, memiliki hasil, dan memimpin pekerjaan terlihat sejak awal.</p>
+          </div>
+          <div class="view-switch" role="tablist" aria-label="Tahap proyek">
+            <button class="view-tab active" type="button" role="tab" aria-selected="true" data-view="create">
+              <span class="tab-number">01</span> Buat project
+            </button>
+            <button class="view-tab" type="button" role="tab" aria-selected="false" data-view="running">
+              <span class="tab-number">02</span> Status project
+            </button>
+          </div>
+        </section>
+
+        <section id="create-view" class="view-panel" role="tabpanel">
+          <div class="create-layout">
+            <aside class="step-rail" aria-label="Tahap pembuatan project">
+              <div class="rail-intro">
+                <span class="eyebrow">BUAT PROJECT</span>
+                <h2>Lima langkah<br />menuju tim.</h2>
+                <p>Draft bisa disimpan saat detailnya belum lengkap.</p>
+              </div>
+              <ol class="steps">
+                <li class="step-item current" data-step-item="0"><span class="step-index">1</span><span><strong>Tujuan</strong><small>Masalah dan hasil</small></span></li>
+                <li class="step-item" data-step-item="1"><span class="step-index">2</span><span><strong>Pihak terkait</strong><small>Inisiator, owner, lead</small></span></li>
+                <li class="step-item" data-step-item="2"><span class="step-index">3</span><span><strong>Kebutuhan tim</strong><small>Role dan kapasitas</small></span></li>
+                <li class="step-item" data-step-item="3"><span class="step-index">4</span><span><strong>Waktu</strong><small>Durasi dan komitmen</small></span></li>
+                <li class="step-item" data-step-item="4"><span class="step-index">5</span><span><strong>Review</strong><small>Kesiapan untuk beta</small></span></li>
+              </ol>
+              <div class="rail-help">
+                <span class="help-mark">?</span>
+                <div><strong>Belum siap dipublikasikan?</strong><p>Simpan sebagai draft dan lanjutkan nanti.</p></div>
+              </div>
+            </aside>
+
+            <div class="form-column">
+              <div class="step-content" data-step="0">
+                <div class="section-heading">
+                  <span class="step-kicker">LANGKAH 1 DARI 5</span>
+                  <h2>Mulai dari hasil yang ingin diwujudkan.</h2>
+                  <p>Brief yang konkret membantu calon anggota memahami masalah dan memilih kontribusi yang sesuai.</p>
+                </div>
+                <div class="form-card">
+                  <label class="field-label" for="project-title">Nama project <span class="required">Wajib</span></label>
+                  <input id="project-title" class="text-input" value="Sistem inventaris untuk UMKM pangan" />
+                  <div class="field-grid two-col space-top">
+                    <div>
+                      <label class="field-label" for="project-track">Jenis perjalanan</label>
+                      <select id="project-track" class="text-input">
+                        <option value="accelerated" selected>Project beta cepat · 3–4 minggu</option>
+                        <option value="natural">Project natural · lebih dari 1 bulan</option>
+                      </select>
+                      <span class="field-hint">Project beta cepat menguji perjalanan dari aplikasi sampai hasil.</span>
+                    </div>
+                    <div>
+                      <label class="field-label" for="project-category">Kategori</label>
+                      <select id="project-category" class="text-input">
+                        <option selected>Produk digital</option><option>Komunitas</option><option>Riset</option><option>Pendidikan</option>
+                      </select>
+                      <span class="field-hint">Fokus awal membantu mempertemukan role yang saling melengkapi.</span>
+                    </div>
+                  </div>
+                  <label class="field-label space-top" for="problem">Masalah yang ingin diselesaikan <span class="required">Wajib</span></label>
+                  <textarea id="problem" class="text-input textarea" rows="3">Pemilik usaha masih mencatat stok bahan secara manual, sehingga sulit mengetahui kapan harus membeli ulang.</textarea>
+                  <div class="field-grid two-col space-top">
+                    <div>
+                      <label class="field-label" for="audience">Untuk siapa?</label>
+                      <input id="audience" class="text-input" value="UMKM makanan skala kecil" />
+                    </div>
+                    <div>
+                      <label class="field-label" for="outcome">Hasil yang ingin dicapai</label>
+                      <input id="outcome" class="text-input" value="Demo alur stok masuk, stok keluar, dan peringatan stok minimum" />
+                    </div>
+                  </div>
+                  <label class="field-label space-top" for="done">Kapan project dianggap selesai?</label>
+                  <textarea id="done" class="text-input textarea" rows="2">Pengguna dapat mencatat perubahan stok dan melihat bahan yang perlu dibeli kembali.</textarea>
+                  <span class="field-hint">Definition of done menjadi acuan tim dan owner saat meninjau hasil.</span>
+                </div>
+                <div class="inline-insight"><span class="insight-icon">✳</span><p><strong>Scope kecil lebih mudah membentuk tim.</strong> Mulai dari satu hasil yang bisa didemokan, lalu kembangkan setelah cohort pertama.</p></div>
+              </div>
+
+              <div class="step-content hidden" data-step="1">
+                <div class="section-heading">
+                  <span class="step-kicker">LANGKAH 2 DARI 5</span>
+                  <h2>Orang berbeda, tanggung jawab berbeda.</h2>
+                  <p>Inisiator membawa konteks. Owner menjaga hasil dan keputusan. Lead menggerakkan pekerjaan harian.</p>
+                </div>
+                <div class="role-explainer">
+                  <div><span class="role-symbol initiator-symbol">I</span><strong>Inisiator</strong><p>Asal ide, kebutuhan, dan konteks awal.</p></div>
+                  <div><span class="role-symbol owner-symbol">O</span><strong>Project owner</strong><p>Pemilik hasil dan keputusan produk.</p></div>
+                  <div><span class="role-symbol lead-symbol">L</span><strong>Project lead</strong><p>Koordinasi, task, dan milestone.</p></div>
+                </div>
+                <div class="form-card people-card">
+                  <div class="project-context-row">
+                    <label class="field-label" for="project-context">Konteks project</label>
+                    <select id="project-context" class="text-input"><option value="talent">Project saya sebagai talent</option><option value="kolaboria" selected>Project yang diinisiasi Kolaboria</option></select>
+                    <span id="context-hint" class="field-hint">Secara default, talent yang menggagas juga menjadi owner. Owner dapat menunjuk lead lain untuk operasional.</span>
+                  </div>
+                  <div class="ownership-mode-row hidden" id="ownership-mode-field">
+                    <label class="field-label" for="ownership-mode">Status ownership saat dipublikasikan</label>
+                    <select id="ownership-mode" class="text-input"><option value="designated">Designated Owner · talent lead sudah bersedia</option><option value="unclaimed" selected>Unclaimed · owner belum ditetapkan</option></select>
+                    <span class="field-hint" id="ownership-mode-hint">Owner yang ditunjuk akan mengelola aplikasi contributor dan Workspace setelah project dibuka.</span>
+                  </div>
+                  <div class="person-row">
+                    <div class="person-heading"><span class="role-symbol initiator-symbol">I</span><div><strong>Diinisiasi oleh</strong><small>Pihak yang membawa project ini</small></div></div>
+                    <div class="person-fields"><select id="initiator-type" class="text-input"><option selected>Individu</option><option>Komunitas</option><option>Organisasi</option><option>Partner</option><option>Kolaboria</option></select><input id="initiator-name" class="text-input" value="Fahmi" aria-label="Nama inisiator" /></div>
+                  </div>
+                  <div class="person-row">
+                    <div class="person-heading"><span class="role-symbol owner-symbol">O</span><div><strong>Project owner</strong><small>Menentukan kebutuhan dan menerima hasil</small></div></div>
+                    <div class="person-fields"><select id="owner-type" class="text-input"><option selected>Individu</option><option>Komunitas</option><option>Organisasi</option></select><input id="owner-name" class="text-input" value="Fahmi" aria-label="Nama project owner" /></div>
+                    <label class="check-line"><input id="owner-is-initiator" type="checkbox" checked /> Owner sama dengan inisiator</label>
+                  </div>
+                  <div class="person-row">
+                    <div class="person-heading"><span class="role-symbol lead-symbol">L</span><div><strong>Project lead</strong><small>Orang yang memimpin kerja harian</small></div></div>
+                    <div class="person-fields"><select id="lead-person" class="text-input"><option>Nabila Putri · Product Lead</option><option selected>Fahmi · Project Creator</option><option>Belum ditetapkan</option></select><select id="lead-role" class="text-input"><option selected>Memimpin project</option><option>Lead teknis</option><option>Koordinator komunitas</option></select></div>
+                    <label class="check-line"><input id="lead-is-owner" type="checkbox" checked /> Lead juga project owner</label>
+                  </div>
+                  <div class="creator-note"><span class="creator-avatar">F</span><p><strong id="record-creator-label">Dibuat oleh Fahmi</strong><br /><span id="record-creator-copy">Akun pembuat record adalah metadata audit; perannya ditentukan terpisah.</span></p><span class="lock-mark">⌑</span></div>
+                </div>
+                <div class="inline-insight" id="identity-insight"><span class="insight-icon">↗</span><p>Untuk project talent, <strong>inisiator dan owner adalah orang yang sama</strong> secara default. Lead dapat tetap sama atau didelegasikan ke anggota lain.</p></div>
+              </div>
+
+              <div class="step-content hidden" data-step="2">
+                <div class="section-heading">
+                  <span class="step-kicker">LANGKAH 3 DARI 5</span>
+                  <h2>Jelaskan kontribusi yang benar-benar dibutuhkan.</h2>
+                  <p>Role dan kapasitas menjelaskan kontribusi yang dibutuhkan. Aplikasi dibuka setelah owner ditetapkan.</p>
+                </div>
+                <div class="capacity-banner"><div><span class="eyebrow">KOMPOSISI TIM</span><strong><span id="filled-position-count">4</span> dari <span id="total-position-count">5</span> posisi terisi · 4 role</strong><p id="capacity-note">Anggota terkonfirmasi mengisi kapasitas; undangan yang belum diterima tidak dihitung.</p></div><div class="capacity-ring"><span id="open-position-count">1</span><small>terbuka</small></div></div>
+                <div class="role-list">
+                  <article class="role-card" id="product-lead-role-card"><div class="role-card-top"><span class="role-type-icon violet">P</span><div class="role-name"><strong>Product Lead</strong><small id="product-role-summary">Peran inti · 1 orang · terisi</small></div><span class="role-state filled" id="product-role-state">Terisi</span></div><p>Menyusun prioritas, validasi alur bersama owner, dan menjaga scope project.</p><div class="skill-row"><span>Product thinking</span><span>Facilitation</span><span class="nice-skill">Riset pengguna · tambahan</span></div><div class="role-foot"><span>4–6 jam / minggu</span><span id="product-role-assignee">Diisi oleh Nabila</span></div></article>
+                  <article class="role-card"><div class="role-card-top"><span class="role-type-icon coral">D</span><div class="role-name"><strong>UI/UX Designer</strong><small id="design-role-summary">1 orang · terisi</small></div><span class="role-state filled" id="design-role-state">Terisi</span></div><p>Merancang alur pencatatan stok dan menguji prototype dengan pemilik UMKM.</p><div class="skill-row"><span>Figma</span><span>Design system</span><span class="nice-skill">Usability testing · tambahan</span></div><div class="role-foot"><span>5–8 jam / minggu</span><span id="design-role-assignee">Diisi oleh Arum</span></div></article>
+                  <article class="role-card"><div class="role-card-top"><span class="role-type-icon blue">FE</span><div class="role-name"><strong>Frontend Developer</strong><small id="frontend-role-summary">2 orang · 1 terisi, 1 terbuka</small></div><span class="role-state open" id="frontend-role-state">1 posisi terbuka</span></div><p>Membangun dashboard persediaan dan alur stok yang bisa didemokan.</p><div class="skill-row"><span>Vue / React</span><span>TypeScript</span><span class="nice-skill">Charting · tambahan</span></div><div class="role-foot"><span>6–10 jam / minggu</span><span id="frontend-role-assignee">1 terisi oleh Rizky</span></div></article>
+                  <article class="role-card"><div class="role-card-top"><span class="role-type-icon green">BE</span><div class="role-name"><strong>Backend Developer</strong><small id="backend-role-summary">Peran inti · 1 orang · terisi</small></div><span class="role-state filled" id="backend-role-state">Terisi</span></div><p>Menyiapkan model data dan API untuk pergerakan stok serta batas minimum.</p><div class="skill-row"><span>REST API</span><span>Database</span><span class="nice-skill">Go · tambahan</span></div><div class="role-foot"><span>6–10 jam / minggu</span><span id="backend-role-assignee">Diisi oleh Satria</span></div></article>
+                </div>
+                <section class="form-card roster-card" id="create-roster-card" aria-labelledby="roster-title">
+                  <div class="roster-heading"><div><span class="eyebrow">TIM SAAT INI</span><h3 id="roster-title">Siapa saja yang sudah terlibat?</h3><p>Masukkan anggota yang sudah menyatakan bergabung dan tandai undangan yang masih menunggu.</p></div><button class="link-button" type="button" id="add-member">＋ Tambah anggota</button></div>
+                  <div class="create-roster" id="create-roster">
+                    <div class="roster-row" data-member-state="confirmed"><span class="member-avatar avatar-plum">N</span><div><strong>Nabila Putri</strong><small>Product Lead · Lead project</small></div><span class="roster-status confirmed-status">Terkonfirmasi</span></div>
+                    <div class="roster-row" data-member-state="confirmed"><span class="member-avatar avatar-coral">A</span><div><strong>Arum Puspita</strong><small>UI/UX Designer</small></div><span class="roster-status confirmed-status">Terkonfirmasi</span></div>
+                    <div class="roster-row" data-member-state="confirmed"><span class="member-avatar avatar-blue">R</span><div><strong>Rizky Adi</strong><small>Frontend Developer · 1 dari 2 posisi</small></div><span class="roster-status confirmed-status">Terkonfirmasi</span></div>
+                    <div class="roster-row" data-member-state="confirmed"><span class="member-avatar avatar-green">S</span><div><strong>Satria W.</strong><small>Backend Developer</small></div><span class="roster-status confirmed-status">Terkonfirmasi</span></div>
+                    <div class="roster-row pending-roster-row" data-member-state="pending"><span class="member-avatar avatar-pending">D</span><div><strong>Dimas</strong><small>Frontend Developer · undangan dikirim</small></div><button class="roster-status pending-status" id="confirm-invite" type="button">Menunggu · konfirmasi</button></div>
+                  </div>
+                  <p class="roster-footnote"><span class="status-dot"></span><span id="roster-capacity-note">4 anggota mengisi 4 dari 5 posisi. Dimas belum dihitung sampai menerima undangan.</span></p>
+                </section>
+                <div class="unclaimed-roster-note hidden" id="unclaimed-roster-note"><strong>Belum ada anggota yang terkonfirmasi.</strong><p>Project belum memiliki owner, jadi aplikasi contributor belum dibuka. Roster tim mulai terbentuk setelah owner mengklaim project.</p></div>
+                <button class="add-role" type="button" id="add-role">＋ Tambah role</button>
+              </div>
+
+              <div class="step-content hidden" data-step="3">
+                <div class="section-heading">
+                  <span class="step-kicker">LANGKAH 4 DARI 5</span>
+                  <h2>Sepakati komitmen sebelum tim terbentuk.</h2>
+                  <p>Komitmen owner dan lead terpisah dari waktu yang diharapkan dari kontributor.</p>
+                </div>
+                <div class="form-card">
+                  <div class="field-grid two-col">
+                    <div><label class="field-label" for="start-date">Target kickoff</label><input id="start-date" class="text-input" type="date" value="2026-10-19" /></div>
+                    <div><label class="field-label" for="duration">Durasi project</label><select id="duration" class="text-input"><option selected>4 minggu</option><option>3 minggu</option><option>1–2 bulan</option><option>Lebih dari 2 bulan</option></select></div>
+                  </div>
+                  <div class="commitment-grid space-top">
+                    <div class="commitment-card" id="owner-commitment-card"><span class="role-symbol owner-symbol">O</span><div><strong>Komitmen owner</strong><small id="owner-commitment-person">Fahmi</small></div><label class="field-label" for="owner-hours">Waktu untuk review</label><select id="owner-hours" class="text-input"><option>30 menit / minggu</option><option selected>1 jam / minggu</option><option>2 jam / minggu</option></select><span class="field-hint">Validasi kebutuhan dan meninjau milestone.</span></div>
+                    <div class="commitment-card" id="lead-commitment-card"><span class="role-symbol lead-symbol">L</span><div><strong>Komitmen lead</strong><small id="lead-commitment-person">Nabila Putri</small></div><label class="field-label" for="lead-hours">Waktu memimpin</label><select id="lead-hours" class="text-input"><option>2–3 jam / minggu</option><option selected>4–6 jam / minggu</option><option>7+ jam / minggu</option></select><span class="field-hint">Kickoff, koordinasi, unblock, dan update.</span></div>
+                  </div>
+                  <div class="expectation-note hidden" id="unclaimed-commitment-note"><span class="check-circle">i</span><p><strong>Komitmen disepakati setelah Claim Project.</strong><br />Talent yang mengambil alih menetapkan waktu review dan kepemimpinan sebelum aplikasi contributor dibuka.</p></div>
+                  <div class="field-grid two-col space-top">
+                    <div><label class="field-label" for="app-response">Target respons aplikasi</label><select id="app-response" class="text-input"><option>1 hari</option><option selected>2 hari</option><option>3 hari</option></select><span class="field-hint">Pelamar tahu kapan mereka akan mendapat kabar.</span></div>
+                    <div><label class="field-label" for="contributor-hours">Ekspektasi waktu kontributor</label><select id="contributor-hours" class="text-input"><option>3–5 jam / minggu</option><option selected>5–8 jam / minggu</option><option>8–12 jam / minggu</option></select><span class="field-hint">Ditampilkan di kartu role dan detail project.</span></div>
+                  </div>
+                  <div class="expectation-note"><span class="check-circle">✓</span><p><strong>Kolaborasi async diperbolehkan.</strong><br />Tim dapat memakai GitHub, Figma, WhatsApp, atau tools lain yang disepakati.</p></div>
+                </div>
+              </div>
+
+              <div class="step-content hidden" data-step="4">
+                <div class="section-heading">
+                  <span class="step-kicker">LANGKAH 5 DARI 5</span>
+                  <h2>Pastikan project siap mengundang tim.</h2>
+                  <p>Kolaboria tercatat sebagai inisiator. Status owner menentukan kapan aplikasi contributor dapat dibuka.</p>
+                </div>
+                <div class="review-layout">
+                  <div class="review-main">
+                    <article class="review-project-card"><div class="review-meta"><span class="source-pill"><span class="tiny-brand" id="review-origin-mark">F</span> <span id="review-origin-label">Asal project</span> · <span id="review-initiator">Fahmi</span></span><span class="track-pill">Beta cepat · 4 minggu</span></div><h3 id="preview-title">Sistem inventaris untuk UMKM pangan</h3><p id="preview-outcome">Demo alur stok masuk, stok keluar, dan peringatan stok minimum</p><div class="preview-people"><span class="mini-avatar avatar-orange">O</span><span class="mini-avatar avatar-plum">N</span><p><strong id="review-owner">Fahmi</strong> <span id="review-owner-label">owner</span><span id="review-lead-divider"> · </span><strong id="review-lead">Nabila Putri</strong><span id="review-lead-label"> lead</span></p></div><span class="ownership-status-pill" id="review-ownership-status">Owner ditetapkan</span></article>
+                    <div class="review-section"><h3>Status tim dan aplikasi</h3><div class="review-role"><span>Anggota terkonfirmasi</span><span id="review-confirmed-count">4 anggota</span></div><div class="review-role"><span>Posisi contributor</span><span id="review-open-positions">1 posisi terbuka</span></div><div class="review-role"><span>Aplikasi contributor</span><span id="review-application-status">Terbuka</span></div><div class="review-role" id="review-pending-row"><span>Undangan menunggu</span><span>Dimas · belum dihitung</span></div></div>
+                    <div class="review-section"><h3>Kriteria selesai</h3><p>Pengguna dapat mencatat perubahan stok dan melihat bahan yang perlu dibeli kembali.</p></div>
+                  </div>
+                  <aside class="readiness-card"><span class="readiness-icon">✓</span><span class="eyebrow">STATUS PUBLIKASI</span><h3 id="review-readiness-title">Project siap dibuka</h3><ul><li><span>✓</span> Hasil project terdefinisi</li><li><span>✓</span> <span id="review-owner-check">Owner dan lead ditetapkan</span></li><li><span>✓</span> Role dan kapasitas terlihat</li><li><span>✓</span> Asal project tercatat</li></ul><div class="curation-note"><strong id="review-next-title">Setelah dipublikasikan</strong><p id="review-next-copy">Owner dapat mengelola aplikasi contributor, lalu memulai Workspace.</p></div></aside>
+                </div>
+                <div class="review-consent"><input id="transparent-confirm" type="checkbox" checked /><label for="transparent-confirm">Saya memahami bahwa inisiator, owner, dan lead bisa menjadi pihak yang berbeda; tanggung jawab masing-masing akan terlihat oleh calon kontributor.</label></div>
+                <div id="submit-result" class="submit-result hidden" role="status"><span class="result-check">✓</span><div><strong>Project dipublikasikan.</strong><p id="submit-result-copy">Owner dapat mengelola aplikasi contributor dan Workspace.</p></div></div>
+              </div>
+
+              <div class="form-actions">
+                <button id="back-button" class="button button-secondary hidden" type="button">← Kembali</button>
+                <button id="save-button" class="text-button" type="button">Simpan draft</button>
+                <button id="next-button" class="button button-primary" type="button">Lanjutkan <span>→</span></button>
+                <button id="submit-button" class="button button-primary hidden" type="button">Publikasikan project <span>→</span></button>
+              </div>
+              <p class="form-footnote"><span class="secure-icon">⌑</span> Draft tersimpan sebagai simulasi lokal pada prototipe ini.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="running-view" class="view-panel hidden" role="tabpanel">
+          <div class="running-heading">
+            <div><span class="project-status"><span class="status-dot"></span> <span id="running-status-label">BERJALAN · MINGGU 2 DARI 4</span></span><h2>Sistem inventaris untuk UMKM pangan</h2><p id="running-header-copy">Tim tahu siapa yang mengambil keputusan, memimpin pekerjaan, dan memberi konteks.</p></div>
+            <button class="button button-secondary" type="button" id="back-to-review">← Kembali ke review</button>
+          </div>
+          <div class="identity-strip">
+            <div class="identity-item"><span class="role-symbol initiator-symbol">I</span><div><small id="running-origin-label">ASAL PROJECT</small><strong id="running-initiator">Fahmi</strong><span id="running-origin-copy">Inisiator sekaligus project owner</span></div></div>
+            <div class="identity-divider"></div>
+            <div class="identity-item"><span class="role-symbol owner-symbol">O</span><div><small>PROJECT OWNER</small><strong id="running-owner">Fahmi</strong><span id="running-owner-copy">Validasi kebutuhan dan hasil</span></div></div>
+            <div class="identity-divider"></div>
+            <div class="identity-item"><span class="role-symbol lead-symbol">L</span><div><small>PROJECT LEAD</small><strong id="running-lead">Nabila Putri</strong><span id="running-lead-copy">Operasional dan koordinasi tim</span></div></div>
+            <button class="link-button" type="button" id="show-responsibilities">Lihat tanggung jawab <span>↗</span></button>
+          </div>
+          <section class="claim-state hidden" id="unclaimed-state" aria-live="polite">
+            <div class="claim-state-heading"><span class="claim-status">UNCLAIMED</span><h3 id="claim-state-title">Project belum memiliki owner</h3><p id="claim-state-copy">Talent pertama yang memenuhi persyaratan dan mengonfirmasi Claim Project menjadi owner. Sebelum owner ditetapkan, aplikasi contributor dan Workspace belum dibuka.</p><small class="eligibility-note">Talent contoh: memenuhi syarat Claim (simulasi; aturan eligibility tidak diatur di prototype ini).</small></div>
+            <div class="application-lock"><span class="lock-mark">⌑</span><div><strong>Aplikasi contributor ditutup</strong><small>Claim Project harus dikonfirmasi terlebih dahulu.</small></div><span class="locked-badge">TERKUNCI</span></div>
+            <button class="button button-primary" id="claim-project-button" type="button">Claim Project <span>→</span></button>
+            <div class="claim-confirmation hidden" id="claim-confirmation"><label class="claim-check"><input id="claim-terms" type="checkbox" /><span>Saya memenuhi persyaratan untuk mengambil alih project ini dan bersedia menjadi Project Owner, mengelola aplikasi contributor, serta menjalankan Workspace.</span></label><button class="button button-primary" id="confirm-claim-button" type="button" disabled>Konfirmasi Claim Project</button></div>
+          </section>
+          <section class="claim-success hidden" id="claim-success" aria-live="polite"><span class="success-mark">✓</span><div><strong>Ownership ditetapkan kepada Nabila Putri.</strong><p>Project tidak lagi berstatus UNCLAIMED. Nabila kini dapat mengelola aplikasi contributor. Kolaboria tetap hanya tercatat sebagai inisiator.</p><small>Setelah contributor diseleksi, Workspace dan completion mengikuti flow existing.</small></div><button class="button button-primary" id="continue-to-workspace" type="button">Simulasikan seleksi talent dan buka Workspace <span>→</span></button></section>
+          <div class="run-grid hidden" id="run-grid">
+            <div class="run-main">
+              <section class="panel milestone-panel">
+                <div class="panel-heading"><div><span class="eyebrow">PROGRES PROJECT</span><h3>Milestone tim</h3></div><button class="link-button" type="button" id="add-milestone">＋ Tambah</button></div>
+                <div class="progress-track"><span style="width: 54%"></span></div>
+                <div class="progress-caption"><span>2 dari 4 milestone selesai</span><span>Target selesai 15 Nov</span></div>
+                <div class="milestone-list">
+                  <label class="milestone-row complete"><input type="checkbox" checked /><span class="milestone-check">✓</span><span class="milestone-copy"><strong>Validasi alur dengan 3 pemilik UMKM</strong><small>Owner memberi konteks · Selesai 22 Okt</small></span><span class="milestone-owner">OWNER</span></label>
+                  <label class="milestone-row complete"><input type="checkbox" checked /><span class="milestone-check">✓</span><span class="milestone-copy"><strong>Prototype pencatatan stok</strong><small>UI/UX + Product · Selesai 28 Okt</small></span><span class="milestone-owner">LEAD</span></label>
+                  <label class="milestone-row"><input type="checkbox" /><span class="milestone-check"></span><span class="milestone-copy"><strong>Alur stok masuk dan keluar berfungsi</strong><small>Frontend + Backend · Target 5 Nov</small></span><span class="milestone-owner">TIM</span></label>
+                  <label class="milestone-row"><input type="checkbox" /><span class="milestone-check"></span><span class="milestone-copy"><strong>Demo dan serah hasil ke owner</strong><small>Lead meminta konfirmasi hasil · Target 12 Nov</small></span><span class="milestone-owner">OWNER</span></label>
+                </div>
+                <div class="external-tools"><span class="external-icon">↗</span><p><strong>Tim boleh bekerja di tools lain.</strong> Simpan checkpoint dan evidence penting di sini agar kontribusi tetap bisa ditelusuri.</p><div class="tool-badges"><span>GitHub</span><span>Figma</span><span>WhatsApp</span></div></div>
+              </section>
+              <section class="panel team-panel"><div class="panel-heading"><div><span class="eyebrow"><span id="running-filled-count">4</span> DARI <span id="running-total-count">5</span> POSISI TERISI</span><h3>Anggota dan role</h3></div><button class="link-button" type="button">Lihat aplikasi <span>↗</span></button></div><div class="member-list"><div class="member-row"><span class="member-avatar avatar-plum">N</span><div><strong>Nabila Putri <span class="member-role-badge">LEAD</span></strong><small>Product Lead · 4–6 jam / minggu</small></div><span class="member-state">Aktif</span></div><div class="member-row"><span class="member-avatar avatar-coral">A</span><div><strong>Arum Puspita</strong><small>UI/UX Designer · 5–8 jam / minggu</small></div><span class="member-state">Aktif</span></div><div class="member-row"><span class="member-avatar avatar-blue">R</span><div><strong>Rizky Adi</strong><small>Frontend Developer · 5–8 jam / minggu</small></div><span class="member-state">Aktif</span></div><div class="member-row"><span class="member-avatar avatar-green">S</span><div><strong>Satria W.</strong><small>Backend Developer · 5–8 jam / minggu</small></div><span class="member-state">Aktif</span></div><div class="member-row pending-member hidden" id="running-pending-member"><span class="member-avatar avatar-pending">D</span><div><strong>Dimas</strong><small>Frontend Developer · undangan menunggu</small></div><span class="member-state pending-text">Menunggu</span></div></div><div class="open-role" id="running-open-role"><span class="open-role-mark">＋</span><p><strong><span id="running-open-count">1</span> posisi masih terbuka</strong><br /><span>Frontend Developer · 1 posisi lagi</span></p><button class="link-button" type="button">Bagikan role</button></div><div class="open-role filled-open-role hidden" id="running-team-full"><span class="open-role-mark">✓</span><p><strong>Semua posisi terisi</strong><br /><span>Undangan Dimas diterima · tim berjumlah 5 orang</span></p></div></section>
+            </div>
+            <aside class="run-side">
+              <section class="panel responsibility-panel" id="responsibility-panel"><div class="panel-heading"><div><span class="eyebrow">OPERASIONAL PROJECT</span><h3>Pembagian tanggung jawab</h3></div></div><div class="responsibility-item"><span class="role-symbol owner-symbol">O</span><div><strong id="responsibility-owner">Fahmi · Owner</strong><p id="responsibility-owner-copy">Menentukan kebutuhan, memberi konteks produk, dan mengonfirmasi hasil akhir.</p><span class="responsibility-boundary">Pemilik outcome dan keputusan</span></div></div><div class="responsibility-item"><span class="role-symbol lead-symbol">L</span><div><strong id="responsibility-lead">Fahmi · Project Lead</strong><p>Menjalankan kickoff, membagi task, memfasilitasi koordinasi, dan mengajukan completion.</p><span class="responsibility-boundary">Penggerak operasional tim</span></div></div></section>
+              <section class="origin-note" id="origin-note"><span class="origin-note-icon">i</span><p><strong>Asal project</strong><br /><span id="origin-note-copy">Project ini dimulai oleh talent. Inisiator menjadi owner dan bertanggung jawab atas hasil; operasional harian dijalankan oleh lead.</span></p></section>
+              <section class="panel completion-panel"><span class="eyebrow">KETIKA PROJECT SELESAI</span><h3>Hasil yang bisa dipercaya.</h3><ol class="completion-flow"><li><span>1</span>Lead mengajukan completion</li><li><span>2</span>Owner mengonfirmasi deliverable</li><li><span>3</span>Anggota mengonfirmasi kontribusi</li><li><span>4</span>Experience Record terbentuk</li></ol><button class="text-button" id="show-completion" type="button">Lihat alur completion <span>↗</span></button></section>
+            </aside>
+          </div>
+          <div class="running-footer hidden" id="running-footer"><span><span class="status-dot"></span> Simulasi project beta · data contoh</span><button class="button button-primary" type="button" id="complete-project">Simulasikan pengajuan completion <span>→</span></button></div>
+        </section>
+
+        <footer class="page-footer"><span>Kolaboria <span>·</span> Project Studio</span><span>Kolaborasi yang dimulai dengan konteks yang jelas.</span></footer>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog id="completion-dialog" class="completion-dialog">
+      <form method="dialog"><button class="dialog-close" aria-label="Tutup">×</button><span class="eyebrow">PENGAJUAN COMPLETION</span><h2>Lead mengajukan hasil untuk ditinjau.</h2><p>Pengajuan bukan sekadar mengubah status. Owner meninjau deliverable, lalu anggota mengonfirmasi kontribusi mereka.</p><div class="dialog-evidence"><span>↗</span><div><strong>Demo inventaris UMKM</strong><small>Prototype · dokumentasi · tautan repository</small></div><span class="evidence-state">Siap ditinjau</span></div><div class="dialog-steps"><span class="done">✓ Lead mengajukan</span><span>2 Owner mengonfirmasi</span><span>3 Anggota mengonfirmasi</span></div><button class="button button-primary dialog-action" value="close">Mengerti</button></form>
+    </dialog>
+  </body>
+</html>

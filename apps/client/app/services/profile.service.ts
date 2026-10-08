@@ -55,14 +55,16 @@ export const ProfileService = {
     })
   },
 
-  async checkOnboardingStatus(): Promise<boolean> {
+  async checkOnboardingStatus(options: { throwOnError?: boolean } = {}): Promise<boolean> {
     const { $api } = useApi()
     try {
       const response = await $api<ApiResponse<{ is_onboarded: boolean }>>(
         API_ENDPOINTS.PROFILE.ONBOARDING_STATUS
       )
-      return !!response.data?.is_onboarded
+      if (typeof response.data?.is_onboarded !== 'boolean') throw new Error('Status onboarding belum tersedia.')
+      return response.data.is_onboarded
     } catch (err) {
+      if (options.throwOnError) throw err
       console.error('Gagal mengecek status onboarding:', err)
       return false
     }

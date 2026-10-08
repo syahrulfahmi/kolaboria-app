@@ -7,6 +7,9 @@ export default defineNuxtPlugin(async () => {
   // Profile overview routes use local fixtures while the profile API is being integrated.
   if (isProfileOverview) return
 
+  // The create route hydrates through its guards and retryable account loader.
+  if (/^\/projects\/create\/?$/.test(currentPath)) return
+
   const { fetchCurrentUser } = useAuth()
   await fetchCurrentUser()
 })

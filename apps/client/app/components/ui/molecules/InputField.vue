@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-1.5">
-    <label v-if="label" class="font-label-1">
+    <label v-if="label" :for="resolvedId" class="font-label-1 text-primary">
       {{ label }}
       <span v-if="required" class="text-danger-500 leading-none">*</span>
     </label>
@@ -17,6 +17,9 @@
         @input="handleInput"
         :placeholder="placeholder"
         :disabled="disabled"
+        :id="resolvedId"
+        :aria-describedby="descriptionId"
+        :aria-invalid="error ? 'true' : undefined"
         :required="required"
         class="w-full rounded-lg border bg-white px-4 py-2.5 text-body text-neutral-900 transition-all duration-150 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
         :class="[
@@ -58,19 +61,20 @@
 
     <div v-if="error" class="flex items-center gap-1.5 mt-0.5">
       <Icon name="lucide:circle-alert" class="h-3.5 w-3.5 text-red-500 shrink-0" />
-      <span class="font-body-3 text-red-500">{{ error }}</span>
+      <span :id="errorId" class="font-body-3 text-red-500">{{ error }}</span>
     </div>
-    <span v-else-if="hint" class="font-body-3 text-secondary mt-1">{{
+    <span v-else-if="hint" :id="hintId" class="font-body-3 text-secondary mt-1">{{
       hint
     }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useId } from 'vue'
 
 const props = defineProps<{
   label?: string
+  id?: string
   modelValue?: string | number
   placeholder?: string
   error?: string
@@ -85,6 +89,13 @@ const emit = defineEmits<{
 }>()
 
 const showPassword = ref(false)
+const generatedId = useId()
+const resolvedId = computed(() => props.id || 'input-' + generatedId)
+const hintId = computed(() => resolvedId.value + '-hint')
+const errorId = computed(() => resolvedId.value + '-error')
+const descriptionId = computed(() =>
+  props.error ? errorId.value : props.hint ? hintId.value : undefined
+)
 
 const inputType = computed(() => {
   if (props.type === 'password') {

@@ -9,8 +9,8 @@
       type="button"
       class="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
       :class="focusRingClass"
+      :aria-label="resolvedCloseLabel"
       @click.stop="emit('close')"
-      aria-label="Close tag"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,9 +31,11 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   label?: string
+  closeLabel?: string
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger'
   closable?: boolean
 }>()
+const resolvedCloseLabel = computed(() => props.closeLabel || 'Close tag')
 
 const emit = defineEmits<{
   close: []

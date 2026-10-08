@@ -1,7 +1,8 @@
 export interface HomeNavbarConfig {
-  variant: 'back-path'
-  title: string
+  variant?: 'back-path'
+  title?: string
   mainHorizontalPadding?: 'default' | 'none'
+  mainWidth?: 'default' | 'wide'
 }
 
 declare module 'vue-router' {

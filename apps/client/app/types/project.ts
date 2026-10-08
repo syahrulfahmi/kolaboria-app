@@ -59,6 +59,7 @@ export interface ProjectRole {
   remaining_capacity: number
   status: 'open' | 'filled' | 'archived'
   tools: MasterItem[]
+  skill_tags?: string[]
 }
 
 export interface ProjectSkill {
@@ -113,11 +114,13 @@ export interface Project {
     username: string
     full_name: string | null
     avatar: string | null
+    is_verified?: boolean
   }
   profiles?: {
     username: string
     full_name: string | null
     avatar: string | null
+    is_verified?: boolean
   }
   project_skills?: ProjectSkill[]
   project_technologies?: ProjectTechnology[]
@@ -126,6 +129,11 @@ export interface Project {
   owner_contribution_role_id?: string | null
   owner_contribution_role?: MasterItem | null
   owner_custom_role_title?: string | null
+  origin?: 'personal' | 'community' | 'experiment' | 'client' | string | null
+  why_collaborative?: string | null
+  contributor_outcome?: string | null
+  owner_commitment?: string | null
+  hours_per_week?: number | null
 }
 
 export interface Application {

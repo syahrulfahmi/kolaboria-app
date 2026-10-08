@@ -18,8 +18,8 @@ export default defineNuxtConfig({
   icon: {
     provider: 'none',
     clientBundle: {
+      // Keep icon names static in markup so scan can bundle them automatically.
       scan: true,
-      icons: ['lucide:arrow-left'],
       includeCustomCollections: false
     }
   },

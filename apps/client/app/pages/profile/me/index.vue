@@ -5,10 +5,7 @@ import { ProfileService } from '../../../services/profile.service'
 import type { ProfilePageData } from '../../../types/profile-page'
 
 definePageMeta({
-  layout: 'home',
-  homeNavbar: {
-    mainHorizontalPadding: 'none'
-  }
+  layout: 'home'
 })
 
 const { data, pending, error, refresh } = await useAsyncData<ProfilePageData>(

@@ -16,8 +16,16 @@ import ProjectStatusConfirmModal from '~/components/project/ProjectStatusConfirm
 import { WorkspaceService } from '~/services/workspace.service'
 
 import { MasterService } from '~/services/master.service'
+import { isProjectEditorPreview } from '~/utils/project-editor-preview'
 
-definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
+definePageMeta({
+  layout: 'home',
+  middleware: ['auth', 'onboarding-guard'],
+  homeNavbar: {
+    variant: 'back-path',
+    title: 'Edit Proyek'
+  }
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -35,6 +43,7 @@ const { add: addToast } = useToast()
 const { tools, loadTools } = useSkill()
 
 const projectSlug = route.params.slug as string
+const isPreview = computed(() => isProjectEditorPreview(import.meta.dev, route.query.preview))
 const project = ref<Project | null>(null)
 const contributionRoles = ref<{ id: string; name: string; slug: string; category?: string | null }[]>([])
 const pending = ref(true)
@@ -98,6 +107,10 @@ const hydrateForm = (source: Project) => {
 }
 
 onMounted(async () => {
+  if (isPreview.value) {
+    pending.value = false
+    return
+  }
   try {
     const [p, roles] = await Promise.all([
       getProjectBySlug(projectSlug),
@@ -239,6 +252,8 @@ const isValid = computed(() => {
 </script>
 
 <template>
+  <ProjectEditorPreview v-if="isPreview" mode="edit" :slug="projectSlug" />
+  <template v-else>
   <div class="min-h-screen bg-neutral-50 pb-20">
     <MoleculeLoading
       v-if="pending"
@@ -248,7 +263,7 @@ const isValid = computed(() => {
 
     <div v-else-if="project" class="mx-auto w-full max-w-7xl py-8">
       <!-- Header -->
-      <div class="mb-8">
+      <div class="mb-8 hidden sm:block">
         <NuxtLink
           :to="`/projects/${project.slug}`"
           class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-800"
@@ -372,4 +387,5 @@ const isValid = computed(() => {
       label="Menyimpan Perubahan..."
     />
   </div>
+  </template>
 </template>

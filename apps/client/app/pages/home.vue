@@ -332,8 +332,6 @@ const scrollToRecommended = () => {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 }
-
-const activeMobileNav = ref('home')
 </script>
 
 <template>
@@ -1140,61 +1138,5 @@ const activeMobileNav = ref('home')
         </OrganismCard>
       </div>
     </section>
-
-    <!-- =========================================================
-     8. MOBILE BOTTOM NAV
-    ========================================================= -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-neutral-200 bg-white/95 px-4 py-2 backdrop-blur-md md:hidden"
-      style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom))"
-    >
-      <NuxtLink
-        to="/home"
-        class="flex flex-col items-center justify-center gap-1 font-label-3 transition-colors"
-        :class="activeMobileNav === 'home' ? 'text-primary-700 font-bold' : 'text-neutral-500'"
-        @click="activeMobileNav = 'home'"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-        <span>Beranda</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/projects/my-applications"
-        class="flex flex-col items-center justify-center gap-1 font-label-3 transition-colors"
-        :class="activeMobileNav === 'applications' ? 'text-primary-700 font-bold' : 'text-neutral-500'"
-        @click="activeMobileNav = 'applications'"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <span>Lamaranku</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/projects/my-projects"
-        class="flex flex-col items-center justify-center gap-1 font-label-3 transition-colors"
-        :class="activeMobileNav === 'projects' ? 'text-primary-700 font-bold' : 'text-neutral-500'"
-        @click="activeMobileNav = 'projects'"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-        </svg>
-        <span>Project</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/profile/me"
-        class="flex flex-col items-center justify-center gap-1 font-label-3 transition-colors"
-        :class="activeMobileNav === 'profile' ? 'text-primary-700 font-bold' : 'text-neutral-500'"
-        @click="activeMobileNav = 'profile'"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        <span>Profil</span>
-      </NuxtLink>
-    </nav>
   </div>
 </template>

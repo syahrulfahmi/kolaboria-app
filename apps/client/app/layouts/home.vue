@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { FileText, Folder, House, UserRound } from '@lucide/vue'
 import type { Profile } from '../types/profile'
 import { getProfileEditPageMeta } from '../data/profile-edit-navigation'
 import type { HomeNavbarConfig } from '../types/home-navbar'
@@ -9,18 +10,27 @@ const { getProfile } = useProfile()
 const router = useRouter()
 const route = useRoute()
 
-const isMobileMenuOpen = ref(false)
 const isUserDropdownOpen = ref(false)
-const mobileMenuRef = ref<HTMLElement | null>(null)
-const mobileMenuButtonRef = ref<HTMLElement | null>(null)
 const userMenuRef = ref<HTMLElement | null>(null)
 const userProfile = ref<Profile | null>(null)
 
 const profilePath = '/profile/me'
+const mobileBottomNavItems = [
+  { to: '/home', label: 'Beranda', icon: House },
+  { to: '/projects/my-applications', label: 'Lamaranku', icon: FileText },
+  { to: '/projects/my-projects', label: 'Project', icon: Folder },
+  { to: profilePath, label: 'Profil', icon: UserRound }
+] as const
+const normalizedRoutePath = computed(
+  () => route.path.replace(/\/+$/, '') || '/'
+)
 const profileEditPageMeta = computed(() => getProfileEditPageMeta(route.path))
 const isProfileEditRoute = computed(() => profileEditPageMeta.value !== null)
+const isMobileBottomNavRoute = computed(() =>
+  mobileBottomNavItems.some((item) => item.to === normalizedRoutePath.value)
+)
 const mobileNavbar = computed<HomeNavbarConfig | null>(
-  () => route.meta.homeNavbar ?? null
+  () => (route.meta.homeNavbar as HomeNavbarConfig | undefined) ?? null
 )
 const isProfileEditFormRoute = computed(
   () => isProfileEditRoute.value && !profileEditPageMeta.value?.isMenu
@@ -55,14 +65,6 @@ onBeforeUnmount(() => {
   desktopMediaQuery?.removeEventListener('change', handleViewportChange)
 })
 
-useClickOutside(
-  mobileMenuRef,
-  () => {
-    isMobileMenuOpen.value = false
-  },
-  mobileMenuButtonRef
-)
-
 useClickOutside(userMenuRef, () => {
   isUserDropdownOpen.value = false
 })
@@ -85,10 +87,12 @@ const handleMobileNavbarBack = () => {
     <nav
       class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur"
     >
-      <div class="mx-auto lg:max-w-4/6">
+      <div class="mx-auto lg:max-w-4/6 px-4">
         <div
           class="h-16 items-center justify-between gap-6"
-          :class="mobileNavbar ? 'hidden lg:flex' : 'flex'"
+          :class="
+            mobileNavbar?.variant === 'back-path' ? 'hidden lg:flex' : 'flex'
+          "
         >
           <div class="flex items-center gap-8">
             <NuxtLink
@@ -193,43 +197,6 @@ const handleMobileNavbarBack = () => {
                 </div>
               </transition>
             </div>
-
-            <button
-              ref="mobileMenuButtonRef"
-              type="button"
-              class="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 md:hidden"
-              aria-label="Menu"
-              @click="isMobileMenuOpen = !isMobileMenuOpen"
-            >
-              <svg
-                v-if="!isMobileMenuOpen"
-                class="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              <svg
-                v-else
-                class="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -256,81 +223,47 @@ const handleMobileNavbarBack = () => {
           </h1>
         </div>
       </div>
-
-      <transition
-        enter-active-class="transition ease-out duration-200"
-        enter-from-class="-translate-y-2 opacity-0"
-        enter-to-class="translate-y-0 opacity-100"
-        leave-active-class="transition ease-in duration-150"
-        leave-from-class="translate-y-0 opacity-100"
-        leave-to-class="-translate-y-2 opacity-0"
-      >
-        <div
-          v-show="isMobileMenuOpen"
-          ref="mobileMenuRef"
-          class="absolute left-0 right-0 border-b border-neutral-200 bg-white shadow-lg shadow-secondary-900/10 md:hidden"
-        >
-          <div class="space-y-1 px-4 pb-4 pt-2">
-            <NuxtLink
-              to="/home"
-              class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
-              active-class="bg-primary-50 text-primary-700"
-              @click="isMobileMenuOpen = false"
-            >
-              Beranda
-            </NuxtLink>
-            <NuxtLink
-              to="/projects/my-applications"
-              class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
-              active-class="bg-primary-50 text-primary-700"
-              @click="isMobileMenuOpen = false"
-            >
-              Lamaranku
-            </NuxtLink>
-            <NuxtLink
-              to="/projects/my-projects"
-              class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
-              active-class="bg-primary-50 text-primary-700"
-              @click="isMobileMenuOpen = false"
-            >
-              Project Saya
-            </NuxtLink>
-            <NuxtLink
-              :to="profilePath"
-              class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
-              active-class="bg-primary-50 text-primary-700"
-              @click="isMobileMenuOpen = false"
-            >
-              Profil
-            </NuxtLink>
-            <div class="my-2 border-t border-neutral-200" />
-            <a
-              href="#"
-              class="block rounded-lg px-3 py-2 text-body font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700"
-            >
-              Pusat Bantuan
-            </a>
-            <AtomicButton
-              variant="ghost-danger"
-              block
-              class="!px-3 !py-2 !justify-start !font-body-2"
-              @click="handleLogout"
-            >
-              Keluar
-            </AtomicButton>
-          </div>
-        </div>
-      </transition>
     </nav>
 
     <main
-      class="mx-auto w-full lg:max-w-4/6 py-4"
+      class="mx-auto w-full pt-4"
       :class="[
+        mobileNavbar?.mainWidth === 'wide' ? 'lg:max-w-7xl' : 'lg:max-w-4/6',
         mobileNavbar?.mainHorizontalPadding === 'none' ? 'px-0' : 'px-4',
+        isMobileBottomNavRoute ? 'pb-24 md:pb-4' : '',
         isProfileEditFormRoute ? 'flex flex-1 flex-col pb-0 lg:pb-4' : ''
       ]"
     >
       <slot />
     </main>
+
+    <nav
+      v-if="isMobileBottomNavRoute"
+      aria-label="Navigasi utama"
+      class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-neutral-200 bg-white/95 px-4 py-2 backdrop-blur-md md:hidden"
+      style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom))"
+    >
+      <NuxtLink
+        v-for="item in mobileBottomNavItems"
+        :key="item.to"
+        :to="item.to"
+        class="flex flex-col items-center justify-center gap-1 font-label-3 transition-colors"
+        :class="
+          normalizedRoutePath === item.to
+            ? 'text-primary-700 font-bold'
+            : 'text-neutral-500'
+        "
+        :aria-current="normalizedRoutePath === item.to ? 'page' : undefined"
+      >
+        <component
+          :is="item.icon"
+          :size="20"
+          :stroke-width="2"
+          class="h-5 w-5"
+          aria-hidden="true"
+        />
+        <span>{{ item.label }}</span>
+      </NuxtLink>
+    </nav>
   </div>
 </template>

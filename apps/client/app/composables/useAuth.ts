@@ -2,6 +2,8 @@ import { computed, nextTick } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 import { AuthService } from '../services/auth.service'
 import type { AuthResponsePayload, User } from '../types/auth'
+import { parseCurrentUserContext } from '../utils/auth-user-context'
+import { getApiErrorStatus } from '../utils/error'
 
 export const useAuth = () => {
   const authCookieOptions = {
@@ -46,7 +48,9 @@ export const useAuth = () => {
       username: identity.username,
       name: data.name,
       email: data.email,
-      emailVerifiedAt: data.email_verified_at
+      emailVerifiedAt: data.email_verified_at,
+      systemRole: data.system_role === 'admin' ? 'admin' : 'user',
+      initiableOrganizations: []
     }
 
     await nextTick()
@@ -124,31 +128,43 @@ export const useAuth = () => {
     await AuthService.resetPassword({ token, newPassword })
   }
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (options: { preserveSessionOnError?: boolean } = {}) => {
     if (!accessToken.value) return null
     try {
       const res = await AuthService.getMe()
       if (res.data) {
+        const context = parseCurrentUserContext(res.data)
         const identity = getDecodedToken()
         if (!identity?.user_id || !identity.username) {
           throw new Error('Token autentikasi tidak memuat identitas pengguna')
+        }
+        if (context.id && context.id !== identity.user_id) {
+          throw new Error('Identitas akun tidak sesuai dengan sesi.')
         }
 
         user.value = {
           id: identity.user_id,
           username: identity.username,
-          name: res.data.name,
-          email: res.data.email,
-          emailVerifiedAt: res.data.email_verified_at,
-          isActive: res.data.is_active,
-          createdAt: res.data.created_at
+          name: context.name,
+          email: context.email,
+          emailVerifiedAt: context.email_verified_at,
+          isActive: context.is_active,
+          createdAt: context.created_at,
+          systemRole: context.system_role ?? 'user',
+          initiableOrganizations: context.initiable_organizations ?? []
         }
-      }
+      } else throw new Error('Data akun belum tersedia.')
       return user.value
     } catch (err) {
-      accessToken.value = null
-      refreshToken.value = null
-      user.value = null
+      const status = getApiErrorStatus(err)
+      if (!options.preserveSessionOnError || !accessToken.value || status === 401 || status === 403 || status === 404) {
+        accessToken.value = null
+        refreshToken.value = null
+        user.value = null
+      } else if (user.value) {
+        // A failed refresh must not retain previously granted organization rights.
+        user.value = { ...user.value, systemRole: 'user', initiableOrganizations: [] }
+      }
       return null
     }
   }
