@@ -156,6 +156,8 @@ export interface ProjectItem {
   commitmentHours?: number | string
   deadline?: string
   categoryLabel?: string
+  createdAt?: string
+  filledCapacity?: number
   isBookmarked?: boolean
 }
 

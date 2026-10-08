@@ -1,45 +1,26 @@
 <script setup lang="ts">
-import type { Project } from '~/types/project'
-import ProjectOwnerCard from '~/components/project/ProjectOwnerCard.vue'
+import type { MyProjectSummaryResponse } from '~/types/project-editor'
+import { getApiErrorMessage } from '~/utils/error'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
-const { getMyProjects, getProjectApplicants } = useProjects()
+const { getMyProjectSummaries } = useProjects()
+const { currentUserId } = useAuth()
 
-const { data: projects, pending } = await useAsyncData<Project[]>(
+const { data: projects, pending, error, refresh } = await useAsyncData<MyProjectSummaryResponse[]>(
   'my-projects',
-  () => getMyProjects()
+  () => getMyProjectSummaries()
 )
-
-// Store applicant counts per project ID
-const applicantCounts = ref<Record<string, number>>({})
-
-// Fetch pending applicant counts
-onMounted(async () => {
-  if (projects.value && projects.value.length > 0) {
-    const counts: Record<string, number> = {}
-    await Promise.all(
-      projects.value.map(async (project) => {
-        try {
-          const applicants = await getProjectApplicants(project.id)
-          counts[project.id] = applicants.filter(
-            (a) => a.status === 'pending'
-          ).length
-        } catch (e) {
-          counts[project.id] = 0
-        }
-      })
-    )
-    applicantCounts.value = counts
-  }
-})
+const loadError = computed(() => error.value
+  ? getApiErrorMessage(error.value, 'Daftar proyek belum dapat dimuat.')
+  : '')
 
 const stats = computed(() => {
   const p = projects.value || []
   return {
     total: p.length,
     draft: p.filter((x) => x.status === 'draft').length,
-    active: p.filter((x) => ['open', 'in_progress'].includes(x.status)).length,
+    active: p.filter((x) => ['open', 'awaiting_owner', 'in_progress'].includes(x.status)).length,
     completed: p.filter((x) => x.status === 'completed').length,
     archived: p.filter((x) => x.status === 'archived').length
   }
@@ -49,6 +30,7 @@ const filters = [
   { label: 'Semua', value: 'all' },
   { label: 'Draft', value: 'draft' },
   { label: 'Aktif', value: 'active' },
+  { label: 'Menunggu Project Lead', value: 'awaiting_owner' },
   { label: 'Selesai', value: 'completed' },
   { label: 'Arsip', value: 'archived' }
 ]
@@ -60,7 +42,7 @@ const filteredProjects = computed(() => {
 
   if (selectedFilter.value !== 'all') {
     if (selectedFilter.value === 'active') {
-      result = result.filter((p) => ['open', 'in_progress'].includes(p.status))
+      result = result.filter((p) => ['open', 'awaiting_owner', 'in_progress'].includes(p.status))
     } else {
       result = result.filter((p) => p.status === selectedFilter.value)
     }
@@ -126,6 +108,10 @@ const filteredProjects = computed(() => {
     <main class="mx-auto py-8">
       <!-- ─── LOADING STATE ─── -->
       <MoleculeLoading v-if="pending" label="Memuat project..." class="py-16" />
+      <div v-else-if="loadError" class="rounded-xl border border-danger-200 bg-white p-6 text-danger-700" role="alert">
+        <p>{{ loadError }}</p>
+        <AtomicButton class="mt-4" variant="outline" @click="refresh">Coba lagi</AtomicButton>
+      </div>
 
       <template v-else>
         <!-- ─── STATISTICS GRID ─── -->
@@ -213,11 +199,11 @@ const filteredProjects = computed(() => {
           v-if="filteredProjects.length > 0"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          <ProjectOwnerCard
+          <ProjectEditorMyProjectCard
             v-for="project in filteredProjects"
             :key="project.id"
             :project="project"
-            :pending-applicants-count="applicantCounts[project.id]"
+            :current-user-id="currentUserId || ''"
           />
         </div>
 

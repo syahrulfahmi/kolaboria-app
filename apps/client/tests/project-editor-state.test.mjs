@@ -74,6 +74,23 @@ test('editing loaded data is dirty until a successful save replaces the baseline
   editor.unmount()
 })
 
+test('editor accepts a positive server version above the local preview version', () => {
+  const storage = memoryStorage()
+  const detail = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  detail.version = 7
+  storage.setItem(
+    'kolaboria:project-editor-preview:v1:user-a:edit:platform-portofolio-talenta-digital',
+    JSON.stringify(detail)
+  )
+  const editor = createEditor({
+    mode: 'edit', slug: detail.slug, initialRecord: null, storage
+  })
+
+  assert.equal(editor.bindings.record.value?.version, 7)
+  assert.equal(editor.bindings.storageWarning.value, '')
+  editor.unmount()
+})
+
 test('draft storage is scoped to current user and edit slug and storage errors stay visible', async () => {
   const storage = memoryStorage()
   const editor = createEditor({ storage })
@@ -101,6 +118,71 @@ test('draft storage is scoped to current user and edit slug and storage errors s
   denied.unmount()
 })
 
+test('an incomplete draft can be saved without publication eligibility', async () => {
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const incomplete = {
+    ...fixture.draft,
+    summary: '',
+    description: '',
+    roles: [{ ...fixture.draft.roles[0], contribution_role_id: undefined, description: '', skill_ids: [] }],
+    why_collaborative: '',
+    contributor_outcome: '',
+    owner_commitment: '',
+    collaboration_agreement: false
+  }
+  const requests = []
+  const persistence = {
+    create: async request => {
+      requests.push(structuredClone(request))
+      const definition = request.definition
+      return {
+        ...definition,
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        status: 'draft',
+        version: 1,
+        created_at: '2026-10-08T00:00:00.000Z',
+        updated_at: '2026-10-08T00:01:00.000Z',
+        published_at: null,
+        ownership: {
+          created_by_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          initiator_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          initiator_organization_id: null,
+          owner_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          show_initiator: false,
+          can_accept_contributors: false
+        },
+        owner_role: null,
+        roles: definition.roles.map((role, index) => ({
+          ...role,
+          id: `cccccccc-cccc-4ccc-8ccc-${String(index + 1).padStart(12, '0')}`,
+          contribution_role: null,
+          position: index,
+          skills: [],
+          tools: [],
+          filled_capacity: 0,
+          remaining_capacity: role.capacity,
+          status: 'open'
+        }))
+      }
+    },
+    update: async () => { throw new Error('not used') },
+    publish: async () => { throw new Error('not used') },
+    loadBySlug: async () => { throw new Error('not used') }
+  }
+  const editor = createEditor({
+    initialDraft: incomplete,
+    persistence,
+    eligibility: { email_verified: false, onboarding_completed: false },
+    storage: null
+  })
+
+  assert.equal(await editor.bindings.saveDraft(), true)
+  assert.equal(requests.length, 1)
+  assert.equal(requests[0].definition.summary, '')
+  assert.equal(requests[0].definition.collaboration_agreement, false)
+  editor.unmount()
+})
+
 test('mock publish preserves brief, stores an explicit local status and locks duplicate submissions', async () => {
   const storage = memoryStorage()
   const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
@@ -116,5 +198,362 @@ test('mock publish preserves brief, stores an explicit local status and locks du
 
   assert.equal(editor.bindings.record.value.status, 'open')
   assert.match(editor.bindings.saveResult.value.message, /belum diterbitkan ke server/i)
+  editor.unmount()
+})
+
+test('edit mode publishes a saved draft only after saving its latest definition', async () => {
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const updateRequests = []
+  const publishVersions = []
+  const detailFrom = (definition, version, status = 'draft') => ({
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    slug: definition.slug,
+    status,
+    version,
+    created_at: '2026-10-08T00:00:00.000Z',
+    updated_at: '2026-10-08T00:01:00.000Z',
+    published_at: status === 'draft' ? null : '2026-10-08T00:01:00.000Z',
+    ...definition,
+    ownership: {
+      created_by_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_organization_id: null,
+      owner_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      show_initiator: false,
+      can_accept_contributors: status === 'open'
+    },
+    owner_role: null,
+    roles: definition.roles.map((role, index) => ({
+      ...role,
+      id: role.id || `cccccccc-cccc-4ccc-8ccc-${String(index + 1).padStart(12, '0')}`,
+      contribution_role: null,
+      position: index,
+      skills: [],
+      tools: [],
+      filled_capacity: 0,
+      remaining_capacity: role.capacity,
+      status: 'open'
+    }))
+  })
+  const persistence = {
+    create: async () => { throw new Error('edit publishing must not create a project') },
+    update: async (_id, request) => {
+      updateRequests.push(structuredClone(request))
+      return detailFrom(request.definition, request.version + 1)
+    },
+    publish: async (_id, request) => {
+      publishVersions.push(request.version)
+      return detailFrom(updateRequests.at(-1).definition, request.version + 1, 'open')
+    },
+    loadBySlug: async () => { throw new Error('not used') }
+  }
+  const editor = createEditor({
+    mode: 'edit',
+    slug: fixture.slug,
+    initialRecord: { ...fixture, status: 'draft' },
+    persistence,
+    eligibility: { email_verified: true, onboarding_completed: true },
+    storage: null
+  })
+  editor.bindings.draft.value.title = 'Judul terbaru sebelum publikasi'
+
+  assert.equal(await editor.bindings.publish(), true)
+  assert.equal(updateRequests.length, 1)
+  assert.equal(updateRequests[0].definition.title, 'Judul terbaru sebelum publikasi')
+  assert.deepEqual(publishVersions, [2])
+  assert.equal(editor.bindings.record.value.status, 'open')
+  assert.equal(editor.bindings.isDirty.value, false)
+  editor.unmount()
+})
+
+test('publish retries an uncertain create, saves edits made after the timeout, then publishes the latest version', async () => {
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const pendingCreateStorage = memoryStorage()
+  const createRequests = []
+  const updateRequests = []
+  let publishVersion = 0
+  let createAttempt = 0
+  const detailFrom = (definition, version, status = 'draft') => ({
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    slug: definition.slug,
+    status,
+    version,
+    created_at: '2026-10-08T00:00:00.000Z',
+    updated_at: '2026-10-08T00:01:00.000Z',
+    published_at: status === 'draft' ? null : '2026-10-08T00:01:00.000Z',
+    ...definition,
+    ownership: {
+      created_by_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_organization_id: null,
+      owner_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      show_initiator: false,
+      can_accept_contributors: status === 'open'
+    },
+    owner_role: null,
+    roles: definition.roles.map((role, index) => ({
+      ...role,
+      id: role.id || `cccccccc-cccc-4ccc-8ccc-${String(index + 1).padStart(12, '0')}`,
+      contribution_role: null,
+      position: index,
+      skills: [],
+      tools: [],
+      filled_capacity: 0,
+      remaining_capacity: role.capacity,
+      status: 'open'
+    }))
+  })
+  const persistence = {
+    create: async (request) => {
+      createRequests.push(structuredClone(request))
+      createAttempt += 1
+      if (createAttempt === 1) throw new Error('request timed out')
+      return detailFrom(request.definition, 1)
+    },
+    update: async (_id, request) => {
+      updateRequests.push(structuredClone(request))
+      return detailFrom(request.definition, request.version + 1)
+    },
+    publish: async (_id, request) => {
+      publishVersion = request.version
+      const definition = updateRequests.at(-1)?.definition || createRequests.at(-1).definition
+      return detailFrom(definition, request.version + 1, 'open')
+    },
+    loadBySlug: async () => { throw new Error('not used') }
+  }
+  const editor = createEditor({
+    initialDraft: fixture.draft,
+    persistence,
+    eligibility: { email_verified: true, onboarding_completed: true },
+    storage: null,
+    pendingCreateStorage
+  })
+
+  assert.equal(await editor.bindings.publish(), false)
+  editor.unmount()
+
+  const reloaded = createEditor({
+    persistence,
+    eligibility: { email_verified: true, onboarding_completed: true },
+    storage: null,
+    pendingCreateStorage
+  })
+  assert.equal(reloaded.bindings.draft.value.title, fixture.draft.title)
+  reloaded.bindings.draft.value.title = 'Judul setelah timeout'
+  assert.equal(await reloaded.bindings.publish(), true)
+
+  assert.equal(createRequests.length, 2)
+  assert.deepEqual(createRequests[1], createRequests[0])
+  assert.equal(updateRequests.length, 1)
+  assert.equal(updateRequests[0].definition.title, 'Judul setelah timeout')
+  assert.equal(publishVersion, 2)
+  assert.equal(reloaded.bindings.record.value.draft.title, 'Judul setelah timeout')
+  assert.equal(reloaded.bindings.isDirty.value, false)
+  reloaded.unmount()
+})
+
+test('draft save retry persists edits made after a timed-out create before reporting success', async () => {
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const pendingCreateStorage = memoryStorage()
+  const createRequests = []
+  const updateRequests = []
+  let createAttempt = 0
+  const detailFrom = (definition, version) => ({
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    slug: definition.slug,
+    status: 'draft',
+    version,
+    created_at: '2026-10-08T00:00:00.000Z',
+    updated_at: '2026-10-08T00:01:00.000Z',
+    published_at: null,
+    ...definition,
+    ownership: {
+      created_by_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      initiator_organization_id: null,
+      owner_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      show_initiator: false,
+      can_accept_contributors: false
+    },
+    owner_role: null,
+    roles: definition.roles.map((role, index) => ({
+      ...role,
+      id: role.id || `cccccccc-cccc-4ccc-8ccc-${String(index + 1).padStart(12, '0')}`,
+      contribution_role: null,
+      position: index,
+      skills: [],
+      tools: [],
+      filled_capacity: 0,
+      remaining_capacity: role.capacity,
+      status: 'open'
+    }))
+  })
+  const persistence = {
+    create: async request => {
+      createRequests.push(structuredClone(request))
+      createAttempt += 1
+      if (createAttempt === 1) throw new Error('request timed out')
+      return detailFrom(request.definition, 1)
+    },
+    update: async (_id, request) => {
+      updateRequests.push(structuredClone(request))
+      return detailFrom(request.definition, request.version + 1)
+    },
+    publish: async () => { throw new Error('not used') },
+    loadBySlug: async () => { throw new Error('not used') }
+  }
+  const first = createEditor({ initialDraft: fixture.draft, persistence, storage: null, pendingCreateStorage })
+  assert.equal(await first.bindings.saveDraft(), false)
+  first.unmount()
+
+  const reloaded = createEditor({ persistence, storage: null, pendingCreateStorage })
+  reloaded.bindings.draft.value.title = 'Judul setelah retry'
+  assert.equal(await reloaded.bindings.saveDraft(), true)
+
+  assert.equal(createRequests.length, 2)
+  assert.deepEqual(createRequests[0], createRequests[1])
+  assert.equal(updateRequests.length, 1)
+  assert.equal(updateRequests[0].definition.title, 'Judul setelah retry')
+  assert.equal(reloaded.bindings.record.value.draft.title, 'Judul setelah retry')
+  assert.equal(reloaded.bindings.isDirty.value, false)
+  reloaded.unmount()
+})
+
+test('a definitive create conflict releases the rejected idempotency snapshot for correction', async () => {
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  fixture.draft.slug = 'taken-slug'
+  const requests = []
+  const persistence = {
+    create: async request => {
+      requests.push(structuredClone(request))
+      if (requests.length === 1) throw Object.assign(new Error('slug conflict'), { status: 409 })
+      const definition = request.definition
+      return {
+        ...definition,
+        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        status: 'draft',
+        version: 1,
+        created_at: '2026-10-08T00:00:00.000Z',
+        updated_at: '2026-10-08T00:01:00.000Z',
+        published_at: null,
+        ownership: {
+          created_by_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          initiator_user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          initiator_organization_id: null,
+          owner_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          show_initiator: false,
+          can_accept_contributors: false
+        },
+        owner_role: null,
+        roles: definition.roles.map((role, index) => ({
+          ...role,
+          id: `cccccccc-cccc-4ccc-8ccc-${String(index + 1).padStart(12, '0')}`,
+          contribution_role: null,
+          position: index,
+          skills: [],
+          tools: [],
+          filled_capacity: 0,
+          remaining_capacity: role.capacity,
+          status: 'open'
+        }))
+      }
+    },
+    update: async () => { throw new Error('not used') },
+    publish: async () => { throw new Error('not used') },
+    loadBySlug: async () => { throw new Error('not used') }
+  }
+  const editor = createEditor({ initialDraft: fixture.draft, persistence, storage: null })
+
+  assert.equal(await editor.bindings.saveDraft(), false)
+  editor.bindings.draft.value.slug = 'available-slug'
+  assert.equal(await editor.bindings.saveDraft(), true)
+
+  assert.equal(requests.length, 2)
+  assert.notEqual(requests[1].client_request_id, requests[0].client_request_id)
+  assert.equal(requests[1].definition.slug, 'available-slug')
+  editor.unmount()
+})
+
+test('production recovery is account-scoped, offered explicitly, and does not replace server data', async () => {
+  const recoveryStorage = memoryStorage()
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const first = createEditor({
+    initialDraft: fixture.draft,
+    storage: null,
+    recoveryStorage
+  })
+  first.bindings.draft.value.title = 'Judul lokal yang belum tersimpan'
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.ok(recoveryStorage.keys().length > 0)
+  first.unmount()
+
+  const reloaded = createEditor({ storage: null, recoveryStorage })
+  assert.equal(reloaded.bindings.draft.value.title, '')
+  assert.equal(reloaded.bindings.recoveryAvailable.value, 'draft')
+  assert.equal(reloaded.bindings.restoreRecovery(), true)
+  assert.equal(reloaded.bindings.draft.value.title, 'Judul lokal yang belum tersimpan')
+  assert.equal(reloaded.bindings.isDirty.value, true)
+  reloaded.unmount()
+
+  const otherAccount = createEditor({ currentUserId: 'user-b', storage: null, recoveryStorage })
+  assert.equal(otherAccount.bindings.recoveryAvailable.value, null)
+  otherAccount.unmount()
+})
+
+test('edit recovery keeps the loaded server version until the user explicitly restores local changes', async () => {
+  const recoveryStorage = memoryStorage()
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const first = createEditor({
+    mode: 'edit',
+    slug: fixture.slug,
+    initialRecord: fixture,
+    storage: null,
+    recoveryStorage
+  })
+  first.bindings.draft.value.title = 'Perubahan lokal edit'
+  await new Promise(resolve => setTimeout(resolve, 0))
+  first.unmount()
+
+  const reloaded = createEditor({
+    mode: 'edit',
+    slug: fixture.slug,
+    initialRecord: fixture,
+    storage: null,
+    recoveryStorage
+  })
+  assert.equal(reloaded.bindings.draft.value.title, fixture.draft.title)
+  assert.equal(reloaded.bindings.record.value.version, fixture.version)
+  assert.equal(reloaded.bindings.recoveryAvailable.value, 'draft')
+  assert.equal(reloaded.bindings.restoreRecovery(), true)
+  assert.equal(reloaded.bindings.draft.value.title, 'Perubahan lokal edit')
+  assert.equal(reloaded.bindings.record.value.version, fixture.version)
+  reloaded.unmount()
+})
+
+test('legacy recovery imports brief text only after explicit choice', () => {
+  const recoveryStorage = memoryStorage()
+  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
+  const legacy = structuredClone(fixture)
+  legacy.draft.title = 'Judul lama'
+  legacy.draft.summary = 'Ringkasan lama'
+  legacy.draft.project_category = 'business'
+  legacy.draft.roles[0].contribution_role_id = 'legacy-role-id'
+  recoveryStorage.setItem(
+    'kolaboria:project-editor-preview:v1:user-a:create',
+    JSON.stringify(legacy)
+  )
+  const editor = createEditor({
+    initialDraft: fixture.draft,
+    storage: null,
+    recoveryStorage
+  })
+
+  assert.equal(editor.bindings.draft.value.title, fixture.draft.title)
+  assert.equal(editor.bindings.legacyTextRecoveryAvailable.value, true)
+  assert.equal(editor.bindings.restoreLegacyTextRecovery(), true)
+  assert.equal(editor.bindings.draft.value.title, 'Judul lama')
+  assert.equal(editor.bindings.draft.value.summary, 'Ringkasan lama')
+  assert.equal(editor.bindings.draft.value.project_category, fixture.draft.project_category)
+  assert.equal(editor.bindings.draft.value.roles[0].contribution_role_id, fixture.draft.roles[0].contribution_role_id)
   editor.unmount()
 })

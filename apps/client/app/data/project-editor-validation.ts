@@ -6,13 +6,16 @@ import type {
   ProjectEditorStep
 } from '../types/project-editor'
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const isUuid = (value: string) => UUID_PATTERN.test(value)
+
 const availableOrigin = new Set([
   'personal',
   'community',
   'experiment',
   'client'
 ])
-const availableVisibility = new Set(['public', 'invite_only'])
+const availableVisibility = new Set(['public', 'private', 'invite_only'])
 const availableAvailability = new Set([
   'flexible',
   'part_time',
@@ -29,21 +32,6 @@ const categoryIds = new Set([
   'business',
   'other'
 ])
-
-export const normalizeProjectEditorTag = (value: string) => value.trim()
-
-export const addProjectEditorTag = (tags: string[], value: string) => {
-  const normalized = normalizeProjectEditorTag(value)
-  if (
-    !normalized ||
-    tags.some(
-      (tag) =>
-        tag.toLocaleLowerCase('id-ID') === normalized.toLocaleLowerCase('id-ID')
-    )
-  )
-    return [...tags]
-  return [...tags, normalized]
-}
 
 export const getProjectEditorCapacity = (roles: ProjectEditorRole[]) =>
   roles.reduce(
@@ -95,20 +83,16 @@ const validateBasic = (draft: ProjectEditorDraft): ProjectEditorErrors => {
 }
 
 const validateTeam = (
-  draft: ProjectEditorDraft,
-  references?: ProjectEditorReferences
+  draft: ProjectEditorDraft
 ): ProjectEditorErrors => {
   const errors: ProjectEditorErrors = {}
   if (!draft.roles.length)
     errors.roles = 'Tambahkan minimal satu kebutuhan peran.'
   draft.roles.forEach((role) => {
     const prefix = 'roles.' + role.client_key
-    const validMasterRole = references?.contribution_roles.some(
-      ({ id }) => id === role.contribution_role_id
-    )
-    if (!role.contribution_role_id && !role.custom_title?.trim())
-      errors[prefix + '.contribution_role_id'] = 'Pilih atau tulis nama peran.'
-    else if (role.contribution_role_id && references && !validMasterRole)
+    if (!role.contribution_role_id)
+      errors[prefix + '.contribution_role_id'] = 'Pilih nama peran dari daftar.'
+    else if (!isUuid(role.contribution_role_id))
       errors[prefix + '.contribution_role_id'] = 'Pilih peran yang tersedia.'
     if (!role.description.trim())
       errors[prefix + '.description'] = 'Jelaskan tanggung jawab peran.'
@@ -124,37 +108,22 @@ const validateTeam = (
         'Jumlah orang tidak boleh di bawah ' +
         role.filled_capacity +
         ' anggota yang sudah terisi.'
-    if (!role.skill_tags.length || role.skill_tags.some((tag) => !tag.trim()))
-      errors[prefix + '.skill_tags'] =
+    if (!role.skill_ids.length)
+      errors[prefix + '.skill_ids'] =
         'Tambahkan minimal satu skill yang relevan.'
+    else if (role.skill_ids.some((id) => !isUuid(id)))
+      errors[prefix + '.skill_ids'] = 'Pilih skill master yang tersedia.'
     if (role.tool_ids.length > 8)
       errors[prefix + '.tool_ids'] =
         'Pilih maksimal 8 tools untuk setiap peran.'
-    if (
-      references &&
-      role.tool_ids.some(
-        (id) => !references.tools.some((tool) => tool.id === id)
-      )
-    )
+    if (role.tool_ids.some((id) => !isUuid(id)))
       errors[prefix + '.tool_ids'] = 'Pilih tools yang tersedia.'
   })
   if (getProjectEditorCapacity(draft.roles) > 20)
     errors.capacity = 'Total kebutuhan kontributor maksimal 20 orang.'
-  if (draft.tool_ids.length > 12)
-    errors.tool_ids = 'Pilih maksimal 12 tools untuk keseluruhan proyek.'
-  if (
-    references &&
-    draft.tool_ids.some(
-      (id) => !references.tools.some((tool) => tool.id === id)
-    )
-  )
-    errors.tool_ids = 'Pilih tools proyek yang tersedia.'
-  const ownerRoleValid = references?.contribution_roles.some(
-    ({ id }) => id === draft.owner_contribution_role_id
-  )
-  if (draft.creation_mode === 'personal' && draft.owner_contribution_role_id && references && !ownerRoleValid)
+  if (draft.creation_mode === 'personal' && draft.owner_contribution_role_id && !isUuid(draft.owner_contribution_role_id))
     errors.owner_contribution_role_id = 'Pilih peran profesional yang tersedia.'
-  if (draft.creation_mode === 'organization_initiated' && (draft.owner_contribution_role_id || draft.owner_custom_role_title))
+  if (draft.creation_mode === 'organization_initiated' && draft.owner_contribution_role_id)
     errors.owner_contribution_role_id = 'Proyek ini belum memiliki Project Lead. Hapus peran pribadimu.'
   return errors
 }
@@ -207,22 +176,77 @@ const mergeErrors = (...groups: ProjectEditorErrors[]) =>
 export const validateProjectEditorStep = (
   step: ProjectEditorStep,
   draft: ProjectEditorDraft,
-  references?: ProjectEditorReferences
+  _references?: ProjectEditorReferences
 ): ProjectEditorErrors => {
   if (step === 0) return validateBasic(draft)
-  if (step === 1) return validateTeam(draft, references)
+  if (step === 1) return validateTeam(draft)
   if (step === 2) return validateContext(draft)
   if (step === 3) return validateTimeline(draft)
-  return validateProjectEditorDraft(draft, references)
+  return validateProjectEditorDraft(draft)
+}
+
+export const validateProjectEditorStructure = (
+  draft: ProjectEditorDraft
+): ProjectEditorErrors => {
+  const errors: ProjectEditorErrors = {}
+  if (!['personal', 'organization_initiated'].includes(draft.creation_mode))
+    errors.creation_mode = 'Pilih atas nama siapa proyek dibuat.'
+  if (draft.creation_mode === 'organization_initiated' && !draft.initiator_organization_id)
+    errors.initiator_organization_id = 'Pilih organisasi yang kamu wakili.'
+  if (draft.creation_mode === 'personal' && draft.initiator_organization_id)
+    errors.initiator_organization_id = 'Proyek pribadi tidak mewakili organisasi.'
+  if (draft.title.length > 80) errors.title = 'Judul proyek maksimal 80 karakter.'
+  if (draft.summary.length > 180) errors.summary = 'Ringkasan maksimal 180 karakter.'
+  if (draft.description.length > 20_000) errors.description = 'Deskripsi proyek maksimal 20.000 karakter.'
+  if (draft.slug.length > 100 || (draft.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(draft.slug)))
+    errors.slug = 'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung; maksimal 100 karakter.'
+  if (!categoryIds.has(draft.project_category)) errors.project_category = 'Pilih kategori proyek yang tersedia.'
+  if (!availableVisibility.has(draft.visibility)) errors.visibility = 'Pilih visibilitas proyek.'
+  if (!availableOrigin.has(draft.origin)) errors.origin = 'Pilih asal proyek.'
+  if (!availableAvailability.has(draft.availability)) errors.availability = 'Pilih ketersediaan yang tersedia.'
+  if (!availableHours.has(draft.hours_per_week)) errors.hours_per_week = 'Pilih estimasi jam yang tersedia.'
+  if (draft.why_collaborative.length > 5_000) errors.why_collaborative = 'Alasan kolaborasi maksimal 5.000 karakter.'
+  if (draft.contributor_outcome.length > 5_000) errors.contributor_outcome = 'Hasil kontributor maksimal 5.000 karakter.'
+  if (draft.owner_commitment.length > 5_000) errors.owner_commitment = 'Komitmen owner maksimal 5.000 karakter.'
+  if (draft.lead_expectations.length > 5_000) errors.lead_expectations = 'Ekspektasi lead maksimal 5.000 karakter.'
+  if (draft.owner_contribution_role_id && !isUuid(draft.owner_contribution_role_id))
+    errors.owner_contribution_role_id = 'Pilih peran profesional yang tersedia.'
+  if (draft.creation_mode === 'organization_initiated' && draft.owner_contribution_role_id)
+    errors.owner_contribution_role_id = 'Proyek organisasi belum memiliki Project Lead.'
+  if (draft.roles.length > 20) errors.roles = 'Maksimal 20 peran dapat ditambahkan.'
+  draft.roles.forEach((role) => {
+    const prefix = 'roles.' + role.client_key
+    if (role.id && !isUuid(role.id)) errors[prefix + '.id'] = 'Identitas peran tidak valid.'
+    if (role.contribution_role_id && !isUuid(role.contribution_role_id))
+      errors[prefix + '.contribution_role_id'] = 'Pilih peran master yang tersedia.'
+    if (role.description.length > 5_000)
+      errors[prefix + '.description'] = 'Deskripsi peran maksimal 5.000 karakter.'
+    if (!Number.isSafeInteger(role.capacity) || role.capacity < 1 || role.capacity > 20)
+      errors[prefix + '.capacity'] = 'Jumlah orang harus berupa bilangan bulat 1–20.'
+    if (role.skill_ids.length > 20 || role.skill_ids.some((id) => !isUuid(id)))
+      errors[prefix + '.skill_ids'] = 'Pilih maksimal 20 skill master yang valid.'
+    if (role.tool_ids.length > 8 || role.tool_ids.some((id) => !isUuid(id)))
+      errors[prefix + '.tool_ids'] = 'Pilih maksimal 8 tools master yang valid.'
+  })
+  if (getProjectEditorCapacity(draft.roles) > 20)
+    errors.capacity = 'Total kebutuhan kontributor maksimal 20 orang.'
+  for (const [field, value] of [['start_date', draft.start_date], ['deadline', draft.deadline]] as const) {
+    if (value && !validDateOnly(value)) errors[field] = 'Masukkan tanggal yang valid.'
+  }
+  if (draft.start_date && draft.deadline && validDateOnly(draft.start_date) &&
+    validDateOnly(draft.deadline) && draft.deadline < draft.start_date)
+    errors.deadline = 'Tanggal target harus sama atau sesudah tanggal mulai.'
+  return errors
 }
 
 export const validateProjectEditorDraft = (
   draft: ProjectEditorDraft,
-  references?: ProjectEditorReferences
+  _references?: ProjectEditorReferences
 ): ProjectEditorErrors =>
   mergeErrors(
+    validateProjectEditorStructure(draft),
     validateBasic(draft),
-    validateTeam(draft, references),
+    validateTeam(draft),
     validateContext(draft),
     validateTimeline(draft)
   )

@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { getProjectEditorCapacity } from '~/data/project-editor-validation'
 import type {
+  ProjectEditorCatalogKey,
+  ProjectEditorCatalogStates,
   ProjectEditorDraft,
   ProjectEditorErrors,
   ProjectEditorReferences
@@ -9,44 +11,45 @@ import type {
 
 const props = defineProps<{
   references: ProjectEditorReferences
+  catalogStates: ProjectEditorCatalogStates
   errors: ProjectEditorErrors
   disabled: boolean
 }>()
 const emit = defineEmits<{
   (event: 'add-role'): void
   (event: 'remove-role', clientKey: string): void
+  (event: 'load-catalog', catalog: ProjectEditorCatalogKey): void
 }>()
 const draft = defineModel<ProjectEditorDraft>('form', { required: true })
-const ownerRole = computed(
-  () =>
-    draft.value.owner_contribution_role_id ||
-    (draft.value.owner_custom_role_title !== undefined ? 'custom-role' : null)
-)
+const ownerRole = computed(() => draft.value.owner_contribution_role_id ?? null)
 const ownerRoleOptions = computed(() => [
+  { label: 'Tanpa peran profesional', value: '' },
   ...props.references.contribution_roles.map((role) => ({
     label: role.name,
     value: role.id
-  })),
-  { label: 'Lainnya', value: 'custom-role' }
+  }))
 ])
-const toolOptions = computed(() =>
-  props.references.tools.map((tool) => ({ label: tool.name, value: tool.id }))
-)
+const catalogStatusItems: Array<{
+  key: ProjectEditorCatalogKey
+  name: string
+}> = [
+  { key: 'contribution_roles', name: 'nama role' },
+  { key: 'skills', name: 'skill' },
+  { key: 'tools', name: 'tools' }
+]
 const totalCapacity = computed(() =>
   getProjectEditorCapacity(draft.value.roles)
 )
 const selectOwnerRole = (
   value: string | number | (string | number)[] | null
 ) => {
-  if (value === 'custom-role') {
-    draft.value.owner_contribution_role_id = undefined
-    draft.value.owner_custom_role_title ??= ''
-  } else if (typeof value === 'string') {
+  if (
+    typeof value === 'string' &&
+    props.references.contribution_roles.some((role) => role.id === value)
+  ) {
     draft.value.owner_contribution_role_id = value
-    draft.value.owner_custom_role_title = undefined
   } else {
     draft.value.owner_contribution_role_id = undefined
-    draft.value.owner_custom_role_title = undefined
   }
 }
 </script>
@@ -101,6 +104,35 @@ const selectOwnerRole = (
       role="alert"
     >
       <p class="font-body-2 text-danger-700">{{ errors.roles }}</p>
+      </div>
+
+    <div v-for="catalog in catalogStatusItems" :key="catalog.key">
+      <p
+        v-if="catalogStates[catalog.key].loading"
+        class="font-body-3 text-secondary"
+        role="status"
+        aria-live="polite"
+      >
+        Memuat daftar {{ catalog.name }}…
+      </p>
+      <div
+        v-if="catalogStates[catalog.key].error"
+        class="flex flex-wrap items-center gap-3 rounded-lg border border-danger-200 bg-danger-50 p-3"
+        role="alert"
+      >
+        <p class="font-body-3 text-danger-700">
+          {{ catalogStates[catalog.key].error }}
+        </p>
+        <AtomicButton
+          type="button"
+          variant="outline"
+          size="sm"
+          :disabled="catalogStates[catalog.key].loading"
+          @click="emit('load-catalog', catalog.key)"
+        >
+          Coba lagi
+        </AtomicButton>
+      </div>
     </div>
 
     <div class="space-y-4">
@@ -111,11 +143,12 @@ const selectOwnerRole = (
         :role="role"
         :index="index"
         :total-roles="draft.roles.length"
-        :contribution-roles="references.contribution_roles"
+        :catalog-states="catalogStates"
         :references="references"
         :errors="errors"
         :disabled="disabled"
         @remove="(clientKey) => emit('remove-role', clientKey)"
+        @load-catalog="(catalog) => emit('load-catalog', catalog)"
       />
     </div>
 
@@ -128,32 +161,6 @@ const selectOwnerRole = (
       <Icon name="lucide:plus" class="h-4 w-4" aria-hidden="true" />
       Tambah Role
     </button>
-
-    <section
-      class="space-y-4 border-t border-neutral-200 pt-6"
-      aria-labelledby="project-tools-title"
-    >
-      <div>
-        <h3 id="project-tools-title" class="font-title-3 text-primary">
-          Tech stack proyek
-        </h3>
-        <p class="mt-1 font-paragraph-3 text-secondary">
-          Teknologi yang dipakai bersama oleh tim. Kebutuhan khusus tiap peran
-          diatur pada kartu peran.
-        </p>
-      </div>
-      <MoleculeDropdown
-        v-model="draft.tool_ids"
-        label="Tools proyek"
-        placeholder="Cari dan pilih teknologi atau tools"
-        :options="toolOptions"
-        :error="errors.tool_ids"
-        :disabled="disabled"
-        searchable
-        multiple
-        :max="12"
-      />
-    </section>
 
     <section
       v-if="draft.creation_mode === 'personal'"
@@ -177,14 +184,9 @@ const selectOwnerRole = (
         :options="ownerRoleOptions"
         :error="errors.owner_contribution_role_id"
         :disabled="disabled"
+        searchable
+        @open="emit('load-catalog', 'contribution_roles')"
         @update:model-value="selectOwnerRole"
-      />
-      <MoleculeInputField
-        v-if="draft.owner_custom_role_title !== undefined"
-        v-model="draft.owner_custom_role_title"
-        label="Nama peran khususmu"
-        placeholder="Contoh: Product Lead"
-        :disabled="disabled"
       />
     </section>
   </section>

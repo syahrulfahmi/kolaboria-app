@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import type { ProjectItem } from '~/components/project/ProjectListItem.vue'
+import { useProjects } from '~/composables/useProjects'
+import { toProjectListItem } from '~/utils/project-presentation'
+import { getApiErrorMessage } from '~/utils/error'
 
 definePageMeta({
   layout: 'home',
@@ -15,520 +18,21 @@ useHead({
   title: 'Jelajahi Proyek — Kolaboria'
 })
 
-// ============================================================
-// DUMMY DATA (Aligned with design screenshot & full testability)
-// ============================================================
-const initialDummyProjects = ref<ProjectItem[]>([
-  {
-    id: '1',
-    title: 'Platform Portofolio untuk Talenta Digital',
-    slug: 'platform-portofolio-untuk-talenta-digital',
-    description:
-      'Membangun platform yang membantu talent menyusun dan membagikan pengalaman proyek secara lebih terstruktur.',
-    acceptsContributors: true,
-    context: 'Proyek pribadi',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Syahrul Fahmi',
-      initials: 'SF',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Nuxt.js', 'Vue.js', 'TypeScript', 'UI/UX Design'],
-    memberCount: '2 dari 4',
-    commitmentHours: 10,
-    deadline: 'Sampai 30 Nov 2026',
-    categoryLabel: 'Portfolio & product exploration',
-    isBookmarked: false
-  },
-  {
-    id: '2',
-    title: 'Aplikasi Pengelolaan Sampah Komunitas',
-    slug: 'aplikasi-pengelolaan-sampah-komunitas',
-    description:
-      'Eksperimen aplikasi untuk membantu komunitas mencatat dan mengelola aktivitas pengumpulan sampah.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Budi Santoso',
-      initials: 'BS',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['React Native', 'Node.js', 'PostgreSQL', 'Mobile App'],
-    memberCount: '3 dari 5',
-    commitmentHours: 8,
-    deadline: 'Sampai 15 Des 2026',
-    categoryLabel: 'Social impact & environment',
-    isBookmarked: false
-  },
-  {
-    id: '3',
-    title: 'Design System & UI Kit untuk Startup Lokal',
-    slug: 'design-system-ui-kit-startup-lokal',
-    description:
-      'Eksplorasi pembuatan komponen modular dan token desain yang konsisten untuk akselerasi pengembangan produk digital.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'UI/UX',
-    author: {
-      name: 'Nadia Salsabila',
-      initials: 'NS',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Figma', 'Design Systems', 'UI/UX', 'Tailwind CSS'],
-    memberCount: '1 dari 3',
-    commitmentHours: 6,
-    deadline: 'Sampai 10 Jan 2027',
-    categoryLabel: 'Design & creative tooling',
-    isBookmarked: false
-  },
-  {
-    id: '4',
-    title: 'API Gateway Terdistribusi Berkecepatan Tinggi',
-    slug: 'api-gateway-terdistribusi-berkecepatan-tinggi',
-    description:
-      'Pengembangan backend service berskala besar dengan arsitektur microservices dan caching terdistribusi.',
-    acceptsContributors: true,
-    context: 'Proyek client',
-    type: 'Backend',
-    author: {
-      name: 'Rian Hidayat',
-      initials: 'RH',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Go', 'Docker', 'Redis', 'Microservices'],
-    memberCount: '2 dari 3',
-    commitmentHours: 12,
-    deadline: 'Sampai 28 Feb 2027',
-    categoryLabel: 'High-performance infrastructure',
-    isBookmarked: false
-  },
-  {
-    id: '5',
-    title: 'Platform Edukasi Interaktif Coding untuk Pemula',
-    slug: 'platform-edukasi-interaktif-coding',
-    description:
-      'Sistem pembelajaran pemrograman interaktif berbasis browser dengan playground kode real-time.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Ahmad Fauzi',
-      initials: 'AF',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Vue.js', 'Node.js', 'Monaco Editor', 'WebSocket'],
-    memberCount: '3 dari 4',
-    commitmentHours: 8,
-    deadline: 'Sampai 20 Mar 2027',
-    categoryLabel: 'EdTech & developer learning',
-    isBookmarked: false
-  },
-  {
-    id: '6',
-    title: 'Aplikasi Pelacak Nutrisi dan Kebugaran Harian',
-    slug: 'aplikasi-pelacak-nutrisi-kebugaran',
-    description:
-      'Aplikasi pelacak pola makan sehat dengan integrasi scanner barcode dan grafik analitik nutrisi mingguan.',
-    acceptsContributors: true,
-    context: 'Proyek pribadi',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Dewi Lestari',
-      initials: 'DL',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Flutter', 'Dart', 'Firebase', 'Mobile App'],
-    memberCount: '2 dari 4',
-    commitmentHours: 10,
-    deadline: 'Sampai 05 Apr 2027',
-    categoryLabel: 'Health & wellness tech',
-    isBookmarked: false
-  },
-  {
-    id: '7',
-    title: 'Revamp UX E-Commerce UMKM Indonesia',
-    slug: 'revamp-ux-ecommerce-umkm',
-    description:
-      'Redesain alur checkout dan onboarding pengguna untuk meningkatkan konversi pembelian produk lokal.',
-    acceptsContributors: true,
-    context: 'Proyek client',
-    type: 'UI/UX',
-    author: {
-      name: 'Maya Putri',
-      initials: 'MP',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['UI/UX Design', 'User Research', 'Wireframing', 'Figma'],
-    memberCount: '1 dari 2',
-    commitmentHours: 5,
-    deadline: 'Sampai 12 Mei 2027',
-    categoryLabel: 'E-commerce & conversion',
-    isBookmarked: false
-  },
-  {
-    id: '8',
-    title: 'Microservice Event Streamer dengan Apache Kafka',
-    slug: 'microservice-event-streamer-kafka',
-    description:
-      'Implementasi pipeline streaming data real-time berkapasitas jutaan event per hari.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'Backend',
-    author: {
-      name: 'Kevin Kurniawan',
-      initials: 'KK',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Kafka', 'Go', 'Kubernetes', 'gRPC'],
-    memberCount: '2 dari 4',
-    commitmentHours: 14,
-    deadline: 'Sampai 30 Jun 2027',
-    categoryLabel: 'Distributed systems',
-    isBookmarked: false
-  },
-  {
-    id: '9',
-    title: 'Sistem Rekomendasi Karir Berbasis AI',
-    slug: 'sistem-rekomendasi-karir-berbasis-ai',
-    description:
-      'Platform berbasis machine learning untuk memetakan skill talenta dengan kebutuhan industri terkini.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Aditya Rahman',
-      initials: 'AR',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Python', 'FastAPI', 'Vue.js', 'PyTorch'],
-    memberCount: '3 dari 4',
-    commitmentHours: 10,
-    deadline: 'Sampai 15 Jul 2027',
-    categoryLabel: 'Artificial Intelligence & career tech',
-    isBookmarked: false
-  },
-  {
-    id: '10',
-    title: 'Aplikasi Tabungan Bersama & Finansial Keluarga',
-    slug: 'aplikasi-tabungan-bersama-finansial-keluarga',
-    description:
-      'Aplikasi mobile untuk pencatatan anggaran rumah tangga dan tabungan target bersama dengan visualisasi grafik.',
-    acceptsContributors: true,
-    context: 'Proyek pribadi',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Clarissa Angela',
-      initials: 'CA',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['React Native', 'Tailwind', 'Supabase', 'Mobile UI'],
-    memberCount: '2 dari 3',
-    commitmentHours: 8,
-    deadline: 'Sampai 20 Agu 2027',
-    categoryLabel: 'Fintech & personal finance',
-    isBookmarked: false
-  },
-  {
-    id: '11',
-    title: 'Redesain Layanan Kesehatan Mental Terpadu',
-    slug: 'redesain-layanan-kesehatan-mental-terpadu',
-    description:
-      'Eksplorasi UI/UX empati tinggi untuk konsultasi konseling online dan jurnal emosi harian.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'UI/UX',
-    author: {
-      name: 'Ratu Anindya',
-      initials: 'RA',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Figma', 'UX Research', 'Design Systems', 'Mental Health Tech'],
-    memberCount: '2 dari 2',
-    commitmentHours: 6,
-    deadline: 'Sampai 05 Sep 2027',
-    categoryLabel: 'Healthcare & community wellness',
-    isBookmarked: false
-  },
-  {
-    id: '12',
-    title: 'Engine Analitik Data Log Terpusat Skala Besar',
-    slug: 'engine-analitik-data-log-terpusat-skala-besar',
-    description:
-      'Pengembangan mesin agregasi log kinerja server dengan integrasi ClickHouse dan Grafana.',
-    acceptsContributors: true,
-    context: 'Proyek client',
-    type: 'Backend',
-    author: {
-      name: 'Farhan Alamsyah',
-      initials: 'FA',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Rust', 'ClickHouse', 'Docker', 'Prometheus'],
-    memberCount: '1 dari 3',
-    commitmentHours: 12,
-    deadline: 'Sampai 30 Sep 2027',
-    categoryLabel: 'Data observability & DevOps',
-    isBookmarked: false
-  },
-  {
-    id: '13',
-    title: 'Dashboard Pemantauan Kualitas Udara Realtime IoT',
-    slug: 'dashboard-pemantauan-kualitas-udara-realtime-iot',
-    description:
-      'Sistem pemantauan indeks polusi udara berbasis web yang terhubung dengan sensor sensor IoT di berbagai titik kota.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Hendra Nugraha',
-      initials: 'HN',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Nuxt.js', 'MQTT', 'Chart.js', 'Tailwind CSS'],
-    memberCount: '3 dari 5',
-    commitmentHours: 8,
-    deadline: 'Sampai 15 Okt 2027',
-    categoryLabel: 'Smart city & environment',
-    isBookmarked: false
-  },
-  {
-    id: '14',
-    title: 'Aplikasi Donor Darah Komunitas & Darurat Medis',
-    slug: 'aplikasi-donor-darah-komunitas-darurat-medis',
-    description:
-      'Platform mobile penolong pencarian pendonor darah darurat berdasarkan radius geolokasi terdekat.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Siti Khadijah',
-      initials: 'SK',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Flutter', 'Google Maps API', 'Firebase', 'Mobile UI'],
-    memberCount: '2 dari 4',
-    commitmentHours: 7,
-    deadline: 'Sampai 25 Okt 2027',
-    categoryLabel: 'Social impact & healthcare',
-    isBookmarked: false
-  },
-  {
-    id: '15',
-    title: 'Design Token & Multi-Brand Component Library',
-    slug: 'design-token-multi-brand-component-library',
-    description:
-      'Standardisasi token desain untuk mendukung multi-theme dan dark mode fleksibel pada multi-platform.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'UI/UX',
-    author: {
-      name: 'Tommy Pratama',
-      initials: 'TP',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: [
-      'Design Tokens',
-      'Figma Variables',
-      'UI Architecture',
-      'CSS Tokens'
-    ],
-    memberCount: '1 dari 3',
-    commitmentHours: 6,
-    deadline: 'Sampai 10 Nov 2027',
-    categoryLabel: 'Design infrastructure',
-    isBookmarked: false
-  },
-  {
-    id: '16',
-    title: 'High-Throughput Payment Orchestrator Service',
-    slug: 'high-throughput-payment-orchestrator-service',
-    description:
-      'Layanan backend gateway pembayaran dengan mekanisme failover otomatis dan rekonsiliasi transaksi real-time.',
-    acceptsContributors: true,
-    context: 'Proyek client',
-    type: 'Backend',
-    author: {
-      name: 'Muhammad Arya',
-      initials: 'MA',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Go', 'PostgreSQL', 'Redis', 'Kafka'],
-    memberCount: '2 dari 3',
-    commitmentHours: 14,
-    deadline: 'Sampai 20 Nov 2027',
-    categoryLabel: 'Fintech core engineering',
-    isBookmarked: false
-  },
-  {
-    id: '17',
-    title: 'Platform Kolaborasi Riset Open Science Nusantara',
-    slug: 'platform-kolaborasi-riset-open-science-nusantara',
-    description:
-      'Portal repositori dan telaah sejawat terbuka untuk riset akademik dan saintifik antar kampus Indonesia.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Gilang Permana',
-      initials: 'GP',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Vue.js', 'Node.js', 'LaTeX Support', 'GraphQL'],
-    memberCount: '4 dari 5',
-    commitmentHours: 9,
-    deadline: 'Sampai 05 Des 2027',
-    categoryLabel: 'Academic & research tech',
-    isBookmarked: false
-  },
-  {
-    id: '18',
-    title: 'Aplikasi Belajar Bahasa Daerah Nusantara',
-    slug: 'aplikasi-belajar-bahasa-daerah-nusantara',
-    description:
-      'Aplikasi gamifikasi interaktif untuk pelestarian bahasa daerah dengan modul audio dan latihan kosakata harian.',
-    acceptsContributors: true,
-    context: 'Proyek pribadi',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Annisa Nurul',
-      initials: 'AN',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['React Native', 'Audio Engine', 'Expo', 'Gamification'],
-    memberCount: '2 dari 4',
-    commitmentHours: 8,
-    deadline: 'Sampai 18 Des 2027',
-    categoryLabel: 'EdTech & cultural heritage',
-    isBookmarked: false
-  },
-  {
-    id: '19',
-    title: 'Auditing & Redesain Aksesibilitas Web Publik',
-    slug: 'auditing-redesain-aksesibilitas-web-publik',
-    description:
-      'Peningkatan standar WCAG 2.1 AA pada antarmuka layanan publik demi kemudahan pengguna difabel.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'UI/UX',
-    author: {
-      name: 'Yoga Wibowo',
-      initials: 'YW',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Accessibility (a11y)', 'WCAG', 'Screen Reader Testing', 'Figma'],
-    memberCount: '1 dari 2',
-    commitmentHours: 5,
-    deadline: 'Sampai 30 Des 2027',
-    categoryLabel: 'Inclusive design',
-    isBookmarked: false
-  },
-  {
-    id: '20',
-    title: 'Search & Indexing Engine dengan Vector Database',
-    slug: 'search-indexing-engine-vector-database',
-    description:
-      'Mesin pencarian semantik teks dokumen skala jutaan baris menggunakan embedding model dan Qdrant.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'Backend',
-    author: {
-      name: 'Dimas Saputra',
-      initials: 'DS',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Python', 'Qdrant', 'gRPC', 'Docker'],
-    memberCount: '2 dari 3',
-    commitmentHours: 11,
-    deadline: 'Sampai 15 Jan 2028',
-    categoryLabel: 'Information retrieval & AI',
-    isBookmarked: false
-  },
-  {
-    id: '21',
-    title: 'Platform Crowdfunding Kreator Seni Independen',
-    slug: 'platform-crowdfunding-kreator-seni-independen',
-    description:
-      'Situs galeri dan dukungan dana publik bagi ilustrator, musisi, dan komikus lokal untuk merilis karya original.',
-    acceptsContributors: true,
-    context: 'Proyek pribadi',
-    type: 'Aplikasi Web',
-    author: {
-      name: 'Bella Lestari',
-      initials: 'BL',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Nuxt.js', 'Stripe Integration', 'Tailwind CSS', 'PostgreSQL'],
-    memberCount: '2 dari 4',
-    commitmentHours: 9,
-    deadline: 'Sampai 28 Jan 2028',
-    categoryLabel: 'Creative economy & crowdfunding',
-    isBookmarked: false
-  },
-  {
-    id: '22',
-    title: 'Aplikasi Peringatan Dini Bencana Alam',
-    slug: 'aplikasi-peringatan-dini-bencana-alam',
-    description:
-      'Aplikasi notifikasi push darurat gempa, banjir, dan cuaca ekstrem berbasis integrasi data BMKG realtime.',
-    acceptsContributors: true,
-    context: 'Komunitas',
-    type: 'Aplikasi Mobile',
-    author: {
-      name: 'Ilham Ramadhan',
-      initials: 'IR',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Flutter', 'FCM', 'Geolocation', 'Rest API'],
-    memberCount: '3 dari 4',
-    commitmentHours: 8,
-    deadline: 'Sampai 10 Feb 2028',
-    categoryLabel: 'Disaster management tech',
-    isBookmarked: false
-  },
-  {
-    id: '23',
-    title: 'Eksplorasi Konsep Minimalist Interface FinTech',
-    slug: 'eksplorasi-konsep-minimalist-interface-fintech',
-    description:
-      'Studi desain micro-interactions dan clean typography untuk pengalaman investasi saham dan reksadana.',
-    acceptsContributors: true,
-    context: 'Eksperimen',
-    type: 'UI/UX',
-    author: {
-      name: 'Vanessa Novita',
-      initials: 'VN',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Figma', 'Prototyping', 'Micro-interactions', 'UI Design'],
-    memberCount: '1 dari 2',
-    commitmentHours: 6,
-    deadline: 'Sampai 25 Feb 2028',
-    categoryLabel: 'Product discovery & FinTech UI',
-    isBookmarked: false
-  },
-  {
-    id: '24',
-    title: 'Auth & Identity Provider Service Terdesentralisasi',
-    slug: 'auth-identity-provider-service-terdesentralisasi',
-    description:
-      'Layanan single sign-on (SSO) berskala enterprise dengan enkripsi zero-knowledge dan protokol OAuth2/OIDC.',
-    acceptsContributors: true,
-    context: 'Proyek client',
-    type: 'Backend',
-    author: {
-      name: 'Evan Raditya',
-      initials: 'ER',
-      status: 'Pemilik terverifikasi'
-    },
-    skills: ['Go', 'OAuth2', 'JWT', 'Redis'],
-    memberCount: '2 dari 3',
-    commitmentHours: 12,
-    deadline: 'Sampai 10 Mar 2028',
-    categoryLabel: 'Cybersecurity & IAM',
-    isBookmarked: false
+const projects = ref<ProjectItem[]>([])
+const projectsLoading = ref(true)
+const projectsError = ref('')
+const { getPublicProjectSummaries } = useProjects()
+const loadProjects = async () => {
+  projectsLoading.value = true
+  projectsError.value = ''
+  try {
+    projects.value = (await getPublicProjectSummaries()).map(toProjectListItem)
+  } catch (error: unknown) {
+    projectsError.value = getApiErrorMessage(error, 'Proyek belum dapat dimuat. Coba lagi.')
+  } finally {
+    projectsLoading.value = false
   }
-])
+}
 
 // ============================================================
 // REACTIVE FILTER STATES
@@ -536,7 +40,7 @@ const initialDummyProjects = ref<ProjectItem[]>([
 const searchInput = ref('')
 const activeSearch = ref('')
 
-const projectTypes = ['Aplikasi Web', 'Aplikasi Mobile', 'UI/UX', 'Backend']
+const projectTypes = ['Product', 'Community', 'Open Source', 'Research', 'Education', 'Business', 'Lainnya']
 const selectedTypes = ref<string[]>([])
 
 const projectContexts = [
@@ -626,7 +130,7 @@ const activeFilterCount = computed(() => {
 })
 
 const handleBookmark = (id: string, isBookmarked: boolean) => {
-  const item = initialDummyProjects.value.find((p) => p.id === id)
+  const item = projects.value.find((p) => p.id === id)
   if (item) {
     item.isBookmarked = isBookmarked
   }
@@ -646,7 +150,7 @@ watch(
 // FILTERING & PAGINATION COMPUTED
 // ============================================================
 const filteredProjects = computed(() => {
-  const result = initialDummyProjects.value.filter((project) => {
+  const result = projects.value.filter((project) => {
     // 1. Search Query Filter
     if (activeSearch.value) {
       const q = activeSearch.value.toLowerCase()
@@ -689,11 +193,11 @@ const filteredProjects = computed(() => {
   // Apply sorting
   return result.slice().sort((a, b) => {
     if (sortBy.value === 'newest') {
-      return Number(a.id) - Number(b.id)
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     } else if (sortBy.value === 'oldest') {
-      return Number(b.id) - Number(a.id)
+      return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
     } else if (sortBy.value === 'popular') {
-      return Number(b.commitmentHours || 0) - Number(a.commitmentHours || 0)
+      return (b.filledCapacity || 0) - (a.filledCapacity || 0)
     }
     return 0
   })
@@ -714,6 +218,7 @@ onMounted(() => {
       isDesktop.value = e.matches
     })
   }
+  void loadProjects()
 })
 
 // Mobile Endless Scrolling state
@@ -724,8 +229,6 @@ const hasMoreMobile = computed(() => {
 })
 
 const loadMoreMobile = async () => {
-  // Simulate network loading latency for visible user feedback
-  await new Promise((resolve) => setTimeout(resolve, 600))
   mobileDisplayCount.value += itemsPerPage
 }
 
@@ -1237,7 +740,7 @@ const paginatedProjects = computed(() => {
 
         <!-- Empty State (Only appears when data is empty) -->
         <div
-          v-if="filteredProjects.length === 0"
+          v-if="filteredProjects.length === 0 && !projectsLoading && !projectsError"
           class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white py-16 px-6 text-center"
         >
           <div

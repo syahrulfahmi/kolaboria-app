@@ -37,7 +37,7 @@ test('mounted editor revokes organization mutations while retaining the unsaved 
   const editor = mountEditor({ creationContext: context, contextAvailable: () => available.value })
   const vm = editor.bindings
   vm.setCreationMode('organization_initiated')
-  Object.assign(vm.draft.value, validDraft(), { creation_mode: 'organization_initiated', initiator_organization_id: organization.id, owner_commitment: '', owner_contribution_role_id: undefined, owner_custom_role_title: undefined, lead_expectations: 'Memimpin diskusi tim dan mengelola arah proyek.', title: 'Draft organisasi belum disimpan' })
+  Object.assign(vm.draft.value, validDraft(), { creation_mode: 'organization_initiated', initiator_organization_id: organization.id, owner_commitment: '', owner_contribution_role_id: undefined, lead_expectations: 'Memimpin diskusi tim dan mengelola arah proyek.', title: 'Draft organisasi belum disimpan' })
   context.initiable_organizations = []
   assert.equal(vm.selectedOrganization.value, null)
   assert.equal(vm.canPublish.value, false)

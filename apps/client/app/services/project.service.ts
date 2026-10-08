@@ -1,15 +1,35 @@
 import { useApi } from '../composables/useApi'
 import { API_ENDPOINTS } from '../constants/api-endpoints'
-import type { ApiResponse } from '../types/api'
+import type { ApiPaginatedResponse, ApiResponse } from '../types/api'
 import type {
   Project,
   CreateProjectPayload,
   ApplyProjectPayload
 } from '../types/project'
+import type { ProjectSummaryResponse } from '../types/project-editor'
 import { MasterService } from './master.service'
 import { ApplicationService } from './application.service'
 
 export const ProjectService = {
+  async getProjectSummaries(query: { page: number; limit: number; q?: string }) {
+    const { $api } = useApi()
+    return await $api<ApiPaginatedResponse<ProjectSummaryResponse>>(
+      API_ENDPOINTS.PROJECT.LIST_OR_CREATE,
+      { query }
+    )
+  },
+
+  async getMyProjectSummaries(
+    scope: 'owned' | 'initiated',
+    query: { page: number; limit: number }
+  ) {
+    const { $api } = useApi()
+    return await $api<ApiPaginatedResponse<ProjectSummaryResponse>>(
+      API_ENDPOINTS.PROJECT.MY_PROJECTS,
+      { query: { scope, ...query } }
+    )
+  },
+
   async getProjects(params: Record<string, any> = {}) {
     const { $api } = useApi()
     return await $api<ApiResponse<Project[]>>(API_ENDPOINTS.PROJECT.LIST_OR_CREATE, {

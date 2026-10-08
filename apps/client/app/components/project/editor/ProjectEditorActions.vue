@@ -13,6 +13,8 @@ const props = defineProps<{
   isSubmitting: boolean
   canPublish: boolean
   canSave?: boolean
+  isDraft?: boolean
+  demo?: boolean
   creationMode?: ProjectCreationMode
 }>()
 
@@ -74,7 +76,7 @@ const goBack = () => {
         Kembali
       </AtomicButton>
       <AtomicButton
-        v-if="mode === 'create' && currentStep === 4"
+        v-if="mode === 'create'"
         variant="outline"
         :loading="isSubmitting"
         :disabled="isSubmitting || canSave === false"
@@ -84,14 +86,23 @@ const goBack = () => {
       </AtomicButton>
       <AtomicButton
         v-if="mode === 'edit'"
-        variant="primary"
+        :variant="isDraft && currentStep === 4 ? 'outline' : 'primary'"
         :loading="isSubmitting"
-        :disabled="isSubmitting || !canPublish"
+        :disabled="isSubmitting || canSave === false"
         @click="emit('save-changes')"
       >
         Simpan Perubahan
       </AtomicButton>
-      <template v-else-if="currentStep === 4">
+      <AtomicButton
+        v-if="mode === 'edit' && isDraft && currentStep === 4"
+        variant="primary"
+        :loading="isSubmitting"
+        :disabled="isSubmitting || !canPublish"
+        @click="emit('publish')"
+      >
+        {{ demo ? 'Simulasikan Publikasi Draft' : 'Publikasikan Draft' }}
+      </AtomicButton>
+      <template v-if="mode === 'create' && currentStep === 4">
         <AtomicButton
           variant="primary"
           :loading="isSubmitting"
@@ -130,6 +141,15 @@ const goBack = () => {
       >
         <ChevronLeft class="!size-4" aria-hidden="true" />
       </AtomicIconButton>
+      <AtomicButton
+        variant="outline"
+        class="min-w-0 flex-1 justify-center"
+        :loading="isSubmitting"
+        :disabled="isSubmitting || canSave === false"
+        @click="emit('save-draft')"
+      >
+        Simpan sebagai Draft
+      </AtomicButton>
       <AtomicButton
         variant="primary"
         class="min-w-0 flex-1 justify-center"

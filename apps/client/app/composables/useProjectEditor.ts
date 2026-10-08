@@ -1,11 +1,20 @@
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { z } from 'zod'
 import { createBlankProjectEditorDraft } from '../data/project-editor-fixtures'
 import {
   getProjectEditorStepForError,
   validateProjectEditorDraft,
+  validateProjectEditorStructure,
   validateProjectEditorStep
 } from '../data/project-editor-validation'
+import { toProjectDefinition, toProjectEditorRecord } from '../utils/project-editor-api'
+import {
+  createProjectEditorRecoveryStorageKey,
+  extractLegacyProjectEditorText,
+  getProjectEditorRecoveryScope
+} from '../utils/project-editor-recovery'
+import type { LegacyProjectEditorText, ProjectEditorRecoveryRecord } from '../utils/project-editor-recovery'
+import { getApiErrorMessage, getApiErrorStatus } from '../utils/error'
 import type {
   ProjectEditorDraft,
   ProjectCreationMode,
@@ -19,12 +28,11 @@ const roleSchema = z.object({
   client_key: z.string().min(1),
   id: z.string().optional(),
   contribution_role_id: z.string().optional(),
-  custom_title: z.string().optional(),
   description: z.string(),
   capacity: z.number().int(),
   filled_capacity: z.number().int().nonnegative(),
   tool_ids: z.array(z.string()),
-  skill_tags: z.array(z.string())
+  skill_ids: z.array(z.string())
 })
 
 const draftSchema = z.object({
@@ -36,11 +44,9 @@ const draftSchema = z.object({
   description: z.string(),
   slug: z.string(),
   project_category: z.enum(['product', 'community', 'open_source', 'research', 'education', 'business', 'other']),
-  visibility: z.enum(['public', 'invite_only']),
+  visibility: z.enum(['public', 'private', 'invite_only']),
   roles: z.array(roleSchema),
-  tool_ids: z.array(z.string()),
   owner_contribution_role_id: z.string().optional(),
-  owner_custom_role_title: z.string().optional(),
   origin: z.enum(['personal', 'community', 'experiment', 'client']),
   why_collaborative: z.string(),
   contributor_outcome: z.string(),
@@ -64,8 +70,54 @@ const recordSchema = z.object({
   }).optional(),
   draft: draftSchema,
   saved_at: z.string().datetime(),
-  version: z.literal(1)
+  version: z.number().int().positive()
 })
+
+const pendingCreateSchema = z.object({
+  clientRequestId: z.string().uuid(),
+  draft: draftSchema
+})
+const recoverySchema = z.object({
+  schema_version: z.literal(1),
+  account_id: z.string().min(1),
+  scope: z.string().min(1),
+  attempt_id: z.string().min(1),
+  project_id: z.string().nullable(),
+  base_version: z.number().int().positive().nullable(),
+  saved_at: z.string().datetime(),
+  draft: draftSchema
+})
+
+type PendingCreate = { clientRequestId: string; draft: ProjectEditorDraft }
+
+const getBrowserSessionStorage = (): ProjectEditorOptions['pendingCreateStorage'] => {
+  try {
+    return typeof window === 'undefined' ? null : window.sessionStorage
+  } catch {
+    return null
+  }
+}
+
+const readPendingCreates = (
+  storage: ProjectEditorOptions['pendingCreateStorage'],
+  key: string
+): Map<string, PendingCreate> => {
+  if (!storage) return new Map()
+  try {
+    const raw = storage.getItem(key)
+    if (!raw) return new Map()
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return new Map()
+    const result = new Map<string, PendingCreate>()
+    for (const [scope, value] of Object.entries(parsed)) {
+      const validated = pendingCreateSchema.safeParse(value)
+      if (validated.success) result.set(scope, validated.data as PendingCreate)
+    }
+    return result
+  } catch {
+    return new Map()
+  }
+}
 
 export const createProjectEditorStorageKey = (
   userId: string,
@@ -85,8 +137,24 @@ const getBrowserStorage = (): ProjectEditorOptions['storage'] => {
   }
 }
 
+const getBrowserRecoveryStorage = (): ProjectEditorOptions['recoveryStorage'] => {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage
+  } catch {
+    return null
+  }
+}
+
 const clone = <T>(value: T): T =>
   JSON.parse(JSON.stringify(value)) as T
+
+const newRequestId = () => {
+  if (typeof globalThis.crypto?.randomUUID === 'function') return globalThis.crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+    const random = Math.floor(Math.random() * 16)
+    return (character === 'x' ? random : (random & 0x3) | 0x8).toString(16)
+  })
+}
 
 const snapshotDraft = (draft: ProjectEditorDraft) => JSON.stringify(draft)
 const draftScope = (draft: ProjectEditorDraft) => draft.creation_mode === 'personal'
@@ -94,7 +162,7 @@ const draftScope = (draft: ProjectEditorDraft) => draft.creation_mode === 'perso
 
 const hasValidOrganizationFields = (draft: ProjectEditorDraft) =>
   draft.visibility === 'public' && !draft.owner_commitment.trim() &&
-  !draft.owner_contribution_role_id && !draft.owner_custom_role_title
+  !draft.owner_contribution_role_id
 
 const createRecord = (
   draft: ProjectEditorDraft,
@@ -111,21 +179,38 @@ const createRecord = (
 
 export const useProjectEditor = (options: ProjectEditorOptions) => {
   const storage = options.storage === undefined ? getBrowserStorage() : options.storage
+  const recoveryStorage = options.recoveryStorage === undefined
+    ? options.persistence ? getBrowserRecoveryStorage() : null
+    : options.recoveryStorage
+  const pendingCreateStorage = options.pendingCreateStorage === undefined
+    ? getBrowserSessionStorage()
+    : options.pendingCreateStorage
+  const pendingCreateStorageKey = `kolaboria:project-editor-pending-create:v1:${encodeURIComponent(options.currentUserId || 'unknown-account')}`
+  const recoveredPendingCreates = options.mode === 'create'
+    ? readPendingCreates(pendingCreateStorage, pendingCreateStorageKey)
+    : new Map<string, PendingCreate>()
+  const blankDraft = createBlankProjectEditorDraft()
+  const pendingForInitialScope = recoveredPendingCreates.get(draftScope(options.initialDraft ?? blankDraft))
+  const recoveredPendingDraft = pendingForInitialScope?.draft ??
+    (recoveredPendingCreates.size === 1 ? [...recoveredPendingCreates.values()][0]?.draft : undefined)
+  const initialDraft = options.initialRecord?.draft ?? options.initialDraft ?? recoveredPendingDraft ?? blankDraft
   const record = ref<ProjectEditorRecord | null>(options.initialRecord ? clone(options.initialRecord) : null)
-  const draft = ref<ProjectEditorDraft>(
-    options.initialRecord
-      ? clone(options.initialRecord.draft)
-      : options.initialDraft
-        ? clone(options.initialDraft)
-        : createBlankProjectEditorDraft()
-  )
+  const draft = ref<ProjectEditorDraft>(clone(initialDraft))
   const currentStep = ref<ProjectEditorStep>(0)
   const errors = ref<ProjectEditorErrors>({})
   const submitError = ref('')
   const storageWarning = ref('')
   const isSubmitting = ref(false)
   const saveResult = ref<{ kind: 'draft' | 'published' | 'updated'; message: string } | null>(null)
+  const recoveryAvailable = ref<'draft' | null>(null)
+  const legacyTextRecoveryAvailable = ref(false)
+  const recoveryRecord = ref<ProjectEditorRecoveryRecord | null>(null)
+  const legacyTextRecovery = ref<LegacyProjectEditorText | null>(null)
+  const recoveryStorageKey = ref('')
   const baseline = ref(snapshotDraft(draft.value))
+  const pendingCreates = new Map<string, PendingCreate>(
+    [...recoveredPendingCreates].map(([scope, pending]) => [`${options.currentUserId}:${scope}`, pending])
+  )
   const modeDrafts = ref(new Map<string, { draft: ProjectEditorDraft; record: ProjectEditorRecord | null; baseline: string }>())
   const isDirty = computed(() => snapshotDraft(draft.value) !== baseline.value ||
     [...modeDrafts.value].some(([scope, saved]) => scope !== draftScope(draft.value) && snapshotDraft(saved.draft) !== saved.baseline))
@@ -193,6 +278,283 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
   let roleSequence = draft.value.roles.length + 1
   let activeTimer: ReturnType<typeof setTimeout> | undefined
   let isMounted = true
+
+  const persistenceScope = () => options.currentUserId + ':' + draftScope(draft.value)
+
+  const getRecoveryScope = () => getProjectEditorRecoveryScope(
+    options.mode,
+    draftScope(draft.value),
+    record.value?.id
+  )
+
+  const getLegacyPreviewKeys = () => {
+    const base = createProjectEditorStorageKey(options.currentUserId, options.mode, options.slug)
+    const scoped = options.storageScope ? base + ':' + encodeURIComponent(options.storageScope) : base
+    return options.mode === 'create'
+      ? [
+          base,
+          scoped,
+          scoped + ':' + draftScope(draft.value),
+          scoped + ':personal'
+        ]
+      : [base]
+  }
+
+  const refreshRecoveryChoices = () => {
+    recoveryAvailable.value = null
+    legacyTextRecoveryAvailable.value = false
+    recoveryRecord.value = null
+    legacyTextRecovery.value = null
+    recoveryStorageKey.value = ''
+    if (!recoveryStorage) return
+
+    const scope = getRecoveryScope()
+    const key = createProjectEditorRecoveryStorageKey(options.currentUserId, scope)
+    try {
+      const stored = recoveryStorage.getItem(key)
+      if (stored) {
+        const parsed = recoverySchema.safeParse(JSON.parse(stored))
+        if (parsed.success && parsed.data.account_id === options.currentUserId && parsed.data.scope === scope &&
+          (options.mode !== 'edit' || parsed.data.project_id === record.value?.id) &&
+          (options.mode !== 'create' || draftScope(parsed.data.draft) === draftScope(draft.value))) {
+          recoveryRecord.value = parsed.data as ProjectEditorRecoveryRecord
+          recoveryStorageKey.value = key
+          recoveryAvailable.value = 'draft'
+          return
+        }
+        storageWarning.value = 'Draft lokal tidak cocok dengan proyek atau akun yang sedang dibuka, jadi tidak dipulihkan.'
+      }
+
+      for (const legacyKey of getLegacyPreviewKeys()) {
+        const legacyValue = recoveryStorage.getItem(legacyKey)
+        if (!legacyValue) continue
+        const extracted = extractLegacyProjectEditorText(JSON.parse(legacyValue))
+        if (!extracted) continue
+        legacyTextRecovery.value = extracted
+        legacyTextRecoveryAvailable.value = true
+        recoveryStorageKey.value = legacyKey
+        return
+      }
+    } catch {
+      storageWarning.value = 'Draft lokal tidak dapat dibaca. Isian server tetap aman dan bisa diedit.'
+    }
+  }
+
+  const removeRecoveryForCurrentScope = () => {
+    if (!recoveryStorage) return
+    try {
+      recoveryStorage.removeItem(createProjectEditorRecoveryStorageKey(options.currentUserId, getRecoveryScope()))
+      recoveryRecord.value = null
+      recoveryStorageKey.value = ''
+    } catch {
+      storageWarning.value = 'Draft tersimpan ke server, tetapi salinan pemulihan lokal belum dapat dibersihkan.'
+    }
+  }
+
+  const restoreRecovery = () => {
+    const recovered = recoveryRecord.value
+    if (!recovered || recovered.account_id !== options.currentUserId || recovered.scope !== getRecoveryScope()) return false
+    draft.value = clone(recovered.draft)
+    recoveryAvailable.value = null
+    return true
+  }
+
+  const restoreLegacyTextRecovery = () => {
+    if (!legacyTextRecovery.value) return false
+    draft.value = { ...draft.value, ...legacyTextRecovery.value }
+    legacyTextRecovery.value = null
+    legacyTextRecoveryAvailable.value = false
+    return true
+  }
+
+  const dismissRecovery = () => {
+    if (recoveryStorage && legacyTextRecoveryAvailable.value && recoveryStorageKey.value) {
+      try {
+        recoveryStorage.removeItem(recoveryStorageKey.value)
+      } catch {
+        storageWarning.value = 'Salinan pemulihan lama belum dapat dibersihkan.'
+      }
+    } else {
+      removeRecoveryForCurrentScope()
+    }
+    recoveryRecord.value = null
+    legacyTextRecovery.value = null
+    recoveryAvailable.value = null
+    legacyTextRecoveryAvailable.value = false
+  }
+
+  const writeRecoverySnapshot = () => {
+    if (!recoveryStorage || !isMounted || recoveryAvailable.value || legacyTextRecoveryAvailable.value) return
+    const currentKey = createProjectEditorRecoveryStorageKey(options.currentUserId, getRecoveryScope())
+    if (snapshotDraft(draft.value) === baseline.value) {
+      try {
+        recoveryStorage.removeItem(currentKey)
+      } catch {
+        storageWarning.value = 'Draft lokal lama belum dapat dibersihkan.'
+      }
+      return
+    }
+    const currentProjectId = options.mode === 'edit' ? record.value?.id ?? null : null
+    const previous = recoveryRecord.value
+    const candidate: ProjectEditorRecoveryRecord = {
+      schema_version: 1,
+      account_id: options.currentUserId,
+      scope: getRecoveryScope(),
+      attempt_id: previous?.scope === getRecoveryScope() ? previous.attempt_id : newRequestId(),
+      project_id: currentProjectId,
+      base_version: options.mode === 'edit' ? record.value?.version ?? null : null,
+      saved_at: new Date().toISOString(),
+      draft: clone(draft.value)
+    }
+    try {
+      recoveryStorage.setItem(currentKey, JSON.stringify(candidate))
+      recoveryStorageKey.value = currentKey
+      recoveryRecord.value = candidate
+      storageWarning.value = ''
+    } catch {
+      storageWarning.value = 'Draft lokal belum dapat dipulihkan jika halaman ditutup. Isian tetap tersedia selama sesi ini.'
+    }
+  }
+
+  refreshRecoveryChoices()
+  if (options.persistence && !recoveryStorage) {
+    storageWarning.value = 'Pemulihan draft lokal tidak tersedia di perangkat ini. Simpan ke server sebelum meninggalkan halaman.'
+  }
+  watch(draft, writeRecoverySnapshot, { deep: true, flush: 'post' })
+
+  const persistPendingCreates = () => {
+    if (!pendingCreateStorage) {
+      storageWarning.value = 'Pemulihan retry create tidak tersedia di sesi browser ini. Simpan proyek sebelum meninggalkan halaman.'
+      return
+    }
+    const prefix = `${options.currentUserId}:`
+    const values: Record<string, PendingCreate> = {}
+    for (const [scope, pending] of pendingCreates) {
+      if (scope.startsWith(prefix)) values[scope.slice(prefix.length)] = pending
+    }
+    try {
+      if (Object.keys(values).length) pendingCreateStorage.setItem(pendingCreateStorageKey, JSON.stringify(values))
+      else pendingCreateStorage.removeItem(pendingCreateStorageKey)
+    } catch {
+      storageWarning.value = 'Pemulihan retry create tidak tersedia di sesi browser ini. Simpan proyek sebelum meninggalkan halaman.'
+    }
+  }
+
+  const validateForPersistence = (published: boolean) => {
+    errors.value = published
+      ? validateProjectEditorDraft(draft.value, options.references)
+      : validateProjectEditorStructure(draft.value)
+    if (Object.keys(errors.value).length) {
+      const firstInvalid = getProjectEditorStepForError(errors.value)
+      if (firstInvalid !== null) currentStep.value = firstInvalid
+      return false
+    }
+    return true
+  }
+
+  const reconcileCreateResult = (
+    latest: ProjectEditorDraft,
+    frozen: ProjectEditorDraft,
+    persisted: ProjectEditorRecord
+  ) => {
+    const next = clone(latest)
+    for (const role of next.roles) {
+      if (role.id) continue
+      const originalIndex = frozen.roles.findIndex(item => item.client_key === role.client_key)
+      if (originalIndex >= 0) role.id = persisted.draft.roles[originalIndex]?.id
+    }
+    return next
+  }
+
+  const persistToServer = async (kind: 'draft' | 'updated'): Promise<boolean> => {
+    const persistence = options.persistence
+    if (!persistence) return false
+    if (!(options.contextAvailable?.() ?? true)) {
+      submitError.value = 'Informasi akunmu perlu dimuat kembali sebelum menyimpan. Isian tetap tersedia.'
+      return false
+    }
+    if (!validateForPersistence(kind === 'updated' && record.value?.status !== 'draft')) return false
+    if ((draft.value.creation_mode === 'organization_initiated' &&
+      (!selectedOrganization.value || !hasValidOrganizationFields(draft.value))) ||
+      (draft.value.creation_mode === 'personal' && draft.value.initiator_organization_id)) {
+      submitError.value = 'Pilihan inisiasi tidak sesuai. Pilih organisasi yang diizinkan dan pertahankan ownership sesuai mode proyek.'
+      return false
+    }
+
+    const scope = persistenceScope()
+    const frozenDraft = clone(draft.value)
+    try {
+      let detail: Awaited<ReturnType<typeof persistence.create>>
+      let frozenCreate: { clientRequestId: string; draft: ProjectEditorDraft } | null = null
+      if (options.mode === 'create' && !record.value?.id) {
+        frozenCreate = pendingCreates.get(scope) ?? { clientRequestId: newRequestId(), draft: frozenDraft }
+        pendingCreates.set(scope, frozenCreate)
+        persistPendingCreates()
+        detail = await persistence.create({
+          client_request_id: frozenCreate.clientRequestId,
+          definition: toProjectDefinition(frozenCreate.draft)
+        })
+      } else {
+        if (!record.value?.id) {
+          submitError.value = 'Proyek belum termuat dari server. Muat ulang halaman sebelum menyimpan.'
+          return false
+        }
+        detail = await persistence.update(record.value.id, {
+          version: record.value.version,
+          definition: toProjectDefinition(frozenDraft)
+        })
+      }
+
+      if (!isMounted || !(options.contextAvailable?.() ?? true) || scope !== persistenceScope()) return false
+      const serverRecord = toProjectEditorRecord(detail)
+      let savedRecord = serverRecord
+      if (frozenCreate) {
+        pendingCreates.delete(scope)
+        persistPendingCreates()
+        const latest = clone(draft.value)
+        const unchangedSinceRequest = snapshotDraft(latest) === snapshotDraft(frozenCreate.draft)
+        draft.value = unchangedSinceRequest
+          ? clone(serverRecord.draft)
+          : reconcileCreateResult(latest, frozenCreate.draft, serverRecord)
+        record.value = serverRecord
+        baseline.value = snapshotDraft(serverRecord.draft)
+        if (!unchangedSinceRequest) {
+          const updatedDetail = await persistence.update(serverRecord.id, {
+            version: serverRecord.version,
+            definition: toProjectDefinition(draft.value)
+          })
+          if (!isMounted || !(options.contextAvailable?.() ?? true) || scope !== persistenceScope()) return false
+          savedRecord = toProjectEditorRecord(updatedDetail)
+          draft.value = clone(savedRecord.draft)
+        }
+      } else {
+        draft.value = clone(serverRecord.draft)
+      }
+      record.value = savedRecord
+      baseline.value = snapshotDraft(savedRecord.draft)
+      removeRecoveryForCurrentScope()
+      submitError.value = ''
+      storageWarning.value = ''
+      saveResult.value = {
+        kind,
+        message: kind === 'draft' ? 'Draft tersimpan di server.' : 'Perubahan tersimpan di server.'
+      }
+      return true
+    } catch (error: unknown) {
+      const status = getApiErrorStatus(error)
+      const definitiveCreateConflict = status === 409 && options.mode === 'create' && !record.value?.id
+      if ((status !== undefined && status >= 400 && status < 500 && status !== 409) || definitiveCreateConflict) {
+        pendingCreates.delete(scope)
+        persistPendingCreates()
+      }
+      if (isMounted && (options.contextAvailable?.() ?? true) && scope === persistenceScope()) {
+        submitError.value = getApiErrorMessage(error, kind === 'draft'
+          ? 'Draft belum tersimpan. Coba lagi; isianmu tetap tersedia.'
+          : 'Perubahan belum tersimpan. Periksa koneksi lalu coba lagi.')
+      }
+      return false
+    }
+  }
 
   const persist = (
     nextStatus: ProjectEditorRecord['status'],
@@ -311,7 +673,7 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
       capacity: 1,
       filled_capacity: 0,
       tool_ids: [],
-      skill_tags: []
+      skill_ids: []
     })
     saveResult.value = null
   }
@@ -345,10 +707,16 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
     if (nextScope === draftScope(draft.value)) return true
     modeDrafts.value.set(draftScope(draft.value), { draft: clone(draft.value), record: clone(record.value), baseline: baseline.value })
     const previous = modeDrafts.value.get(nextScope)
-    draft.value = previous ? clone(previous.draft) : { ...createBlankProjectEditorDraft(), creation_mode: mode, initiator_organization_id: organizationId }
+    const pending = pendingCreates.get(`${options.currentUserId}:${nextScope}`)
+    draft.value = previous
+      ? clone(previous.draft)
+      : pending
+        ? clone(pending.draft)
+        : { ...createBlankProjectEditorDraft(), creation_mode: mode, initiator_organization_id: organizationId }
     record.value = previous ? clone(previous.record) : null
     if (!previous) restore()
     baseline.value = previous?.baseline ?? snapshotDraft(draft.value)
+    refreshRecoveryChoices()
     currentStep.value = 0
     errors.value = {}
     submitError.value = ''
@@ -373,6 +741,13 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
     isSubmitting.value = true
     submitError.value = ''
     saveResult.value = null
+    if (options.persistence) {
+      try {
+        return await persistToServer('draft')
+      } finally {
+        isSubmitting.value = false
+      }
+    }
     try {
       if (!await waitForCompletion()) return false
       return persist('draft', 'draft')
@@ -385,7 +760,18 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
   }
 
   const saveChanges = async () => {
-    if (isSubmitting.value || options.mode !== 'edit' || !record.value || !validateAll()) return false
+    if (isSubmitting.value || options.mode !== 'edit' || !record.value) return false
+    if (options.persistence) {
+      isSubmitting.value = true
+      submitError.value = ''
+      saveResult.value = null
+      try {
+        return await persistToServer('updated')
+      } finally {
+        isSubmitting.value = false
+      }
+    }
+    if (!validateAll()) return false
     isSubmitting.value = true
     submitError.value = ''
     saveResult.value = null
@@ -401,7 +787,8 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
   }
 
   const publish = async () => {
-    if (isSubmitting.value || options.mode !== 'create' || !validateAll()) return false
+    const publishingSavedDraft = options.mode === 'edit' && record.value?.status === 'draft'
+    if (isSubmitting.value || (options.mode !== 'create' && !publishingSavedDraft) || !validateAll()) return false
     if (!canPublish.value) {
       submitError.value = 'Verifikasi email dan selesaikan onboarding untuk mencoba publikasi pratinjau.'
       return false
@@ -409,6 +796,36 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
     isSubmitting.value = true
     submitError.value = ''
     saveResult.value = null
+    if (options.persistence) {
+      try {
+        if (!record.value || isDirty.value) {
+          const saved = await persistToServer(record.value ? 'updated' : 'draft')
+          if (!saved) return false
+        }
+        if (isDirty.value && !await persistToServer('updated')) return false
+        if (!record.value?.id || !(options.contextAvailable?.() ?? true)) return false
+        const detail = await options.persistence.publish(record.value.id, { version: record.value.version })
+        if (!isMounted || !(options.contextAvailable?.() ?? true)) return false
+        record.value = toProjectEditorRecord(detail)
+        draft.value = clone(record.value.draft)
+        baseline.value = snapshotDraft(draft.value)
+        removeRecoveryForCurrentScope()
+        saveResult.value = {
+          kind: 'published',
+          message: draft.value.creation_mode === 'organization_initiated'
+            ? 'Proyek dipublikasikan dan menunggu Project Lead.'
+            : 'Proyek berhasil dipublikasikan.'
+        }
+        return true
+      } catch (error: unknown) {
+        if (isMounted && (options.contextAvailable?.() ?? true)) {
+          submitError.value = getApiErrorMessage(error, 'Draft tersimpan, tetapi publikasi belum berhasil. Coba lagi.')
+        }
+        return false
+      } finally {
+        isSubmitting.value = false
+      }
+    }
     try {
       if (!await waitForCompletion()) return false
       return persist(draft.value.creation_mode === 'organization_initiated' ? 'awaiting_owner' : 'open', 'published')
@@ -432,6 +849,8 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
     errors,
     submitError,
     storageWarning,
+    recoveryAvailable,
+    legacyTextRecoveryAvailable,
     isSubmitting,
     saveResult,
     isDirty,
@@ -447,6 +866,9 @@ export const useProjectEditor = (options: ProjectEditorOptions) => {
     setOrigin,
     setCreationMode,
     selectOrganization,
+    restoreRecovery,
+    restoreLegacyTextRecovery,
+    dismissRecovery,
     validateStep,
     validateAll,
     saveDraft,

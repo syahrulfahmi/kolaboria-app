@@ -7,8 +7,44 @@ import type {
   Application,
   ApplyProjectPayload
 } from '../types/project'
+import type { MyProjectSummaryResponse, ProjectSummaryResponse } from '../types/project-editor'
+import type { ApiPaginatedResponse } from '../types/api'
+
+const getAllSummaryPages = async <T>(
+  loadPage: (page: number) => Promise<ApiPaginatedResponse<T>>
+): Promise<T[]> => {
+  const items: T[] = []
+  let page = 1
+  let totalPages = 1
+  while (page <= totalPages) {
+    const response = await loadPage(page)
+    items.push(...response.data)
+    totalPages = Math.max(page, response.meta?.total_pages ?? page)
+    page += 1
+  }
+  return items
+}
 
 export const useProjects = () => {
+  const getPublicProjectSummaries = async (): Promise<ProjectSummaryResponse[]> => {
+    return getAllSummaryPages(page => ProjectService.getProjectSummaries({ page, limit: 100 }))
+  }
+
+  const getMyProjectSummaries = async (): Promise<MyProjectSummaryResponse[]> => {
+    const [ownedResponse, initiatedResponse] = await Promise.all([
+      getAllSummaryPages(page => ProjectService.getMyProjectSummaries('owned', { page, limit: 100 })),
+      getAllSummaryPages(page => ProjectService.getMyProjectSummaries('initiated', { page, limit: 100 }))
+    ])
+    const unique = new Map<string, MyProjectSummaryResponse>()
+    for (const project of ownedResponse) {
+      unique.set(project.id, { ...project, my_scope: 'owned' })
+    }
+    for (const project of initiatedResponse) {
+      if (!unique.has(project.id)) unique.set(project.id, { ...project, my_scope: 'initiated' })
+    }
+    return [...unique.values()]
+  }
+
   // ============================================================
   // Phase 1 — Listing & Detail
   // ============================================================
@@ -233,6 +269,8 @@ export const useProjects = () => {
   }
 
   return {
+    getPublicProjectSummaries,
+    getMyProjectSummaries,
     getProjects,
     getProjectById,
     getProjectBySlug,

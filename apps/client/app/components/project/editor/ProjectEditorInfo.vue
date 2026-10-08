@@ -20,34 +20,65 @@ const emit = defineEmits<{
   (event: 'change-creation-mode', mode: ProjectCreationMode): void
   (event: 'change-organization', id: string): void
 }>()
-const eligibleOrganizations = computed(() => props.creationContext?.system_role === 'admin'
-  ? props.creationContext.initiable_organizations : [])
-const organizationOptions = computed(() => eligibleOrganizations.value.map(({ id, name }) => ({ value: id, label: name })))
-const canChooseOrganization = computed(() => props.mode === 'create' &&
-  props.creationContext?.system_role === 'admin' && organizationOptions.value.length > 0)
-const selectedOrganization = computed(() => eligibleOrganizations.value.find(organization => organization.id === draft.value.initiator_organization_id))
-const changeOrganization = (value: string | number | (string | number)[] | null) => {
-  if (!props.disabled && canChooseOrganization.value && typeof value === 'string' &&
-    eligibleOrganizations.value.some(organization => organization.id === value)) emit('change-organization', value)
+const eligibleOrganizations = computed(() =>
+  props.creationContext?.system_role === 'admin'
+    ? props.creationContext.initiable_organizations
+    : []
+)
+const organizationOptions = computed(() =>
+  eligibleOrganizations.value.map(({ id, name }) => ({
+    value: id,
+    label: name
+  }))
+)
+const canChooseOrganization = computed(
+  () =>
+    props.mode === 'create' &&
+    props.creationContext?.system_role === 'admin' &&
+    organizationOptions.value.length > 0
+)
+const selectedOrganization = computed(() =>
+  eligibleOrganizations.value.find(
+    (organization) => organization.id === draft.value.initiator_organization_id
+  )
+)
+const changeOrganization = (
+  value: string | number | (string | number)[] | null
+) => {
+  if (
+    !props.disabled &&
+    canChooseOrganization.value &&
+    typeof value === 'string' &&
+    eligibleOrganizations.value.some(
+      (organization) => organization.id === value
+    )
+  )
+    emit('change-organization', value)
 }
-const isOrganization = computed(() => draft.value.creation_mode === 'organization_initiated')
+const isOrganization = computed(
+  () => draft.value.creation_mode === 'organization_initiated'
+)
 const changeCreationMode = (value: string | number | boolean) => {
-  if (props.mode !== 'create' || (value === 'organization_initiated' && !canChooseOrganization.value)) return
-  if (!props.disabled && (value === 'personal' || value === 'organization_initiated')) emit('change-creation-mode', value)
+  if (
+    props.mode !== 'create' ||
+    (value === 'organization_initiated' && !canChooseOrganization.value)
+  )
+    return
+  if (
+    !props.disabled &&
+    (value === 'personal' || value === 'organization_initiated')
+  )
+    emit('change-creation-mode', value)
 }
 const draft = defineModel<ProjectEditorDraft>('form', { required: true })
 const isSlugCustomized = ref(false)
 
 const categories = [...PROJECT_CATEGORY_OPTIONS]
-const visibilityOptions = [
-  { value: 'public', label: 'Publik' },
-  { value: 'invite_only', label: 'Hanya melalui undangan' }
-]
 
 watch(
   () => draft.value.title,
   (title) => {
-    if (!isSlugCustomized.value) {
+    if (props.mode === 'create' && !isSlugCustomized.value) {
       draft.value.slug = sanitizeSlug(title)
     }
   }
@@ -77,10 +108,13 @@ const onSlugInput = (value: string) => {
     </header>
 
     <fieldset v-if="canChooseOrganization" class="space-y-3">
-      <legend class="font-label-1 text-primary">Proyek ini dibuat atas nama siapa?</legend>
+      <legend class="font-label-1 text-primary">
+        Proyek ini dibuat atas nama siapa?
+      </legend>
       <div class="grid gap-3 sm:grid-cols-2">
         <AtomicRadio
-          name="project-creation-mode" value="personal"
+          name="project-creation-mode"
+          value="personal"
           :model-value="draft.creation_mode"
           label="Pribadi"
           description="Kamu menjadi owner dan memimpin proyek sebagai Project Lead."
@@ -88,7 +122,8 @@ const onSlugInput = (value: string) => {
           @update:model-value="changeCreationMode"
         />
         <AtomicRadio
-          name="project-creation-mode" value="organization_initiated"
+          name="project-creation-mode"
+          value="organization_initiated"
           :model-value="draft.creation_mode"
           label="Organisasi"
           description="Inisiasi proyek untuk mencari Project Lead, tanpa menjadi owner."
@@ -103,11 +138,24 @@ const onSlugInput = (value: string) => {
         :options="organizationOptions"
         :disabled="disabled"
         :error="errors.initiator_organization_id"
+        searchable
         required
         @update:model-value="changeOrganization"
       />
-      <p class="font-body-3 text-secondary">{{ isOrganization ? `Diinisiasi oleh ${selectedOrganization?.name ?? 'organisasi yang dipilih'}. Proyek belum memiliki Project Lead dan belum menerima kontributor.` : 'Proyek personalmu mengikuti flow biasa. Kamu langsung menjadi Project Lead.' }}</p>
-      <p v-if="errors.creation_mode" class="font-body-3 text-danger-700" role="alert">{{ errors.creation_mode }}</p>
+      <p class="font-body-3 text-secondary">
+        {{
+          isOrganization
+            ? `Diinisiasi oleh ${selectedOrganization?.name ?? 'organisasi yang dipilih'}. Proyek belum memiliki Project Lead dan belum menerima kontributor.`
+            : 'Proyek personalmu mengikuti flow biasa. Kamu langsung menjadi Project Lead.'
+        }}
+      </p>
+      <p
+        v-if="errors.creation_mode"
+        class="font-body-3 text-danger-700"
+        role="alert"
+      >
+        {{ errors.creation_mode }}
+      </p>
     </fieldset>
 
     <MoleculeTicker
@@ -177,31 +225,15 @@ const onSlugInput = (value: string) => {
         required
       />
 
-      <div class="grid gap-5 sm:grid-cols-2">
-        <MoleculeDropdown
-          v-model="draft.project_category"
-          label="Tipe Proyek"
-          :options="categories"
-          :error="errors.project_category"
-          :disabled="disabled"
-          required
-        />
-        <MoleculeDropdown
-          v-model="draft.visibility"
-          label="Visibilitas"
-          :options="visibilityOptions"
-          :hint="
-            isOrganization
-              ? 'Proyek organisasi bersifat publik agar calon Project Lead dapat menemukannya.'
-              : draft.visibility === 'public'
-              ? 'Proyek dapat dilihat oleh semua orang di pratinjau ini.'
-              : 'Pratinjau hanya menampilkan pilihan visibilitas ini.'
-          "
-          :error="errors.visibility"
-          :disabled="disabled || isOrganization"
-          required
-        />
-      </div>
+      <MoleculeDropdown
+        v-model="draft.project_category"
+        label="Tipe Proyek"
+        :options="categories"
+        :error="errors.project_category"
+        :disabled="disabled"
+        searchable
+        required
+      />
     </div>
   </section>
 </template>

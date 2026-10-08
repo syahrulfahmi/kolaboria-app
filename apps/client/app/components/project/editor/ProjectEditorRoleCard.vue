@@ -1,41 +1,46 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { addProjectEditorTag } from '~/data/project-editor-validation'
+import { computed } from 'vue'
 import type {
-  ProjectEditorDraft,
+  ProjectEditorCatalogKey,
+  ProjectEditorCatalogStates,
   ProjectEditorErrors,
   ProjectEditorReferences,
-  ProjectEditorRole,
-  ProjectEditorRoleOption
+  ProjectEditorRole
 } from '~/types/project-editor'
 
 const props = defineProps<{
   role: ProjectEditorRole
   index: number
   totalRoles: number
-  contributionRoles: ProjectEditorRoleOption[]
+  catalogStates: ProjectEditorCatalogStates
   references: ProjectEditorReferences
   errors: ProjectEditorErrors
   disabled: boolean
 }>()
 const emit = defineEmits<{
   (event: 'remove', clientKey: string): void
+  (event: 'load-catalog', catalog: ProjectEditorCatalogKey): void
 }>()
-const skillEntry = ref('')
-const owner = defineModel<ProjectEditorDraft>('form', { required: true })
-const customValue = 'custom-role'
 
 const toolOptions = computed(() =>
   props.references.tools.map((tool) => ({ label: tool.name, value: tool.id }))
 )
+const skillOptions = computed(() =>
+  props.references.skills.map((skill) => ({
+    label: skill.name,
+    value: skill.id
+  }))
+)
 const roleName = computed(
   () =>
-    props.role.custom_title ??
-    props.contributionRoles.find(
+    props.references.contribution_roles.find(
       (item) => item.id === props.role.contribution_role_id
-    )?.name ??
-    ''
+    )?.name ?? ''
 )
+const roleOptions = computed(() => props.references.contribution_roles.map((item) => ({
+  label: item.name,
+  value: item.id
+})))
 const capacityOptions = computed(() => {
   const minimumCapacity = Math.min(20, Math.max(1, props.role.filled_capacity))
   return Array.from({ length: 21 - minimumCapacity }, (_, index) => ({
@@ -46,13 +51,15 @@ const capacityOptions = computed(() => {
 const errorFor = (field: string) =>
   props.errors['roles.' + props.role.client_key + '.' + field]
 
-const updateRoleName = (value: string) => {
-  const normalizedValue = value.trim().toLocaleLowerCase('id-ID')
-  const matchedRole = props.contributionRoles.find(
-    (item) => item.name.toLocaleLowerCase('id-ID') === normalizedValue
-  )
-  props.role.contribution_role_id = matchedRole?.id
-  props.role.custom_title = matchedRole ? undefined : value
+const selectRole = (value: string | number | (string | number)[] | null) => {
+  if (
+    typeof value === 'string' &&
+    props.references.contribution_roles.some((item) => item.id === value)
+  ) {
+    props.role.contribution_role_id = value
+  } else {
+    props.role.contribution_role_id = undefined
+  }
 }
 
 const updateCapacity = (
@@ -63,26 +70,6 @@ const updateCapacity = (
   }
 }
 
-const selectOwnerRole = (
-  value: string | number | (string | number)[] | null
-) => {
-  if (value === customValue) {
-    owner.value.owner_contribution_role_id = undefined
-    owner.value.owner_custom_role_title ??= ''
-  } else if (typeof value === 'string') {
-    owner.value.owner_contribution_role_id = value
-    owner.value.owner_custom_role_title = undefined
-  } else {
-    owner.value.owner_contribution_role_id = undefined
-    owner.value.owner_custom_role_title = undefined
-  }
-}
-
-const addSkill = () => {
-  const next = addProjectEditorTag(props.role.skill_tags, skillEntry.value)
-  if (next.length !== props.role.skill_tags.length) props.role.skill_tags = next
-  skillEntry.value = ''
-}
 </script>
 
 <template>
@@ -123,16 +110,14 @@ const addSkill = () => {
           class="focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           :title="
             'Hapus peran ' +
-            (role.custom_title ||
-              contributionRoles.find(
+            (references.contribution_roles.find(
                 (item) => item.id === role.contribution_role_id
               )?.name ||
               index + 1)
           "
           :aria-label="
             'Hapus peran ' +
-            (role.custom_title ||
-              contributionRoles.find(
+            (references.contribution_roles.find(
                 (item) => item.id === role.contribution_role_id
               )?.name ||
               index + 1)
@@ -147,17 +132,21 @@ const addSkill = () => {
 
     <div class="space-y-5 p-4 sm:p-5">
       <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_6.25rem]">
-        <MoleculeInputField
-          :id="'role-name-' + role.client_key"
-          :model-value="roleName"
-          @update:model-value="updateRoleName"
-          label="Nama Role"
-          placeholder="Contoh: Frontend Developer"
-          :error="errorFor('contribution_role_id')"
-          :disabled="disabled || role.filled_capacity > 0"
-          hint="Gunakan nama posisi yang mudah dipahami talent."
-          required
-        />
+        <div class="space-y-4">
+          <MoleculeDropdown
+            :model-value="role.contribution_role_id ?? null"
+            @update:model-value="selectRole"
+            @open="emit('load-catalog', 'contribution_roles')"
+            label="Nama Role"
+            searchable
+            placeholder="Pilih nama role"
+            :options="roleOptions"
+            :error="errorFor('contribution_role_id')"
+            :disabled="disabled || role.filled_capacity > 0"
+            hint="Gunakan nama posisi yang mudah dipahami talent."
+            required
+          />
+        </div>
         <MoleculeDropdown
           :model-value="role.capacity"
           @update:model-value="updateCapacity"
@@ -165,6 +154,7 @@ const addSkill = () => {
           :options="capacityOptions"
           :error="errorFor('capacity')"
           :disabled="disabled"
+          searchable
           required
         />
       </div>
@@ -177,40 +167,23 @@ const addSkill = () => {
         :rows="4"
         :error="errorFor('description')"
         :disabled="disabled"
-        hint="Jelaskan apa yang akan dikerjakan dan area tanggung jawab role ini selama proyek."
+        hint="Jelaskan tanggung jawab role ini. Untuk daftar, tulis tiap poin di baris baru dengan - atau 1."
         required
       />
 
-      <div class="space-y-2">
-        <MoleculeInputField
-          :id="'role-skill-' + role.client_key"
-          v-model="skillEntry"
-          label="Skill yang Dibutuhkan"
-          placeholder="Contoh: Go, PostgreSQL, REST API..."
-          hint="Tekan Enter untuk menambahkan skill."
-          :error="errorFor('skill_tags')"
-          :disabled="disabled"
-          required
-          @keydown.enter.prevent="addSkill"
-        />
-        <div
-          v-if="role.skill_tags.length"
-          class="flex flex-wrap gap-2"
-          aria-label="Keahlian terpilih"
-        >
-          <AtomicTag
-            v-for="skill in role.skill_tags"
-            :key="skill.toLocaleLowerCase('id-ID')"
-            variant="primary"
-            :label="skill"
-            closable
-            :close-label="'Hapus keahlian ' + skill"
-            @close="
-              role.skill_tags = role.skill_tags.filter((item) => item !== skill)
-            "
-          />
-        </div>
-      </div>
+      <MoleculeDropdown
+        v-model="role.skill_ids"
+        label="Skill yang Dibutuhkan"
+        placeholder="Cari dan pilih skill yang relevan"
+        :options="skillOptions"
+        :error="errorFor('skill_ids')"
+        :disabled="disabled"
+        searchable
+        multiple
+        required
+        hint="Pilih skill yang relevan bagi calon kontributor."
+        @open="emit('load-catalog', 'skills')"
+      />
 
       <MoleculeDropdown
         v-model="role.tool_ids"
@@ -223,6 +196,7 @@ const addSkill = () => {
         multiple
         :max="8"
         hint="Pilih tools yang relevan bagi calon kontributor."
+        @open="emit('load-catalog', 'tools')"
       />
     </div>
   </article>

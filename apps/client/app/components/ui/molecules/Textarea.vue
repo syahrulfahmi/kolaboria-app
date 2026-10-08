@@ -32,7 +32,7 @@
       :required="required"
       :rows="rows"
       :maxlength="maxLength"
-      class="w-full resize-none rounded-xl border bg-white px-4 py-3 font-body-2 text-primary transition-colors duration-200 focus:border-primary-500 focus:outline-none disabled:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-500"
+      class="w-full resize-y rounded-xl border bg-white px-4 py-3 font-body-2 text-primary transition-colors duration-200 focus:border-primary-500 focus:outline-none disabled:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-500"
       :class="[
         error
           ? 'border-red-300 focus:border-red-500'

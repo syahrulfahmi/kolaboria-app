@@ -7,6 +7,19 @@ const { default: Info } = await import('../app/components/project/editor/Project
 const { createBlankProjectEditorDraft } = await import('../app/data/project-editor-fixtures.ts')
 const organization = { id: 'organization-a', name: 'Community A' }
 
+test('editing only the title preserves the project URL slug', async () => {
+  const draft = reactive({ ...createBlankProjectEditorDraft(), title: 'Judul Lama', slug: 'stable-public-url' })
+  const mounted = mountComponent(Info, {
+    mode: 'edit', form: draft, errors: {}, disabled: false
+  })
+
+  draft.title = 'Judul Baru'
+  await nextTick()
+
+  assert.equal(draft.slug, 'stable-public-url')
+  mounted.unmount()
+})
+
 test('organization fieldset and selections require both admin role and eligible membership', async () => {
   for (const scenario of [
     { role: 'user', organizations: [organization], allowed: false },

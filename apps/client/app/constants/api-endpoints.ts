@@ -63,6 +63,9 @@ export const API_ENDPOINTS = {
     DETAIL_BY_SLUG: (slug: string) =>
       `/projects/slug/${encodeURIComponent(slug)}`,
     MY_PROJECTS: '/projects/my-projects',
+    EDITOR_CREATE: '/projects',
+    EDITOR_UPDATE: (id: string) => `/projects/${encodeURIComponent(id)}`,
+    EDITOR_PUBLISH: (id: string) => `/projects/${encodeURIComponent(id)}/publish`,
     STATUS: (id: string) => `/projects/${id}/status`,
     PUBLISH: (id: string) => `/projects/${id}/publish`,
     START: (id: string) => `/projects/${id}/start`,

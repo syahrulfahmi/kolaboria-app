@@ -78,6 +78,7 @@ const hoursOptions = [5, 10, 15, 20].map((value) => ({
         :options="availabilityOptions"
         :error="errors.availability"
         :disabled="disabled"
+        searchable
         required
       />
       <MoleculeDropdown
@@ -86,6 +87,7 @@ const hoursOptions = [5, 10, 15, 20].map((value) => ({
         :options="hoursOptions"
         :error="errors.hours_per_week"
         :disabled="disabled"
+        searchable
         required
       />
     </div>

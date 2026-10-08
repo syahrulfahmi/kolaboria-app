@@ -15,6 +15,10 @@ const config: Record<ProjectStatus, { label: string; classes: string }> = {
     label: 'Open',
     classes: 'bg-success-50 text-success-700 ring-success-200'
   },
+  awaiting_owner: {
+    label: 'Menunggu Project Lead',
+    classes: 'bg-amber-50 text-amber-700 ring-amber-200'
+  },
   in_progress: {
     label: 'In Progress',
     classes: 'bg-primary-50 text-primary-700 ring-primary-200'

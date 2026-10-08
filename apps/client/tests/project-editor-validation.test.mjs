@@ -4,8 +4,8 @@ import test from 'node:test'
 import '../tests/helpers/frontend-runtime.mjs'
 import {
   getProjectEditorCapacity,
-  normalizeProjectEditorTag,
   validateProjectEditorDraft,
+  validateProjectEditorStructure,
   validateProjectEditorStep
 } from '../app/data/project-editor-validation.ts'
 import {
@@ -32,9 +32,12 @@ test('each fixture is isolated and unknown project slugs do not reuse example co
   assert.equal(createProjectEditorFixture('wrong-slug'), null)
 })
 
-test('tags trim surrounding whitespace and compare duplicate skill labels without casing', () => {
-  assert.equal(normalizeProjectEditorTag('  TypeScript  '), 'TypeScript')
-  assert.equal(normalizeProjectEditorTag('   '), '')
+test('structural validation allows incomplete drafts while enforcing persisted field shapes', () => {
+  const draft = createBlankProjectEditorDraft()
+  assert.deepEqual(validateProjectEditorStructure(draft), {})
+
+  draft.roles[0].tool_ids = ['tool-nuxt']
+  assert.ok(validateProjectEditorStructure(draft)['roles.role-create-1.tool_ids'])
 })
 
 test('basic section requires its brief, category, visibility and bounded text lengths', () => {
@@ -52,9 +55,9 @@ test('basic section requires its brief, category, visibility and bounded text le
 
 test('team section requires a complete role and caps aggregate capacity at twenty', () => {
   const draft = createBlankProjectEditorDraft()
-  draft.roles[0].contribution_role_id = 'role-frontend'
+  draft.roles[0].contribution_role_id = '5838d3f2-7c00-5cc7-bf80-96e063b006e1'
   draft.roles[0].description = 'Membangun dan mengevaluasi antarmuka.'
-  draft.roles[0].skill_tags = ['Vue']
+  draft.roles[0].skill_ids = ['9f6fa0cb-f5da-5cb4-899d-c5878059621a']
   assert.deepEqual(validateProjectEditorStep(1, draft), {})
 
   draft.roles[0].capacity = 21
@@ -63,9 +66,9 @@ test('team section requires a complete role and caps aggregate capacity at twent
 
 test('filled role capacity cannot be reduced or deleted into an invalid team', () => {
   const draft = createBlankProjectEditorDraft()
-  draft.roles[0].contribution_role_id = 'role-frontend'
+  draft.roles[0].contribution_role_id = '5838d3f2-7c00-5cc7-bf80-96e063b006e1'
   draft.roles[0].description = 'Membangun dan mengevaluasi antarmuka.'
-  draft.roles[0].skill_tags = ['Vue']
+  draft.roles[0].skill_ids = ['9f6fa0cb-f5da-5cb4-899d-c5878059621a']
   draft.roles[0].filled_capacity = 2
   draft.roles[0].capacity = 1
 
@@ -92,6 +95,25 @@ test('full publish validation checks all sections and permits empty optional pro
   draft.deadline = null
 
   assert.deepEqual(validateProjectEditorDraft(draft), {})
-  draft.roles[0].skill_tags = []
-  assert.ok(validateProjectEditorDraft(draft)['roles.role-fixture-frontend.skill_tags'])
+  draft.roles[0].skill_ids = []
+  assert.ok(validateProjectEditorDraft(draft)['roles.role-fixture-frontend.skill_ids'])
+})
+
+test('owner professional role is optional and accepts only a master UUID', () => {
+  const draft = createProjectEditorFixture('platform-portofolio-talenta-digital').draft
+  assert.equal(validateProjectEditorDraft(draft).owner_contribution_role_id, undefined)
+
+  draft.owner_contribution_role_id = '5838d3f2-7c00-5cc7-bf80-96e063b006e1'
+  assert.equal(validateProjectEditorDraft(draft).owner_contribution_role_id, undefined)
+
+  draft.owner_contribution_role_id = 'Frontend Developer'
+  assert.ok(validateProjectEditorDraft(draft).owner_contribution_role_id)
+})
+
+test('loaded private visibility remains valid for definition edits', () => {
+  const draft = createProjectEditorFixture('platform-portofolio-talenta-digital').draft
+  draft.visibility = 'private'
+
+  assert.equal(validateProjectEditorStructure(draft).visibility, undefined)
+  assert.equal(validateProjectEditorDraft(draft).visibility, undefined)
 })

@@ -4,11 +4,12 @@ export type { ProjectCategory }
 export type ProjectStatus =
   | 'draft'
   | 'open'
+  | 'awaiting_owner'
   | 'in_progress'
   | 'completed'
   | 'archived'
 export type ProjectOutcome = 'completed' | 'cancelled' | 'abandoned'
-export type ProjectVisibility = 'public' | 'invite_only'
+export type ProjectVisibility = 'public' | 'private' | 'invite_only'
 export type ApplicationStatus =
   | 'pending'
   | 'accepted'
@@ -129,6 +130,36 @@ export interface Project {
   owner_contribution_role_id?: string | null
   owner_contribution_role?: MasterItem | null
   owner_custom_role_title?: string | null
+  owner_id?: string | null
+  initiator_organization_id?: string | null
+  creation_mode?: 'personal' | 'organization_initiated'
+  lead_expectations?: string
+  owner_profile?: {
+    id: string
+    username: string
+    full_name: string | null
+    headline: string | null
+    avatar: string | null
+    is_verified: boolean
+  } | null
+  initiator_profile?: {
+    id: string
+    username: string
+    full_name: string | null
+    headline: string | null
+    avatar: string | null
+    is_verified: boolean
+  } | null
+  initiator_organization?: { id: string; name: string; slug: string } | null
+  capabilities?: {
+    can_edit_definition: boolean
+    can_publish: boolean
+    allowed_status_actions: string[]
+    can_apply: boolean
+    can_claim: boolean
+    can_manage_applications: boolean
+    can_manage_workspace: boolean
+  }
   origin?: 'personal' | 'community' | 'experiment' | 'client' | string | null
   why_collaborative?: string | null
   contributor_outcome?: string | null

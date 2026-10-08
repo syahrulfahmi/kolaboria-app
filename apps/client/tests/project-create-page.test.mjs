@@ -14,6 +14,8 @@ test('create loader retries failed onboarding and reflects refreshed grants with
   } })
   globalThis.definePageMeta = () => {}
   globalThis.useHead = () => {}
+  globalThis.useRuntimeConfig = () => ({ public: { apiBaseUrl: 'http://localhost' } })
+  globalThis.useCookie = () => ({ value: null })
   const { default: Page } = await import('../app/pages/projects/create.vue')
   const mounted = mountSetup(() => Page.setup({}, { expose() {} }))
   const vm = mounted.bindings
@@ -38,6 +40,6 @@ test('create loader retries failed onboarding and reflects refreshed grants with
     assert.equal(vm.contextAvailable.value, false)
   } finally {
     mounted.unmount()
-    for (const key of ['useAuth', 'useProfile', 'definePageMeta', 'useHead']) delete globalThis[key]
+    for (const key of ['useAuth', 'useProfile', 'definePageMeta', 'useHead', 'useRuntimeConfig', 'useCookie']) delete globalThis[key]
   }
 })

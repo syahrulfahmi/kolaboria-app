@@ -34,7 +34,7 @@
     <div v-else>
       <!-- Draft Banner -->
       <div
-        v-if="project.status === 'draft' && isOwner"
+        v-if="project.status === 'draft' && canEditDefinition"
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4"
       >
         <MoleculeTicker
@@ -116,7 +116,20 @@
                     {{ creatorName }}
                   </span>
                   <p class="text-xs text-neutral-500 mt-0.5">
-                    Pemilik proyek · Profil {{ isCreatorVerified ? 'terverifikasi' : 'belum terverifikasi' }}
+                    {{ creatorAttribution }}<span v-if="creatorUsername"> · Profil {{ isCreatorVerified ? 'terverifikasi' : 'belum tersedia' }}</span>
+                  </p>
+                  <p v-if="project.initiator_organization" class="text-xs text-neutral-500 mt-1">
+                    Diinisiasi oleh {{ project.initiator_organization.name }}
+                    <NuxtLink
+                      v-if="project.initiator_profile?.username"
+                      :to="`/profile/${project.initiator_profile.username}`"
+                      class="font-medium text-primary-700 hover:underline"
+                    >
+                      · {{ project.initiator_profile.full_name || project.initiator_profile.username }}
+                    </NuxtLink>
+                    <span v-else-if="project.initiator_profile?.full_name">
+                      · {{ project.initiator_profile.full_name }}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -220,9 +233,9 @@
 
             <!-- Card 6: Komitmen Pemilik Proyek -->
             <article class="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8 space-y-3 shadow-xs">
-              <h2 class="font-title-3 font-bold text-neutral-900">Komitmen pemilik proyek</h2>
+              <h2 class="font-title-3 font-bold text-neutral-900">{{ ownerCommitmentHeading }}</h2>
               <p class="text-neutral-600 font-paragraph-2 leading-relaxed">
-                {{ ownerCommitmentText }}
+                {{ ownerCommitmentText || 'Belum ada informasi komitmen pemilik proyek.' }}
               </p>
             </article>
           </div>
@@ -258,7 +271,7 @@
 
               <!-- CTA Actions -->
               <div class="space-y-2.5 pt-2">
-                <template v-if="!user">
+                <template v-if="!user && (!project.capabilities || project.capabilities.can_apply)">
                   <AtomicButton
                     to="/login"
                     variant="primary"
@@ -269,10 +282,10 @@
                   </AtomicButton>
                 </template>
 
-                <template v-else-if="isOwner">
+                <template v-else-if="canEditDefinition">
                   <div class="flex flex-col gap-2.5">
                     <AtomicButton
-                      v-if="project.status === 'in_progress'"
+                      v-if="canManageWorkspace && project.status === 'in_progress'"
                       :to="`/projects/${project.slug}/workspace`"
                       variant="primary"
                       block
@@ -281,7 +294,7 @@
                       Buka Workspace
                     </AtomicButton>
                     <AtomicButton
-                      :to="`/projects/${project.slug}/applicants`"
+                      v-if="canManageApplications" :to="`/projects/${project.slug}/applicants`"
                       :variant="project.status === 'in_progress' ? 'secondary' : 'primary'"
                       block
                       class="!py-3 !rounded-xl !bg-[#4f46e5] hover:!bg-[#4338ca] text-white font-semibold !text-sm shadow-xs"
@@ -385,14 +398,14 @@
             </p>
           </div>
           <div class="shrink-0">
-            <template v-if="!user">
+            <template v-if="!user && (!project.capabilities || project.capabilities.can_apply)">
               <AtomicButton to="/login" variant="primary" size="sm" class="!rounded-xl font-semibold">
                 Login
               </AtomicButton>
             </template>
-            <template v-else-if="isOwner">
-              <AtomicButton :to="`/projects/${project.slug}/applicants`" variant="primary" size="sm" class="!rounded-xl font-semibold">
-                Kelola Pelamar
+            <template v-else-if="canEditDefinition">
+              <AtomicButton :to="`/projects/${project.slug}/edit`" variant="primary" size="sm" class="!rounded-xl font-semibold">
+                Edit Proyek
               </AtomicButton>
             </template>
             <template v-else-if="hasActiveApplication">
@@ -417,7 +430,7 @@
 
     <!-- Apply Modal -->
     <ProjectApplyModal
-      v-if="project"
+      v-if="project && canApply"
       :project-id="project.id"
       :roles="availableRoles"
       :show="showApplyModal"
@@ -429,9 +442,10 @@
 
 <script setup lang="ts">
 import type { Application, Project, ProjectRole, ProjectStatus } from '~/types/project'
+import { useProjectEditorApi } from '~/composables/useProjectEditorApi'
+import { toProjectDetailView } from '~/utils/project-presentation'
 import type { ProjectEditorRecord } from '~/types/project-editor'
 import { getProjectCategoryLabel } from '~/constants/projectCategory'
-import { createProjectEditorFixture } from '~/data/project-editor-fixtures'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -444,125 +458,20 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { getProjectBySlug, getMyApplications } = useProjects()
+
 const { user, isVerified, currentUserId } = useAuth()
 
 const projectSlug = route.params.slug as string
 
-// Transformer to adapt fixture into Project format for development preview
-const transformFixtureToProject = (fixture: ProjectEditorRecord): Project => {
-  const draft = fixture.draft
-  return {
-    id: fixture.id,
-    creator_id: 'user-syahrul-fahmi',
-    title: draft.title,
-    slug: draft.slug,
-    summary: draft.summary,
-    description:
-      draft.description ||
-      'Proyek ini berangkat dari kebutuhan untuk membantu talent menunjukkan pengalaman nyata, bukan hanya daftar skill. Tim akan mengeksplorasi struktur portfolio, experience record, serta bagaimana kontribusi dalam sebuah proyek dapat ditampilkan secara kredibel.',
-    project_category: draft.project_category,
-    visibility: draft.visibility,
-    status: fixture.status as ProjectStatus,
-    max_slots: 4,
-    start_date: draft.start_date || '2026-10-12',
-    deadline: draft.deadline || '2026-11-30',
-    why_join: draft.why_collaborative,
-    why_collaborative:
-      draft.why_collaborative ||
-      'Proyek membutuhkan perspektif frontend, desain, dan product thinking. Owner tetap terlibat dalam discovery, pengambilan keputusan, serta review implementasi.',
-    contributor_outcome: draft.contributor_outcome,
-    owner_commitment:
-      draft.owner_commitment ||
-      'Pemilik proyek akan terlibat dalam perencanaan, diskusi kebutuhan, review hasil, dan pengambilan keputusan. Proyek ini tidak ditujukan sebagai ruang untuk sekadar mendelegasikan pekerjaan kepada kontributor.',
-    hours_per_week: draft.hours_per_week || 10,
-    origin: draft.origin || 'personal',
-    created_at: fixture.saved_at,
-    published_at: fixture.saved_at,
-    profiles: {
-      username: 'syahrulfahmi',
-      full_name: 'Syahrul Fahmi',
-      avatar: null,
-      is_verified: true
-    },
-    creator: {
-      username: 'syahrulfahmi',
-      full_name: 'Syahrul Fahmi',
-      avatar: null,
-      is_verified: true
-    },
-    project_roles: [
-      {
-        id: 'role-frontend-1',
-        contribution_role_id: 'role-frontend',
-        contribution_role: {
-          id: 'role-frontend',
-          name: 'Frontend Developer',
-          slug: 'frontend',
-          category: 'Contribution Role'
-        },
-        custom_title: 'Frontend Developer',
-        description:
-          'Membantu implementasi antarmuka, integrasi API, dan memastikan pengalaman pengguna tetap konsisten.',
-        capacity: 2,
-        filled_capacity: 0,
-        remaining_capacity: 2,
-        status: 'open',
-        tools: [
-          { id: 'tool-nuxt', name: 'Nuxt.js', slug: 'nuxt', category: 'Framework' },
-          { id: 'tool-vue', name: 'Vue.js', slug: 'vue', category: 'Framework' },
-          { id: 'tool-ts', name: 'TypeScript', slug: 'typescript', category: 'Language' },
-          { id: 'tool-design', name: 'UI/UX Design', slug: 'ui-ux-design', category: 'Design' }
-        ],
-        skill_tags: ['Nuxt.js', 'Vue.js', 'TypeScript', 'UI/UX Design']
-      }
-    ],
-    project_skills: [],
-    project_technologies: [],
-    project_members: [
-      {
-        id: 'member-1',
-        project_id: fixture.id,
-        profile_id: 'user-member-1',
-        role: 'contributor',
-        joined_at: fixture.saved_at,
-        profiles: {
-          username: 'member1',
-          full_name: 'Member 1',
-          avatar: null
-        }
-      },
-      {
-        id: 'member-2',
-        project_id: fixture.id,
-        profile_id: 'user-member-2',
-        role: 'contributor',
-        joined_at: fixture.saved_at,
-        profiles: {
-          username: 'member2',
-          full_name: 'Member 2',
-          avatar: null
-        }
-      }
-    ]
-  }
-}
-
+const persistence = useProjectEditorApi()
 const {
   data: project,
   error,
   pending,
   refresh: refreshProject
-} = await useAsyncData<Project | null>(`project-${projectSlug}`, async () => {
-  const result = await getProjectBySlug(projectSlug)
-  if (!result && import.meta.dev) {
-    const fixture = createProjectEditorFixture(projectSlug)
-    if (fixture) {
-      return transformFixtureToProject(fixture)
-    }
-  }
-  return result
-})
+} = await useAsyncData<Project | null>(`project-${projectSlug}`, async () =>
+  toProjectDetailView(await persistence.loadBySlug(projectSlug))
+)
 
 useHead({
   title: project.value
@@ -570,24 +479,14 @@ useHead({
     : 'Project - Kolaboria'
 })
 
-const { data: myApps, refresh: refreshApps } = await useAsyncData<Application[]>(
-  `my-apps-${projectSlug}`,
-  () => (user.value ? getMyApplications() : Promise.resolve([])),
-  { server: false }
-)
-
-const currentApplication = computed(() => {
-  const projectApps =
-    myApps.value?.filter((app) => app.project_id === project.value?.id) ?? []
-  return projectApps[0] || null
-})
+const currentApplication = ref<Application | null>(null)
 
 const hasApplied = computed(() => !!currentApplication.value)
 
-const isOwner = computed(
-  () =>
-    !!currentUserId.value && currentUserId.value === project.value?.creator_id
-)
+const isOwner = computed(() => !!currentUserId.value && currentUserId.value === project.value?.owner_id)
+const canEditDefinition = computed(() => project.value?.capabilities?.can_edit_definition ?? isOwner.value)
+const canManageApplications = computed(() => project.value?.capabilities?.can_manage_applications ?? isOwner.value)
+const canManageWorkspace = computed(() => project.value?.capabilities?.can_manage_workspace ?? false)
 
 const members = computed(
   () =>
@@ -602,7 +501,7 @@ const totalRoleCapacity = computed(() => {
       (acc, role) => (role.status === 'archived' ? acc : acc + role.capacity),
       0
     ) ?? 0
-  return total > 0 ? total : 4
+  return total
 })
 
 const openSlots = computed(() => {
@@ -613,7 +512,7 @@ const openSlots = computed(() => {
           ? total
           : total + Math.max(role.remaining_capacity, 0),
       0
-    ) ?? 2
+    ) ?? 0
   )
 })
 
@@ -649,6 +548,7 @@ const hasActiveApplication = computed(() => {
 })
 
 const canApply = computed(() => {
+  if (project.value?.capabilities) return project.value.capabilities.can_apply
   if (!user.value) return false
   if (isOwner.value) return false
   const alreadyMember = members.value.some(
@@ -679,7 +579,7 @@ const creatorName = computed(
   () =>
     project.value?.profiles?.full_name ||
     project.value?.profiles?.username ||
-    'Syahrul Fahmi'
+    'Project Lead belum ditetapkan'
 )
 
 const creatorUsername = computed(() => project.value?.profiles?.username)
@@ -695,8 +595,11 @@ const creatorInitial = computed(() => {
 const creatorAvatar = computed(
   () => project.value?.profiles?.avatar || project.value?.creator?.avatar || null
 )
+const creatorAttribution = computed(() => project.value?.owner_id
+  ? 'Project Lead'
+  : 'Project Lead belum ditetapkan')
 const isCreatorVerified = computed(
-  () => project.value?.profiles?.is_verified ?? project.value?.creator?.is_verified ?? true
+  () => project.value?.profiles?.is_verified ?? project.value?.creator?.is_verified ?? false
 )
 
 const originLabels: Record<string, string> = {
@@ -713,21 +616,11 @@ const projectOriginLabel = computed(() => {
   return 'Proyek pribadi'
 })
 
-const collaborationFormatLabel = computed(() => {
-  if (project.value?.project_category === 'product') {
-    return 'Portfolio & product exploration'
-  }
-  if (project.value?.project_category === 'community') {
-    return 'Community initiative & open collaboration'
-  }
-  if (project.value?.project_category === 'open_source') {
-    return 'Open source & public contribution'
-  }
-  return 'Portfolio & product exploration'
-})
+const collaborationFormatLabel = computed(() => getProjectCategoryLabel(project.value?.project_category ?? 'other'))
 
 const statusBadgeText = computed(() => {
   if (project.value?.status === 'open') return 'Menerima kontributor'
+  if (project.value?.status === 'awaiting_owner') return 'Menunggu Project Lead'
   if (project.value?.status === 'in_progress') return 'Sedang berjalan'
   if (project.value?.status === 'completed') return 'Selesai'
   if (project.value?.status === 'draft') return 'Draf'
@@ -744,6 +637,8 @@ const statusBadgeClass = computed(() => {
       return 'bg-blue-50 text-blue-700 border border-blue-200'
     case 'draft':
       return 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+    case 'awaiting_owner':
+      return 'bg-amber-50 text-amber-700 border border-amber-200'
     default:
       return 'bg-neutral-100 text-neutral-600 border border-neutral-200'
   }
@@ -759,6 +654,8 @@ const statusLabel = computed(() => {
       return 'Selesai'
     case 'draft':
       return 'Draf'
+    case 'awaiting_owner':
+      return 'Menunggu Project Lead'
     default:
       return 'Diarsipkan'
   }
@@ -772,29 +669,25 @@ const commitmentLabel = computed(() => {
 })
 
 const teamCountLabel = computed(() => {
-  const currentCount = members.value.length > 0 ? members.value.length : 2
+  const currentCount = project.value?.project_roles?.reduce((total, role) => total + role.filled_capacity, 0) ?? 0
   return `${currentCount} / ${totalRoleCapacity.value} orang`
 })
 
 const collaborativeReason = computed(() => {
   return (
-    project.value?.why_collaborative ||
-    project.value?.why_join ||
-    'Proyek membutuhkan perspektif frontend, desain, dan product thinking. Owner tetap terlibat dalam discovery, pengambilan keputusan, serta review implementasi.'
+    project.value?.why_collaborative || project.value?.why_join || ''
   )
 })
 
-const ownerCommitmentText = computed(() => {
-  return (
-    project.value?.owner_commitment ||
-    'Pemilik proyek akan terlibat dalam perencanaan, diskusi kebutuhan, review hasil, dan pengambilan keputusan. Proyek ini tidak ditujukan sebagai ruang untuk sekadar mendelegasikan pekerjaan kepada kontributor.'
-  )
-})
+const ownerCommitmentHeading = computed(() => project.value?.creation_mode === 'organization_initiated'
+  ? 'Ekspektasi untuk Project Lead'
+  : 'Komitmen pemilik proyek')
+const ownerCommitmentText = computed(() => project.value?.creation_mode === 'organization_initiated'
+  ? project.value.lead_expectations || ''
+  : project.value?.owner_commitment || '')
 
 const descriptionParagraphs = computed(() => {
-  const description =
-    project.value?.description?.trim() ||
-    'Proyek ini berangkat dari kebutuhan untuk membantu talent menunjukkan pengalaman nyata, bukan hanya daftar skill. Tim akan mengeksplorasi struktur portfolio, experience record, serta bagaimana kontribusi dalam sebuah proyek dapat ditampilkan secara kredibel.'
+  const description = project.value?.description?.trim() || ''
   return description
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
@@ -809,7 +702,7 @@ const getRoleTags = (role: ProjectRole): string[] => {
   if (project.value?.project_technologies?.length) {
     return project.value.project_technologies.map((t) => t.tool.name).slice(0, 4)
   }
-  return ['Nuxt.js', 'Vue.js', 'TypeScript', 'UI/UX Design']
+  return []
 }
 
 const contributorBenefits = [
@@ -831,12 +724,11 @@ const contributorBenefits = [
   }
 ]
 
-const transparencyItems = [
-  'Pemilik proyek terverifikasi',
-  'Tujuan kolaborasi dijelaskan',
-  'Peran kontributor jelas',
-  'Hasil kontribusi dapat dicatat'
-]
+const transparencyItems = computed(() => [
+  'Status proyek tersedia',
+  project.value?.why_collaborative ? 'Tujuan kolaborasi dijelaskan' : '',
+  visibleRoles.value.length ? 'Peran kontributor tersedia' : ''
+].filter(Boolean))
 
 const applicationMessage = computed(() => {
   if (!currentApplication.value) return null
@@ -896,7 +788,6 @@ const applicationMessage = computed(() => {
 const showApplyModal = ref(false)
 
 const handleApplied = async () => {
-  await refreshApps()
   await refreshProject()
 }
 
