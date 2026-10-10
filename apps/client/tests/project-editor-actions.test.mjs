@@ -27,3 +27,37 @@ test('saving an edit does not depend on publication eligibility', () => {
   assert.ok(editSaveButton)
   assert.match(editSaveButton, /:disabled="isSubmitting \|\| canSave === false"/)
 })
+
+test('continue is only available before the final step in create and edit', () => {
+  const continueButtons = buttons.filter(button => button.includes("emit('next')"))
+  assert.equal(continueButtons.length, 3)
+
+  const desktopContinueButton = continueButtons.find(button => button.includes('v-else-if'))
+  assert.ok(desktopContinueButton)
+  assert.match(desktopContinueButton, /v-else-if="currentStep < 4"/)
+
+  const mobileEditActions = actionsSource.slice(
+    actionsSource.indexOf('v-if="isEditStepAfterFirst"'),
+    actionsSource.indexOf('v-if="isIntermediateCreateStep"')
+  )
+  assert.match(mobileEditActions, /currentStep < 4/)
+  assert.match(mobileEditActions, /@click="emit\('next'\)"/)
+  assert.match(actionsSource, /isIntermediateCreateStep[\s\S]*props\.currentStep < 4/)
+})
+
+test('edit shows a desktop back button and mobile chevron after the first step', () => {
+  const desktopEditBack = buttons.find(button =>
+    button.includes("mode === 'edit' && currentStep > 0") &&
+    button.includes("emit('back')")
+  )
+  assert.ok(desktopEditBack)
+  assert.match(desktopEditBack, /!hidden sm:!inline-flex/)
+
+  const mobileEditActions = actionsSource.slice(
+    actionsSource.indexOf('v-if="isEditStepAfterFirst"'),
+    actionsSource.indexOf('v-if="isIntermediateCreateStep"')
+  )
+  assert.match(mobileEditActions, /sm:hidden/)
+  assert.match(mobileEditActions, /aria-label="Kembali ke langkah sebelumnya"/)
+  assert.match(mobileEditActions, /<ChevronLeft/)
+})

@@ -33,7 +33,6 @@ useHead({
 
 <template>
   <div class="flex flex-col items-center justify-center py-24 text-center">
-    <MoleculeLoading type="section" label="Memproses Sesi Anda..." />
-    <p class="text-sm text-neutral-500 mt-4">Sedang memverifikasi data Anda.</p>
+    <p class="text-sm text-neutral-500 mt-4">Mengalihkan ke halaman akunmu.</p>
   </div>
 </template>

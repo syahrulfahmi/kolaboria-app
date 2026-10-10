@@ -78,14 +78,10 @@ const categories = [...PROJECT_CATEGORY_OPTIONS]
 watch(
   () => draft.value.title,
   (title) => {
-    if (props.mode === 'create' && !isSlugCustomized.value) {
+    if (!isSlugCustomized.value) {
       draft.value.slug = sanitizeSlug(title)
     }
   }
-)
-
-const previewSlug = computed(
-  () => draft.value.slug || sanitizeSlug(draft.value.title)
 )
 
 const onSlugInput = (value: string) => {
@@ -190,16 +186,11 @@ const onSlugInput = (value: string) => {
           required
         />
         <span class="font-label-2 text-secondary">
-          Preview URL:
+          URL proyek:
           <span class="break-all text-primary"
-            >kolaboria.com/projects/{{ previewSlug || '***' }}</span
+            >kolaboria.com/projects/{{ draft.slug || sanitizeSlug(draft.title) || 'slug-proyek' }}</span
           >
         </span>
-        <MoleculeTicker
-          variant="warning"
-          message="Slug baru akan mengubah tautan proyek setelah pratinjau disimpan."
-          :closable="false"
-        />
       </div>
 
       <MoleculeTextarea

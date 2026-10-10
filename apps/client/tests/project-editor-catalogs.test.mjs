@@ -3,7 +3,7 @@ import test from 'node:test'
 
 import './helpers/frontend-runtime.mjs'
 import { mountComponent, mountSetup } from './helpers/frontend-runtime.mjs'
-const { createEmptyProjectEditorReferences } = await import('../app/data/project-editor-fixtures.ts')
+const { createEmptyProjectEditorReferences } = await import('./helpers/project-editor-fixtures.ts')
 const { useProjectEditorCatalogs } = await import('../app/composables/useProjectEditorCatalogs.ts')
 const { default: ProjectEditorRoleCard } = await import('../app/components/project/editor/ProjectEditorRoleCard.vue')
 

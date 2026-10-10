@@ -1,6 +1,7 @@
 import { getProjectCategoryLabel } from '../constants/projectCategory'
 import type { MasterItem, Project, ProjectRole } from '../types/project'
 import type { ProjectDetailResponse, ProjectSummaryResponse } from '../types/project-editor'
+import type { User } from '../types/auth'
 
 const originLabels: Record<string, string> = {
   personal: 'Proyek pribadi',
@@ -79,6 +80,7 @@ export const toProjectDetailView = (detail: ProjectDetailResponse): Project => {
     visibility: detail.visibility,
     status: detail.status,
     max_slots: roles.reduce((total, role) => total + role.capacity, 0),
+    availability: detail.availability,
     start_date: detail.start_date,
     deadline: detail.deadline,
     why_join: detail.why_collaborative,
@@ -95,12 +97,88 @@ export const toProjectDetailView = (detail: ProjectDetailResponse): Project => {
     lead_expectations: detail.lead_expectations,
     hours_per_week: detail.hours_per_week,
     owner_id: detail.ownership.owner_id,
+    initiator_user_id: detail.ownership.initiator_user_id,
+    can_accept_contributors: detail.ownership.can_accept_contributors,
     initiator_organization_id: detail.ownership.initiator_organization_id,
     owner_profile: detail.ownership.owner_profile ?? null,
     initiator_profile: detail.ownership.show_initiator ? detail.ownership.initiator_profile ?? null : null,
     initiator_organization: detail.ownership.initiator_organization ?? null,
+    viewer_application: detail.viewer_application,
     profiles: detail.ownership.owner_profile ?? undefined,
     creator: detail.ownership.show_initiator ? detail.ownership.initiator_profile ?? undefined : undefined,
-    capabilities: detail.capabilities
   }
+}
+
+export const getProjectApplicationStatusCopy = (
+  status: string | null | undefined
+): { title: string; message: string } | null => {
+  if (status === 'pending') {
+    return {
+      title: 'Lamaran sedang ditinjau',
+      message: 'Pemilik proyek sedang meninjau lamaranmu.'
+    }
+  }
+
+  if (status === 'accepted') {
+    return {
+      title: 'Lamaran diterima',
+      message: 'Lamaranmu sudah diterima.'
+    }
+  }
+
+  return null
+}
+
+export const getProjectContributorOutcome = (
+  project: Pick<Project, 'contributor_outcome'>
+): string | null => project.contributor_outcome?.trim() || null
+
+export const isProjectDefinitionEditableBy = (
+  project: Pick<Project, 'status' | 'creation_mode' | 'owner_id' | 'creator_id' | 'initiator_organization_id'>,
+  viewer: User | null | undefined
+): boolean => {
+  if (!viewer || !['draft', 'open', 'awaiting_owner'].includes(project.status)) return false
+  if (project.creation_mode === 'personal') return project.owner_id === viewer.id
+  return project.creator_id === viewer.id
+    && Boolean(project.initiator_organization_id)
+    && (viewer.initiableOrganizations ?? []).some(
+      organization => organization.id === project.initiator_organization_id
+    )
+}
+
+export const getProjectContributionAvailabilityMessage = (
+  status: Project['status'],
+  visibility: Project['visibility'],
+  remainingSlots: number,
+  roleCount: number,
+  hasOwner: boolean
+): string => {
+  if (status === 'awaiting_owner') {
+    return 'Proyek ini menunggu Project Lead sebelum kolaborasi dibuka.'
+  }
+  if (status === 'in_progress') {
+    return 'Proyek sudah berjalan dan tidak menerima kontributor baru.'
+  }
+  if (status === 'completed') {
+    return 'Proyek sudah selesai dan tidak menerima kontributor baru.'
+  }
+  if (status === 'archived') {
+    return 'Proyek ini sudah diarsipkan.'
+  }
+  if (status === 'draft') {
+    return 'Proyek ini masih berupa draf dan belum dibuka untuk kolaborasi.'
+  }
+  if (status === 'open' && visibility !== 'public') {
+    return 'Proyek ini tidak membuka lamaran publik.'
+  }
+  if (status === 'open' && !hasOwner) {
+    return 'Proyek ini menunggu Project Lead sebelum kolaborasi dibuka.'
+  }
+  if (status === 'open' && roleCount === 0) {
+    return 'Belum ada peran kontributor yang dibuka.'
+  }
+  if (remainingSlots <= 0) {
+    return 'Kuota kontributor untuk proyek ini sudah terpenuhi.'
+  }
+  return 'Lamaran untuk proyek ini belum dapat diajukan saat ini.'
 }

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { ArrowRight, ChevronLeft, ChevronRight, Save } from '@lucide/vue'
 import type {
   ProjectEditorMode,
-  ProjectCreationMode,
   ProjectEditorStep
 } from '~/types/project-editor'
 
@@ -14,8 +13,6 @@ const props = defineProps<{
   canPublish: boolean
   canSave?: boolean
   isDraft?: boolean
-  demo?: boolean
-  creationMode?: ProjectCreationMode
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +30,9 @@ const isIntermediateCreateStep = computed(
 )
 const isCreateReviewStep = computed(
   () => props.mode === 'create' && props.currentStep === 4
+)
+const isEditStepAfterFirst = computed(
+  () => props.mode === 'edit' && props.currentStep > 0
 )
 
 const goBack = () => {
@@ -59,11 +59,22 @@ const goBack = () => {
     >
       Kembali
     </AtomicButton>
+    <AtomicButton
+      v-if="mode === 'edit' && currentStep > 0"
+      variant="outline"
+      class="!hidden sm:!inline-flex sm:!px-4 sm:!py-2"
+      :disabled="isSubmitting"
+      @click="emit('back')"
+    >
+      Kembali
+    </AtomicButton>
 
     <div
       class="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:justify-end"
       :class="
-        isIntermediateCreateStep || isCreateReviewStep ? 'hidden sm:flex' : ''
+        isIntermediateCreateStep || isCreateReviewStep || isEditStepAfterFirst
+          ? 'hidden sm:flex'
+          : ''
       "
     >
       <AtomicButton
@@ -100,7 +111,7 @@ const goBack = () => {
         :disabled="isSubmitting || !canPublish"
         @click="emit('publish')"
       >
-        {{ demo ? 'Simulasikan Publikasi Draft' : 'Publikasikan Draft' }}
+        Publikasikan Draft
       </AtomicButton>
       <template v-if="mode === 'create' && currentStep === 4">
         <AtomicButton
@@ -109,11 +120,11 @@ const goBack = () => {
           :disabled="isSubmitting || !canPublish"
           @click="emit('publish')"
         >
-          {{ creationMode === 'organization_initiated' ? 'Simulasikan Pencarian Lead' : 'Simulasikan Publikasi' }}
+          Publikasikan Proyek
         </AtomicButton>
       </template>
       <AtomicButton
-        v-else
+        v-else-if="currentStep < 4"
         variant="primary"
         :disabled="isSubmitting"
         :class="[
@@ -124,6 +135,68 @@ const goBack = () => {
       >
         Lanjutkan
       </AtomicButton>
+    </div>
+
+    <div
+      v-if="isEditStepAfterFirst"
+      class="flex w-full items-center gap-3 sm:hidden"
+    >
+      <AtomicIconButton
+        variant="outline"
+        size="md"
+        shape="square"
+        title="Kembali ke langkah sebelumnya"
+        aria-label="Kembali ke langkah sebelumnya"
+        :disabled="isSubmitting"
+        @click="emit('back')"
+      >
+        <ChevronLeft class="!size-4" aria-hidden="true" />
+      </AtomicIconButton>
+
+      <div
+        v-if="currentStep < 4"
+        class="flex min-w-0 flex-1 items-center gap-3"
+      >
+        <AtomicButton
+          variant="outline"
+          class="min-w-0 flex-1 justify-center"
+          :loading="isSubmitting"
+          :disabled="isSubmitting || canSave === false"
+          @click="emit('save-changes')"
+        >
+          Simpan Perubahan
+        </AtomicButton>
+        <AtomicButton
+          variant="primary"
+          class="min-w-0 flex-1 justify-center"
+          :disabled="isSubmitting"
+          @click="emit('next')"
+        >
+          Lanjutkan
+        </AtomicButton>
+      </div>
+
+      <div v-else class="flex min-w-0 flex-1 flex-col gap-2">
+        <AtomicButton
+          :variant="isDraft ? 'outline' : 'primary'"
+          class="w-full justify-center"
+          :loading="isSubmitting"
+          :disabled="isSubmitting || canSave === false"
+          @click="emit('save-changes')"
+        >
+          Simpan Perubahan
+        </AtomicButton>
+        <AtomicButton
+          v-if="isDraft"
+          variant="primary"
+          class="w-full justify-center"
+          :loading="isSubmitting"
+          :disabled="isSubmitting || !canPublish"
+          @click="emit('publish')"
+        >
+          Publikasikan Draft
+        </AtomicButton>
+      </div>
     </div>
 
     <div
@@ -148,7 +221,7 @@ const goBack = () => {
         :disabled="isSubmitting || canSave === false"
         @click="emit('save-draft')"
       >
-        Simpan sebagai Draft
+        Simpan Draft
       </AtomicButton>
       <AtomicButton
         variant="primary"
@@ -193,7 +266,7 @@ const goBack = () => {
           :disabled="isSubmitting || !canPublish"
           @click="emit('publish')"
         >
-          {{ creationMode === 'organization_initiated' ? 'Simulasikan Pencarian Lead' : 'Simulasikan Publikasi' }}
+          Publikasikan Proyek
         </AtomicButton>
       </div>
     </div>

@@ -5,7 +5,7 @@ import type {
   CreateProjectPayload,
   ProjectFilters,
   Application,
-  ApplyProjectPayload
+  ApplyProjectRequest
 } from '../types/project'
 import type { MyProjectSummaryResponse, ProjectSummaryResponse } from '../types/project-editor'
 import type { ApiPaginatedResponse } from '../types/api'
@@ -201,9 +201,10 @@ export const useProjects = () => {
   }
 
   const applyToProject = async (
-    payload: ApplyProjectPayload
+    projectId: string,
+    request: ApplyProjectRequest
   ): Promise<void> => {
-    const res = await ProjectService.applyToProject(payload.project_id, payload)
+    const res = await ProjectService.applyToProject(projectId, request)
     if (res.status >= 400) {
       throw new Error(getApiErrorMessage(res, 'Gagal melamar ke project.'))
     }

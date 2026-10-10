@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '../../utils/error'
 import { ref, reactive, computed, watch } from 'vue'
-import type { ApplicantAvailability, ProjectRole } from '../../types/project'
+import type {
+  ApplicantAvailability,
+  ApplyProjectRequest,
+  ProjectRole
+} from '../../types/project'
 import type { UserSkill, UserTool } from '../../types/profile'
+
+const MIN_MOTIVATION_LENGTH = 10
+const MAX_APPLICATION_TEXT_LENGTH = 5000
+const MAX_PORTFOLIO_LINKS = 10
+const MAX_PORTFOLIO_LINK_LENGTH = 2048
+const MIN_ESTIMATED_HOURS = 1
+const MAX_ESTIMATED_HOURS = 168
 
 const props = defineProps<{
   projectId: string
@@ -28,21 +39,30 @@ const form = reactive({
   portfolio_links: [] as string[],
   availability: 'flexible' as ApplicantAvailability,
   project_role_id: '',
-  estimated_hours_per_week: undefined as number | undefined
+  estimated_hours_per_week: ''
 })
 
 const portfolioInput = ref('')
+const portfolioInputError = ref('')
 const userSkills = ref<UserSkill[]>([])
 const userTools = ref<UserTool[]>([])
 const hasLoadedProfileCompetencies = ref(false)
+const isLoadingProfileCompetencies = ref(false)
 
 const loadProfileCompetencies = async () => {
-  if (hasLoadedProfileCompetencies.value) return
+  if (hasLoadedProfileCompetencies.value || isLoadingProfileCompetencies.value) {
+    return
+  }
 
-  const [skills, tools] = await Promise.all([getUserSkills(), getUserTools()])
-  userSkills.value = skills
-  userTools.value = tools
-  hasLoadedProfileCompetencies.value = true
+  isLoadingProfileCompetencies.value = true
+  try {
+    const [skills, tools] = await Promise.all([getUserSkills(), getUserTools()])
+    userSkills.value = skills
+    userTools.value = tools
+    hasLoadedProfileCompetencies.value = true
+  } finally {
+    isLoadingProfileCompetencies.value = false
+  }
 }
 
 watch(
@@ -54,27 +74,70 @@ watch(
 
 const addPortfolio = () => {
   const val = portfolioInput.value.trim()
-  if (val && !form.portfolio_links.includes(val)) {
-    form.portfolio_links.push(val)
+  if (!val) return
+  if (val.length > MAX_PORTFOLIO_LINK_LENGTH) {
+    portfolioInputError.value = `Link maksimal ${MAX_PORTFOLIO_LINK_LENGTH} karakter.`
+    return
   }
+  if (form.portfolio_links.includes(val)) {
+    portfolioInputError.value = 'Link ini sudah ditambahkan.'
+    return
+  }
+  if (form.portfolio_links.length >= MAX_PORTFOLIO_LINKS) {
+    portfolioInputError.value = `Maksimal ${MAX_PORTFOLIO_LINKS} link portfolio.`
+    return
+  }
+
+  form.portfolio_links.push(val)
   portfolioInput.value = ''
+  portfolioInputError.value = ''
 }
 
 const removePortfolio = (link: string) => {
   form.portfolio_links = form.portfolio_links.filter((l) => l !== link)
+  portfolioInputError.value = ''
 }
 
 const motivationError = computed(() => {
-  if (!form.motivation.trim()) return 'Motivasi wajib diisi.'
-  if (form.motivation.trim().length < 10)
-    return 'Motivasi harus minimal 10 karakter.'
+  const motivation = form.motivation.trim()
+  if (!motivation) return 'Motivasi wajib diisi.'
+  if (motivation.length < MIN_MOTIVATION_LENGTH) {
+    return `Motivasi harus minimal ${MIN_MOTIVATION_LENGTH} karakter.`
+  }
+  if (motivation.length > MAX_APPLICATION_TEXT_LENGTH) {
+    return `Motivasi maksimal ${MAX_APPLICATION_TEXT_LENGTH} karakter.`
+  }
   return ''
 })
+
+const expectedContributionError = computed(() =>
+  form.expected_contribution.trim().length > MAX_APPLICATION_TEXT_LENGTH
+    ? `Kontribusi maksimal ${MAX_APPLICATION_TEXT_LENGTH} karakter.`
+    : ''
+)
 
 const roleError = computed(() =>
   !form.project_role_id ? 'Pilih role yang ingin kamu lamar.' : ''
 )
-const isValid = computed(() => !motivationError.value && !roleError.value)
+
+const estimatedHoursError = computed(() => {
+  const value = form.estimated_hours_per_week.trim()
+  if (!value) return ''
+
+  const hours = Number(value)
+  return Number.isInteger(hours) &&
+    hours >= MIN_ESTIMATED_HOURS &&
+    hours <= MAX_ESTIMATED_HOURS
+    ? ''
+    : `Estimasi harus berupa bilangan bulat ${MIN_ESTIMATED_HOURS}–${MAX_ESTIMATED_HOURS} jam.`
+})
+
+const isValid = computed(() =>
+  !motivationError.value &&
+  !expectedContributionError.value &&
+  !roleError.value &&
+  !estimatedHoursError.value
+)
 
 const roleOptions = computed(() => {
   return props.roles.map((role) => {
@@ -121,6 +184,20 @@ const AVAILABILITY_OPTIONS = [
   { label: 'Hanya Akhir Pekan', value: 'weekends_only' }
 ]
 
+const createApplicationRequest = (): ApplyProjectRequest => {
+  const expectedContribution = form.expected_contribution.trim()
+  const estimatedHours = form.estimated_hours_per_week.trim()
+
+  return {
+    project_role_id: form.project_role_id,
+    motivation: form.motivation.trim(),
+    expected_contribution: expectedContribution || null,
+    portfolio_links: [...form.portfolio_links],
+    availability: form.availability,
+    estimated_hours_per_week: estimatedHours ? Number(estimatedHours) : null
+  }
+}
+
 const submitApplication = async () => {
   if (!isValid.value) {
     showErrors.value = true
@@ -130,10 +207,7 @@ const submitApplication = async () => {
   isSubmitting.value = true
   submitError.value = ''
   try {
-    await applyToProject({
-      project_id: props.projectId,
-      ...form
-    })
+    await applyToProject(props.projectId, createApplicationRequest())
     emit('applied')
     emit('close')
   } catch (e: unknown) {
@@ -157,6 +231,7 @@ const submitApplication = async () => {
         placeholder="Pilih role..."
         :options="roleOptions"
         required
+        :disabled="isSubmitting"
         :error="showErrors && roleError ? roleError : ''"
       />
 
@@ -210,12 +285,15 @@ const submitApplication = async () => {
       </div>
 
       <MoleculeInputField
-        v-model.number="form.estimated_hours_per_week"
+        :model-value="form.estimated_hours_per_week"
         type="number"
         label="Estimasi Jam per Minggu (Opsional)"
-        min="1"
-        max="168"
+        :min="MIN_ESTIMATED_HOURS"
+        :max="MAX_ESTIMATED_HOURS"
         placeholder="Contoh: 10"
+        :disabled="isSubmitting"
+        :error="showErrors ? estimatedHoursError : ''"
+        @update:model-value="form.estimated_hours_per_week = $event"
       />
 
       <MoleculeTextarea
@@ -224,6 +302,9 @@ const submitApplication = async () => {
         placeholder="Ceritakan ketertarikanmu pada project ini (min. 10 karakter)."
         required
         :rows="4"
+        :max-length="MAX_APPLICATION_TEXT_LENGTH"
+        :show-counter="true"
+        :disabled="isSubmitting"
         :error="showErrors && motivationError ? motivationError : ''"
       />
 
@@ -232,6 +313,9 @@ const submitApplication = async () => {
         label="Kontribusi yang bisa diberikan"
         placeholder="Apa yang akan kamu lakukan di project ini?"
         :rows="3"
+        :max-length="MAX_APPLICATION_TEXT_LENGTH"
+        :disabled="isSubmitting"
+        :error="showErrors ? expectedContributionError : ''"
       />
 
       <div>
@@ -244,9 +328,12 @@ const submitApplication = async () => {
             type="url"
             placeholder="https://..."
             class="flex-1"
+            :maxlength="MAX_PORTFOLIO_LINK_LENGTH"
+            :disabled="isSubmitting"
+            :error="portfolioInputError"
             @keydown.enter.prevent="addPortfolio"
           />
-          <AtomicButton type="button" variant="outline" @click="addPortfolio"
+          <AtomicButton type="button" variant="outline" :disabled="isSubmitting" @click="addPortfolio"
             >Tambah</AtomicButton
           >
         </div>
@@ -263,6 +350,8 @@ const submitApplication = async () => {
             <button
               type="button"
               class="shrink-0 text-neutral-400 hover:text-danger-500 transition-colors"
+              :aria-label="`Hapus link ${link}`"
+              :disabled="isSubmitting"
               @click="removePortfolio(link)"
             >
               ×
@@ -276,6 +365,7 @@ const submitApplication = async () => {
         label="Ketersediaan Waktu"
         placeholder="Pilih ketersediaan waktu"
         :options="AVAILABILITY_OPTIONS"
+        :disabled="isSubmitting"
       />
 
       <MoleculeTicker

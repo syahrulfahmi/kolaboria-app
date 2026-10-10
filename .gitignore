@@ -33,3 +33,5 @@ dist/
 *.generated.py
 
 graphify-out/
+videos/
+motion/

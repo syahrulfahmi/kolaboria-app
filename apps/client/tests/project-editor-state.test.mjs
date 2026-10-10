@@ -4,7 +4,8 @@ import test from 'node:test'
 import { mountSetup } from './helpers/frontend-runtime.mjs'
 
 const { useProjectEditor } = await import('../app/composables/useProjectEditor.ts')
-const { createProjectEditorFixture, createProjectEditorReferences } = await import('../app/data/project-editor-fixtures.ts')
+const { createProjectEditorFixture, createProjectEditorReferences } = await import('./helpers/project-editor-fixtures.ts')
+const { createProjectEditorTestPersistence } = await import('./helpers/project-editor-persistence.ts')
 
 const memoryStorage = () => {
   const values = new Map()
@@ -16,15 +17,16 @@ const memoryStorage = () => {
   }
 }
 
-const createEditor = (options = {}) =>
-  mountSetup(() => useProjectEditor({
+const createEditor = (options = {}) => {
+  const { delayMs = 0, ...editorOptions } = options
+  return mountSetup(() => useProjectEditor({
     mode: 'create',
     currentUserId: 'user-a',
     references: createProjectEditorReferences(),
-    storage: memoryStorage(),
-    delayMs: 0,
-    ...options
+    persistence: editorOptions.persistence ?? createProjectEditorTestPersistence({ delayMs }),
+    ...editorOptions
   }))
+}
 
 test('create navigation remains sequential while edit navigation can visit any section', () => {
   const create = createEditor()
@@ -55,13 +57,11 @@ test('leaving client origin resets its owner acknowledgement', () => {
   editor.unmount()
 })
 
-test('editing loaded data is dirty until a successful save replaces the baseline', async () => {
-  const storage = memoryStorage()
+test('editing loaded data is dirty until a successful server save replaces the baseline', async () => {
   const editor = createEditor({
     mode: 'edit',
     slug: 'platform-portofolio-talenta-digital',
-    initialRecord: createProjectEditorFixture('platform-portofolio-talenta-digital'),
-    storage
+    initialRecord: createProjectEditorFixture('platform-portofolio-talenta-digital')
   })
   const vm = editor.bindings
 
@@ -74,48 +74,15 @@ test('editing loaded data is dirty until a successful save replaces the baseline
   editor.unmount()
 })
 
-test('editor accepts a positive server version above the local preview version', () => {
-  const storage = memoryStorage()
+test('editor uses the current server version from the loaded project', () => {
   const detail = createProjectEditorFixture('platform-portofolio-talenta-digital')
   detail.version = 7
-  storage.setItem(
-    'kolaboria:project-editor-preview:v1:user-a:edit:platform-portofolio-talenta-digital',
-    JSON.stringify(detail)
-  )
   const editor = createEditor({
-    mode: 'edit', slug: detail.slug, initialRecord: null, storage
+    mode: 'edit', slug: detail.slug, initialRecord: detail
   })
 
   assert.equal(editor.bindings.record.value?.version, 7)
-  assert.equal(editor.bindings.storageWarning.value, '')
   editor.unmount()
-})
-
-test('draft storage is scoped to current user and edit slug and storage errors stay visible', async () => {
-  const storage = memoryStorage()
-  const editor = createEditor({ storage })
-  editor.bindings.draft.value.title = 'Draft pengguna pertama'
-  await editor.bindings.saveDraft()
-  assert.match(storage.keys()[0], /user-a:create/)
-
-  const other = createEditor({ currentUserId: 'user-b', storage })
-  assert.equal(other.bindings.draft.value.title, '')
-
-  const deniedStorage = {
-    getItem: () => null,
-    setItem: () => { throw new Error('quota') },
-    removeItem: () => {}
-  }
-  const denied = createEditor({ storage: deniedStorage })
-  denied.bindings.draft.value.title = 'Tidak hilang'
-  await denied.bindings.saveDraft()
-  assert.equal(denied.bindings.saveResult.value, null)
-  assert.match(denied.bindings.submitError.value, /perangkat/i)
-  assert.equal(denied.bindings.draft.value.title, 'Tidak hilang')
-
-  editor.unmount()
-  other.unmount()
-  denied.unmount()
 })
 
 test('an incomplete draft can be saved without publication eligibility', async () => {
@@ -183,12 +150,11 @@ test('an incomplete draft can be saved without publication eligibility', async (
   editor.unmount()
 })
 
-test('mock publish preserves brief, stores an explicit local status and locks duplicate submissions', async () => {
-  const storage = memoryStorage()
+test('publishing persists the project and locks duplicate submissions', async () => {
   const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
   const editor = createEditor({
-    storage,
     initialDraft: fixture.draft,
+    delayMs: 20,
     eligibility: { email_verified: true, onboarding_completed: true }
   })
   const pending = editor.bindings.publish()
@@ -197,7 +163,7 @@ test('mock publish preserves brief, stores an explicit local status and locks du
   await pending
 
   assert.equal(editor.bindings.record.value.status, 'open')
-  assert.match(editor.bindings.saveResult.value.message, /belum diterbitkan ke server/i)
+  assert.equal(editor.bindings.saveResult.value.message, 'Proyek berhasil dipublikasikan.')
   editor.unmount()
 })
 
@@ -415,6 +381,7 @@ test('draft save retry persists edits made after a timed-out create before repor
   assert.equal(updateRequests.length, 1)
   assert.equal(updateRequests[0].definition.title, 'Judul setelah retry')
   assert.equal(reloaded.bindings.record.value.draft.title, 'Judul setelah retry')
+  assert.equal(reloaded.bindings.saveResult.value.message, 'Draft proyek berhasil disimpan.')
   assert.equal(reloaded.bindings.isDirty.value, false)
   reloaded.unmount()
 })
@@ -471,89 +438,5 @@ test('a definitive create conflict releases the rejected idempotency snapshot fo
   assert.equal(requests.length, 2)
   assert.notEqual(requests[1].client_request_id, requests[0].client_request_id)
   assert.equal(requests[1].definition.slug, 'available-slug')
-  editor.unmount()
-})
-
-test('production recovery is account-scoped, offered explicitly, and does not replace server data', async () => {
-  const recoveryStorage = memoryStorage()
-  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
-  const first = createEditor({
-    initialDraft: fixture.draft,
-    storage: null,
-    recoveryStorage
-  })
-  first.bindings.draft.value.title = 'Judul lokal yang belum tersimpan'
-  await new Promise(resolve => setTimeout(resolve, 0))
-  assert.ok(recoveryStorage.keys().length > 0)
-  first.unmount()
-
-  const reloaded = createEditor({ storage: null, recoveryStorage })
-  assert.equal(reloaded.bindings.draft.value.title, '')
-  assert.equal(reloaded.bindings.recoveryAvailable.value, 'draft')
-  assert.equal(reloaded.bindings.restoreRecovery(), true)
-  assert.equal(reloaded.bindings.draft.value.title, 'Judul lokal yang belum tersimpan')
-  assert.equal(reloaded.bindings.isDirty.value, true)
-  reloaded.unmount()
-
-  const otherAccount = createEditor({ currentUserId: 'user-b', storage: null, recoveryStorage })
-  assert.equal(otherAccount.bindings.recoveryAvailable.value, null)
-  otherAccount.unmount()
-})
-
-test('edit recovery keeps the loaded server version until the user explicitly restores local changes', async () => {
-  const recoveryStorage = memoryStorage()
-  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
-  const first = createEditor({
-    mode: 'edit',
-    slug: fixture.slug,
-    initialRecord: fixture,
-    storage: null,
-    recoveryStorage
-  })
-  first.bindings.draft.value.title = 'Perubahan lokal edit'
-  await new Promise(resolve => setTimeout(resolve, 0))
-  first.unmount()
-
-  const reloaded = createEditor({
-    mode: 'edit',
-    slug: fixture.slug,
-    initialRecord: fixture,
-    storage: null,
-    recoveryStorage
-  })
-  assert.equal(reloaded.bindings.draft.value.title, fixture.draft.title)
-  assert.equal(reloaded.bindings.record.value.version, fixture.version)
-  assert.equal(reloaded.bindings.recoveryAvailable.value, 'draft')
-  assert.equal(reloaded.bindings.restoreRecovery(), true)
-  assert.equal(reloaded.bindings.draft.value.title, 'Perubahan lokal edit')
-  assert.equal(reloaded.bindings.record.value.version, fixture.version)
-  reloaded.unmount()
-})
-
-test('legacy recovery imports brief text only after explicit choice', () => {
-  const recoveryStorage = memoryStorage()
-  const fixture = createProjectEditorFixture('platform-portofolio-talenta-digital')
-  const legacy = structuredClone(fixture)
-  legacy.draft.title = 'Judul lama'
-  legacy.draft.summary = 'Ringkasan lama'
-  legacy.draft.project_category = 'business'
-  legacy.draft.roles[0].contribution_role_id = 'legacy-role-id'
-  recoveryStorage.setItem(
-    'kolaboria:project-editor-preview:v1:user-a:create',
-    JSON.stringify(legacy)
-  )
-  const editor = createEditor({
-    initialDraft: fixture.draft,
-    storage: null,
-    recoveryStorage
-  })
-
-  assert.equal(editor.bindings.draft.value.title, fixture.draft.title)
-  assert.equal(editor.bindings.legacyTextRecoveryAvailable.value, true)
-  assert.equal(editor.bindings.restoreLegacyTextRecovery(), true)
-  assert.equal(editor.bindings.draft.value.title, 'Judul lama')
-  assert.equal(editor.bindings.draft.value.summary, 'Ringkasan lama')
-  assert.equal(editor.bindings.draft.value.project_category, fixture.draft.project_category)
-  assert.equal(editor.bindings.draft.value.roles[0].contribution_role_id, fixture.draft.roles[0].contribution_role_id)
   editor.unmount()
 })

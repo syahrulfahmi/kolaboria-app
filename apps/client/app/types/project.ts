@@ -16,11 +16,12 @@ export type ApplicationStatus =
   | 'rejected'
   | 'withdrawn'
 export type ProjectMemberRole = 'owner' | 'contributor'
-export type ApplicantAvailability =
+export type ProjectAvailability =
   | 'full_time'
   | 'part_time'
   | 'weekends_only'
   | 'flexible'
+export type ApplicantAvailability = ProjectAvailability
 
 export interface SkillTag {
   id: string
@@ -102,6 +103,7 @@ export interface Project {
   status: ProjectStatus
   outcome?: ProjectOutcome | null
   max_slots: number
+  availability?: ProjectAvailability
   start_date: string | null
   deadline: string | null
   why_join: string | null
@@ -131,6 +133,7 @@ export interface Project {
   owner_contribution_role?: MasterItem | null
   owner_custom_role_title?: string | null
   owner_id?: string | null
+  initiator_user_id?: string | null
   initiator_organization_id?: string | null
   creation_mode?: 'personal' | 'organization_initiated'
   lead_expectations?: string
@@ -142,6 +145,7 @@ export interface Project {
     avatar: string | null
     is_verified: boolean
   } | null
+  can_accept_contributors?: boolean
   initiator_profile?: {
     id: string
     username: string
@@ -151,6 +155,7 @@ export interface Project {
     is_verified: boolean
   } | null
   initiator_organization?: { id: string; name: string; slug: string } | null
+  viewer_application?: { id: string; status: 'pending' | 'accepted'; applied_at: string } | null
   capabilities?: {
     can_edit_definition: boolean
     can_publish: boolean
@@ -195,6 +200,12 @@ export interface Application {
   projects?: Pick<Project, 'id' | 'title' | 'slug' | 'status'>
 }
 
+export interface ProjectApplicationReceipt {
+  id: string
+  status: 'pending'
+  applied_at: string
+}
+
 // ---- Request Payloads ----
 export interface CreateProjectPayload {
   title: string
@@ -213,14 +224,13 @@ export interface CreateProjectPayload {
   slug?: string
 }
 
-export interface ApplyProjectPayload {
-  project_id: string
+export interface ApplyProjectRequest {
   motivation: string
-  expected_contribution?: string
-  portfolio_links?: string[]
+  expected_contribution: string | null
+  portfolio_links: string[]
   availability: ApplicantAvailability
   project_role_id: string
-  estimated_hours_per_week?: number
+  estimated_hours_per_week: number | null
 }
 
 // ---- Filters ----

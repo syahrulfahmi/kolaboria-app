@@ -97,14 +97,7 @@ useHead({ title: 'Buat Project — Kolaboria' })
 </script>
 
 <template>
-  <div
-    v-if="loading && !creationContext"
-    class="px-4 py-10 sm:px-6"
-    role="status"
-    aria-live="polite"
-  >
-    <p class="font-body-2 text-secondary">Menyiapkan halaman proyekmu…</p>
-  </div>
+  <OrganismAsyncContent :pending="loading" :ready="Boolean(creationContext && eligibility)" label="Menyiapkan halaman proyekmu…">
   <div
     v-if="failed"
     class="m-4 rounded-xl border border-neutral-200 bg-white p-6 sm:m-6"
@@ -133,4 +126,5 @@ useHead({ title: 'Buat Project — Kolaboria' })
     :persistence="persistence"
   >
   </ProjectEditor>
+  </OrganismAsyncContent>
 </template>

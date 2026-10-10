@@ -44,11 +44,11 @@
     <!-- ─── MAIN CONTENT ─── -->
     <main>
       <!-- Loading State -->
-      <MoleculeLoading v-if="pending" label="Memuat lamaran..." class="py-16" />
+      <OrganismAsyncContent :pending="pending" :ready="Boolean(applications)" label="Memuat lamaran...">
 
       <!-- Error State -->
       <MoleculeTicker
-        v-else-if="error"
+        v-if="error"
         variant="danger"
         :message="getApiErrorMessage(error)"
         :closable="false"
@@ -412,6 +412,7 @@
           </AtomicButton>
         </div>
       </template>
+      </OrganismAsyncContent>
     </main>
   </div>
 </template>
@@ -430,7 +431,7 @@ const {
   pending,
   error,
   refresh
-} = await useAsyncData<Application[]>('my-applications', () =>
+} = await useLazyAsyncData<Application[]>('my-applications', () =>
   getMyApplications()
 )
 

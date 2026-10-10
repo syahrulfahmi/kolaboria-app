@@ -1,17 +1,8 @@
-import type { ProjectEditorDraft, ProjectEditorRecord, ProjectEditorReferences } from '../types/project-editor'
+import type { ProjectEditorDraft, ProjectEditorRecord, ProjectEditorReferences } from '../../app/types/project-editor'
+import { createBlankProjectEditorDraft } from '../../app/data/project-editor-defaults.ts'
 
-const makeBlankDraft = (): ProjectEditorDraft => ({
-  creation_mode: 'personal', initiator_organization_id: null, lead_expectations: '',
-  title: '', summary: '', description: '', slug: '', project_category: 'product', visibility: 'public',
-  roles: [{ client_key: 'role-create-1', description: '', capacity: 1, filled_capacity: 0, tool_ids: [], skill_ids: [] }],
-  origin: 'personal', why_collaborative: '', contributor_outcome: '', owner_commitment: '',
-  client_acknowledgement: false, start_date: null, deadline: null, availability: 'flexible',
-  hours_per_week: 10, collaboration_agreement: false
-})
-
-export const createBlankProjectEditorDraft = (): ProjectEditorDraft => structuredClone(makeBlankDraft())
-
-export const createEmptyProjectEditorReferences = (): ProjectEditorReferences => ({
+export { createBlankProjectEditorDraft } from '../../app/data/project-editor-defaults.ts'
+export const createEmptyProjectEditorReferences = () => ({
   contribution_roles: [],
   skills: [],
   tools: []
@@ -50,7 +41,7 @@ const createFixture = (): ProjectEditorRecord => ({
   slug: 'platform-portofolio-talenta-digital',
   status: 'open', version: 1, saved_at: '2026-10-07T09:00:00.000Z',
   draft: {
-    ...makeBlankDraft(),
+    ...createBlankProjectEditorDraft(),
     title: 'Platform Portofolio untuk Talenta Digital',
     summary: 'Membangun platform yang membantu talenta menunjukkan pengalaman proyek secara lebih terstruktur.',
     description: 'Platform ini membantu talenta mengubah kontribusi nyata dalam proyek menjadi pengalaman yang dapat ditampilkan dalam portfolio.',

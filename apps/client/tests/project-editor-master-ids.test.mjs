@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import './helpers/frontend-runtime.mjs'
-import { createProjectEditorFixture, createProjectEditorReferences } from '../app/data/project-editor-fixtures.ts'
+import { createProjectEditorFixture, createProjectEditorReferences } from './helpers/project-editor-fixtures.ts'
 import { validateProjectEditorDraft } from '../app/data/project-editor-validation.ts'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

@@ -3,8 +3,7 @@
     <Transition name="modal-fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 overflow-hidden"
-        :class="mobileFullscreen ? 'z-[60]' : 'z-49'"
+        class="fixed inset-0 z-[60] overflow-hidden"
         :aria-labelledby="
           mobileFullscreen ? 'modal-title-mobile' : 'modal-title'
         "

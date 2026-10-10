@@ -8,6 +8,7 @@ import type {
   UserTool
 } from '../../../types/profile'
 import type { CareerHistory } from '~/composables/useCareer'
+import type { HomeNavbarConfig } from '~/types/home-navbar'
 import {
   canShowProfileEditActions,
   PROFILE_EDIT_MENU_ITEMS,
@@ -25,7 +26,7 @@ definePageMeta({
 
 const route = useRoute()
 const hasFlushHomeContent = computed(
-  () => route.meta.homeNavbar?.mainHorizontalPadding === 'none'
+  () => (route.meta.homeNavbar as HomeNavbarConfig | undefined)?.mainHorizontalPadding === 'none'
 )
 
 const { getProfile, getTalentProfile } = useProfile()
@@ -72,6 +73,7 @@ const onCancel = () => {
 }
 
 interface EditableData {
+  sectionPath: string
   profile: Profile
   talentProfile: TalentProfile | null
   userSkills: UserSkill[]
@@ -80,6 +82,7 @@ interface EditableData {
 }
 
 const loadEditableData = async (): Promise<EditableData | null> => {
+  const sectionPath = route.path
   const section = PROFILE_EDIT_MENU_ITEMS.find(
     (item) => item.path === route.path
   )
@@ -114,6 +117,7 @@ const loadEditableData = async (): Promise<EditableData | null> => {
   }
 
   return {
+    sectionPath,
     profile: p,
     talentProfile: talent,
     userSkills: skills,
@@ -122,7 +126,7 @@ const loadEditableData = async (): Promise<EditableData | null> => {
   }
 }
 
-const applyEditableData = (editableData: EditableData | null) => {
+const applyEditableData = (editableData: EditableData | null | undefined) => {
   profile.value = editableData?.profile ?? null
   talentProfile.value = editableData?.talentProfile ?? null
   userSkills.value = editableData?.userSkills ?? []
@@ -130,11 +134,13 @@ const applyEditableData = (editableData: EditableData | null) => {
   careerHistories.value = editableData?.careerHistories ?? []
 }
 
-const { data, pending, error, refresh } = await useAsyncData(
+const { data, pending, error, refresh } = await useLazyAsyncData(
   'profile-edit-me',
   loadEditableData,
   { watch: [() => route.path] }
 )
+
+const hasEditableData = computed(() => data.value?.sectionPath === route.path)
 
 watch(data, applyEditableData, { immediate: true })
 
@@ -264,6 +270,7 @@ const contentListItems = computed(() =>
 
       <!-- Main Nested Page Render -->
       <main class="flex w-full min-w-0 flex-col">
+        <OrganismAsyncContent :pending="pending && !isEditMenu" :ready="hasEditableData" label="Memuat profil...">
         <NuxtPage v-slot="{ Component }">
           <component v-if="isEditMenu" :is="Component" ref="pageRef" />
           <component
@@ -272,7 +279,7 @@ const contentListItems = computed(() =>
             ref="pageRef"
             :user-skills="userSkills"
             :user-tools="userTools"
-            :is-loading-data="pending"
+            :is-loading-data="pending && !hasEditableData"
             :error-message="skillsLoadError"
             @update:userSkills="(val: UserSkill[]) => (userSkills = val)"
             @update:userTools="(val: UserTool[]) => (userTools = val)"
@@ -283,13 +290,13 @@ const contentListItems = computed(() =>
             :is="Component"
             ref="pageRef"
             :career-histories="careerHistories"
-            :is-loading-data="pending"
+            :is-loading-data="pending && !hasEditableData"
             :error-message="careerLoadError"
             @refresh="refreshEditableData"
             @retry-load="refreshEditableData"
           />
           <component
-            v-else-if="profile"
+            v-else-if="profile && hasEditableData && !error"
             :is="Component"
             ref="pageRef"
             :profile="profile"
@@ -297,6 +304,17 @@ const contentListItems = computed(() =>
             @refresh="refreshEditableData"
           />
         </NuxtPage>
+
+        <div v-if="!isEditMenu && !isSkillsSection && !isCareerSection" role="status">
+          <div v-if="!pending && error" class="py-12 text-center">
+            <p class="font-body-2 text-neutral-600">Profil belum dapat dimuat.</p>
+            <AtomicButton class="mt-4" variant="outline" @click="refreshEditableData">
+              Coba lagi
+            </AtomicButton>
+          </div>
+        </div>
+
+        </OrganismAsyncContent>
 
         <div v-if="showSaveActions" class="flex-1" aria-hidden="true" />
 

@@ -11,7 +11,7 @@ import {
 import {
   createBlankProjectEditorDraft,
   createProjectEditorFixture
-} from '../app/data/project-editor-fixtures.ts'
+} from './helpers/project-editor-fixtures.ts'
 
 test('create fixture starts with one role and edit fixture reconstructs prototype team', () => {
   const blank = createBlankProjectEditorDraft()

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { myProfileFixture } from '../../../data/profile-fixtures'
 import { CareerService } from '../../../services/career.service'
 import { ProfileService } from '../../../services/profile.service'
+import {
+  FEATURED_PROJECT_FIXTURES,
+  PORTFOLIO_ITEM_FIXTURES
+} from '../../../data/profile-showcase-fixtures'
 import type { ProfilePageData } from '../../../types/profile-page'
 
 definePageMeta({
   layout: 'home'
 })
 
-const { data, pending, error, refresh } = await useAsyncData<ProfilePageData>(
+const { data, pending, error, refresh } = await useLazyAsyncData<ProfilePageData>(
   'profile-me',
   async () => {
     const [profileResponse, careerResponse] = await Promise.all([
@@ -62,9 +65,8 @@ const { data, pending, error, refresh } = await useAsyncData<ProfilePageData>(
         endMonth: career.end_month,
         description: career.description
       })),
-      // Karya Unggulan and Portofolio remain on their existing fixture source.
-      projects: myProfileFixture.projects,
-      portfolio: myProfileFixture.portfolio
+      projects: FEATURED_PROJECT_FIXTURES,
+      portfolio: PORTFOLIO_ITEM_FIXTURES
     }
   },
   {
@@ -81,12 +83,10 @@ useHead(() => ({
 
 <template>
   <div class="min-h-screen bg-neutral-50">
-    <div v-if="pending" class="flex min-h-screen items-center justify-center">
-      <MoleculeLoading label="Memuat profil..." />
-    </div>
+    <OrganismAsyncContent :pending="pending" :ready="Boolean(data)" label="Memuat profil...">
 
     <div
-      v-else-if="error || !data"
+      v-if="error || !data"
       class="mx-auto max-w-4xl px-4 py-20 text-center"
     >
       <h1 class="mb-4 text-display text-secondary-900">Gagal Memuat Profil</h1>
@@ -99,5 +99,6 @@ useHead(() => ({
     </div>
 
     <ProfileView v-else :data="data" :is-owner="true" />
+    </OrganismAsyncContent>
   </div>
 </template>

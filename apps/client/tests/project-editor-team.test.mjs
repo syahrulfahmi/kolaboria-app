@@ -4,7 +4,7 @@ import { reactive } from 'vue'
 
 import './helpers/frontend-runtime.mjs'
 import { mountComponent } from './helpers/frontend-runtime.mjs'
-import { createProjectEditorReferences, createProjectEditorFixture } from '../app/data/project-editor-fixtures.ts'
+import { createProjectEditorReferences, createProjectEditorFixture } from './helpers/project-editor-fixtures.ts'
 
 const { default: Team } = await import('../app/components/project/editor/ProjectEditorTeam.vue')
 

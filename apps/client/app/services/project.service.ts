@@ -4,7 +4,8 @@ import type { ApiPaginatedResponse, ApiResponse } from '../types/api'
 import type {
   Project,
   CreateProjectPayload,
-  ApplyProjectPayload
+  ApplyProjectRequest,
+  ProjectApplicationReceipt
 } from '../types/project'
 import type { ProjectSummaryResponse } from '../types/project-editor'
 import { MasterService } from './master.service'
@@ -98,9 +99,9 @@ export const ProjectService = {
     return await $api<ApiResponse<Project[]>>(API_ENDPOINTS.PROJECT.MY_PROJECTS)
   },
 
-  async applyToProject(projectId: string, payload: ApplyProjectPayload) {
+  async applyToProject(projectId: string, payload: ApplyProjectRequest) {
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.APPLY(projectId), {
+    return await $api<ApiResponse<ProjectApplicationReceipt>>(API_ENDPOINTS.PROJECT.APPLY(projectId), {
       method: 'POST',
       body: payload
     })

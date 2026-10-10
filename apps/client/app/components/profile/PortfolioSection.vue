@@ -9,13 +9,20 @@ defineProps<{ items: PortfolioItem[] }>()
     aria-labelledby="portfolio-title"
     class="rounded-2xl border border-neutral-200 bg-white p-6 md:p-8"
   >
-    <div class="mb-5">
-      <h2 id="portfolio-title" class="font-label-1 text-xl">
-        Project Portofolio
-      </h2>
-      <p class="mt-1 text-sm text-secondary">
-        Pilihan karya dan proses di baliknya.
-      </p>
+    <div class="mb-5 flex items-start justify-between gap-4">
+      <div>
+        <h2 id="portfolio-title" class="font-label-1 text-xl">
+          Project Portofolio
+        </h2>
+        <p class="mt-1 text-sm text-secondary">
+          Pilihan karya dan proses di baliknya.
+        </p>
+      </div>
+      <span
+        class="shrink-0 rounded-full bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700"
+      >
+        Contoh
+      </span>
     </div>
 
     <div v-if="items.length" class="grid gap-4 sm:grid-cols-2">
@@ -68,11 +75,12 @@ defineProps<{ items: PortfolioItem[] }>()
       </a>
     </div>
 
-    <p
-      v-else
-      class="rounded-xl border border-dashed border-neutral-300 p-6 text-sm text-secondary"
-    >
-      Belum ada karya yang ditambahkan ke portofolio.
-    </p>
+    <div v-else class="rounded-xl border border-dashed border-neutral-300 bg-neutral-50">
+      <OrganismEmptyState
+        title="Portofolio masih kosong"
+        description="Karya yang kamu bagikan akan muncul di bagian ini."
+        icon="folder"
+      />
+    </div>
   </section>
 </template>

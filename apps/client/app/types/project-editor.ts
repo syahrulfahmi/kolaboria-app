@@ -32,6 +32,11 @@ export interface ProjectOrganizationResponse {
   name: string
   slug: string
 }
+export interface ViewerApplicationResponse {
+  id: string
+  status: 'pending' | 'accepted'
+  applied_at: string
+}
 export type ProjectEditorStep = 0 | 1 | 2 | 3 | 4
 export type ProjectOrigin = 'personal' | 'community' | 'experiment' | 'client'
 export type ProjectEditorAvailability = 'flexible' | 'part_time' | 'weekends_only' | 'full_time'
@@ -211,15 +216,7 @@ export interface ProjectDetailResponse extends Omit<ProjectDefinitionInput, 'rol
   ownership: ProjectEditorOwnership
   owner_role: ProjectEditorOwnerRole | null
   roles: ProjectEditorDetailRole[]
-  capabilities?: {
-    can_edit_definition: boolean
-    can_publish: boolean
-    allowed_status_actions: string[]
-    can_apply: boolean
-    can_claim: boolean
-    can_manage_applications: boolean
-    can_manage_workspace: boolean
-  }
+  viewer_application: ViewerApplicationResponse | null
 }
 
 export interface ProjectEditorPersistence {
@@ -245,11 +242,7 @@ export interface ProjectEditorOptions {
   initialDraft?: ProjectEditorDraft
   eligibility?: ProjectEditorEligibility
   creationContext?: ProjectEditorCreationContext
-  persistence?: ProjectEditorPersistence
+  persistence: ProjectEditorPersistence
   contextAvailable?: () => boolean
-  storageScope?: string
-  storage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null
-  recoveryStorage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null
   pendingCreateStorage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null
-  delayMs?: number
 }

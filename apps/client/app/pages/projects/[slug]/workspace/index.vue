@@ -25,7 +25,7 @@ const toast = useToast()
 
 const slug = computed(() => String(route.params.slug || ''))
 
-const { data: project, pending } = await useAsyncData<Project | null>(
+const { data: project, pending } = await useLazyAsyncData<Project | null>(
   () => `project-workspace-${slug.value}`,
   () => getProjectBySlug(slug.value),
   { watch: [slug] }
@@ -33,6 +33,15 @@ const { data: project, pending } = await useAsyncData<Project | null>(
 
 const projectId = computed(() => project.value?.id)
 const workspace = useWorkspace(projectId)
+const workspacePending = ref(false)
+const loadInitialWorkspace = async (creatorId: string) => {
+  workspacePending.value = true
+  try {
+    await workspace.refreshWorkspace(creatorId)
+  } finally {
+    workspacePending.value = false
+  }
+}
 const {
   tasksByStatus,
   activities,
@@ -324,7 +333,7 @@ watch(
     ) {
       showStatusPopup.value = true
       try {
-        await workspace.refreshWorkspace(currentProject.creator_id)
+        await loadInitialWorkspace(currentProject.creator_id)
       } catch {}
       return
     }
@@ -338,7 +347,7 @@ watch(
     }
 
     try {
-      await workspace.refreshWorkspace(currentProject.creator_id)
+      await loadInitialWorkspace(currentProject.creator_id)
     } catch (error) {
       const message =
         getApiErrorMessage(error, 'Gagal memuat workspace.')
@@ -350,17 +359,9 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-64px)] flex-col overflow-hidden bg-neutral-50">
-    <div v-if="pending" class="flex flex-1 items-center justify-center px-6">
-      <div class="w-full max-w-5xl space-y-4" aria-label="Memuat workspace" aria-live="polite">
-        <div class="h-24 animate-pulse rounded-xl bg-neutral-200" />
-        <div class="grid gap-4 lg:grid-cols-4">
-          <div v-for="column in 4" :key="column" class="h-96 animate-pulse rounded-xl bg-neutral-200" />
-        </div>
-      </div>
-    </div>
+  <OrganismAsyncContent :pending="pending || workspacePending" label="Memuat workspace..." class="h-[calc(100vh-64px)] overflow-hidden bg-neutral-50" content-class="flex h-full flex-col">
 
-    <template v-else-if="project">
+    <template v-if="project">
       <WorkspacePageHeader
         :project="project"
         :tasks="tasksByStatus"
@@ -588,5 +589,5 @@ watch(
         icon="search"
       />
     </div>
-  </div>
+  </OrganismAsyncContent>
 </template>

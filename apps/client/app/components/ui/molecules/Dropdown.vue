@@ -12,7 +12,7 @@
 
     <div class="relative" ref="triggerRef">
       <div
-        class="flex min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 transition-all duration-150 focus:outline-none"
+        class="flex h-11 min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 transition-all duration-150 focus:outline-none"
         :tabindex="disabled ? -1 : 0"
         role="combobox"
         aria-haspopup="listbox"
@@ -295,22 +295,21 @@ const DROPDOWN_VIEWPORT_PADDING = 8
 const calculatePosition = () => {
   if (!triggerRef.value) return
 
-  const rect = triggerRef.value.getBoundingClientRect()
+  const triggerRect = triggerRef.value.getBoundingClientRect()
   const spaceBelow = Math.max(
     0,
-    window.innerHeight - rect.bottom - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
+    window.innerHeight - triggerRect.bottom - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
   )
   const spaceAbove = Math.max(
     0,
-    rect.top - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
+    triggerRect.top - DROPDOWN_GAP - DROPDOWN_VIEWPORT_PADDING
   )
-  const optionsList = dropdownListRef.value?.querySelector<HTMLElement>(
-    '[role="listbox"]'
-  )
-  const contentHeight = Math.min(
-    optionsList?.scrollHeight || DROPDOWN_MAX_HEIGHT,
-    DROPDOWN_MAX_HEIGHT
-  )
+  const optionRowHeight = 40
+  const contentHeight = props.loading
+    ? 120
+    : filteredOptions.value.length > 0
+      ? Math.min(filteredOptions.value.length * optionRowHeight + 12, DROPDOWN_MAX_HEIGHT)
+      : 56
 
   openUpward.value = spaceBelow < contentHeight && spaceAbove > spaceBelow
   const availableHeight = openUpward.value ? spaceAbove : spaceBelow
@@ -319,17 +318,17 @@ const calculatePosition = () => {
 
   dropdownStyle.value = {
     position: isLocalPosition ? 'absolute' : 'fixed',
-    left: isLocalPosition ? '0' : `${rect.left}px`,
-    width: isLocalPosition ? '100%' : `${rect.width}px`,
+    left: isLocalPosition ? '0' : `${triggerRect.left}px`,
+    width: isLocalPosition ? '100%' : `${triggerRect.width}px`,
     zIndex: '9999',
     maxHeight: `${maxHeight}px`,
     ...(openUpward.value
       ? isLocalPosition
         ? { bottom: `calc(100% + ${DROPDOWN_GAP}px)` }
-        : { bottom: `${window.innerHeight - rect.top + DROPDOWN_GAP}px` }
+        : { bottom: `${window.innerHeight - triggerRect.top + DROPDOWN_GAP}px` }
       : isLocalPosition
         ? { top: `calc(100% + ${DROPDOWN_GAP}px)` }
-        : { top: `${rect.bottom + DROPDOWN_GAP}px` })
+        : { top: `${triggerRect.bottom + DROPDOWN_GAP}px` })
   }
 }
 
@@ -341,9 +340,11 @@ const handleFocus = () => {
 
 const toggleDropdown = () => {
   if (props.disabled) return
-  isOpen.value = !isOpen.value
+  const shouldOpen = !isOpen.value
 
-  if (isOpen.value) {
+  if (shouldOpen) {
+    calculatePosition()
+    isOpen.value = true
     activeOptionIndex.value = Math.max(0, filteredOptions.value.findIndex(isSelected))
     if (!hasOpened.value) {
       hasOpened.value = true
@@ -353,9 +354,11 @@ const toggleDropdown = () => {
       calculatePosition()
       if (props.searchable) {
         searchInputRef.value?.focus()
+        calculatePosition()
       }
     })
   } else {
+    isOpen.value = false
     searchQuery.value = ''
   }
 }

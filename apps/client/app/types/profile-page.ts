@@ -36,6 +36,9 @@ export interface FeaturedProject {
   slug: string
   description: string
   category: string
+  role?: string
+  year?: string
+  skills?: string[]
 }
 
 export type ProfileExperience = ExperienceCardSummary & Pick<

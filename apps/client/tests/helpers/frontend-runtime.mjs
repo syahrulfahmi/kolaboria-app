@@ -40,9 +40,10 @@ const renderer = createRenderer({
   parentNode: () => null, nextSibling: () => null
 })
 
-export function mountSetup(setup) {
+export function mountSetup(setup, provides = []) {
   let bindings
   const app = renderer.createApp({ setup() { bindings = setup(); return () => null } })
+  for (const [key, value] of provides) app.provide(key, value)
   app.mount({})
   return { bindings, unmount: () => app.unmount() }
 }

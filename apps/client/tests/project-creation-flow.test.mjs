@@ -4,20 +4,24 @@ import { reactive, ref } from 'vue'
 import { mountSetup } from './helpers/frontend-runtime.mjs'
 
 const { useProjectEditor } = await import('../app/composables/useProjectEditor.ts')
-const { createProjectEditorFixture, createProjectEditorReferences } = await import('../app/data/project-editor-fixtures.ts')
+const { createProjectEditorFixture, createProjectEditorReferences } = await import('./helpers/project-editor-fixtures.ts')
+const { createProjectEditorTestPersistence } = await import('./helpers/project-editor-persistence.ts')
 const { validateProjectEditorDraft } = await import('../app/data/project-editor-validation.ts')
 
 const organization = { id: 'bc9e7805-6000-4e0e-9d00-95fc8b85fe6a', name: 'Kolaboria' }
-const storage = () => {
-  const values = new Map()
-  return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key), keys: () => [...values.keys()] }
-}
 const validDraft = () => createProjectEditorFixture('platform-portofolio-talenta-digital').draft
-const mountEditor = (options = {}) => mountSetup(() => useProjectEditor({
-  mode: 'create', currentUserId: 'internal-a', references: createProjectEditorReferences(),
-  initialDraft: validDraft(), eligibility: { email_verified: true, onboarding_completed: true },
-  storage: storage(), delayMs: 0, ...options
-}))
+const mountEditor = (options = {}) => {
+  const { delayMs = 0, ...editorOptions } = options
+  return mountSetup(() => useProjectEditor({
+    mode: 'create', currentUserId: 'internal-a', references: createProjectEditorReferences(),
+    initialDraft: validDraft(), eligibility: { email_verified: true, onboarding_completed: true },
+    persistence: editorOptions.persistence ?? createProjectEditorTestPersistence({
+      delayMs,
+      currentUserId: editorOptions.currentUserId ?? 'internal-a'
+    }),
+    ...editorOptions
+  }))
+}
 const internal = { system_role: 'admin', initiable_organizations: [organization] }
 
 test('publication rechecks eligibility when a pending operation completes', async () => {
@@ -27,7 +31,8 @@ test('publication rechecks eligibility when a pending operation completes', asyn
   assert.equal(editor.bindings.isSubmitting.value, true)
   eligibility.email_verified = false
   assert.equal(await pending, false)
-  assert.equal(editor.bindings.record.value, null)
+  assert.equal(editor.bindings.record.value.status, 'draft')
+  assert.equal(editor.bindings.saveResult.value.kind, 'draft')
   editor.unmount()
 })
 
@@ -88,9 +93,8 @@ test('organization publication leaves owner empty and does not allow contributor
   editor.unmount()
 })
 
-test('mode-specific drafts survive switches and reload without leaking between users', async () => {
-  const local = storage()
-  const editor = mountEditor({ storage: local, creationContext: internal })
+test('mode-specific drafts survive switches within the editor session', async () => {
+  const editor = mountEditor({ creationContext: internal })
   const vm = editor.bindings
   vm.draft.value.title = 'Personal draft'
   await vm.saveDraft()
@@ -102,15 +106,6 @@ test('mode-specific drafts survive switches and reload without leaking between u
   vm.setCreationMode('personal')
   assert.equal(vm.draft.value.title, 'Personal draft')
   editor.unmount()
-  const restored = mountEditor({ storage: local, creationContext: internal })
-  assert.equal(restored.bindings.draft.value.title, 'Personal draft')
-  restored.bindings.setCreationMode('organization_initiated')
-  assert.equal(restored.bindings.draft.value.title, 'Organization draft')
-  restored.unmount()
-  const other = mountEditor({ storage: local, currentUserId: 'other', creationContext: internal })
-  other.bindings.setCreationMode('organization_initiated')
-  assert.equal(other.bindings.draft.value.title, '')
-  other.unmount()
 })
 
 test('organization validation requires lead expectations and public visibility, not owner fields', () => {
@@ -134,24 +129,14 @@ test('unsaved inactive draft still triggers the leave-page guard after changing 
   editor.unmount()
 })
 
-test('inconsistent organization cache is rejected so hidden owner fields cannot trap the editor', async () => {
+test('invalid organization project data is rejected before reaching the API', async () => {
   for (const badFields of [{ visibility: 'invite_only' }, { owner_commitment: 'Unexpected owner' }, { owner_contribution_role_id: 'role-frontend' }]) {
-    const local = storage()
-    const first = mountEditor({ storage: local, creationContext: internal })
-    first.bindings.setCreationMode('organization_initiated')
-    first.bindings.draft.value.title = 'Organization brief'
-    await first.bindings.saveDraft()
-    first.unmount()
-    const key = local.keys().find(key => key.includes(':organization:'))
-    const stored = JSON.parse(local.getItem(key))
-    Object.assign(stored.draft, badFields)
-    local.setItem(key, JSON.stringify(stored))
-    const restored = mountEditor({ storage: local, creationContext: internal })
-    restored.bindings.setCreationMode('organization_initiated')
-    assert.equal(restored.bindings.draft.value.title, '')
-    assert.ok(restored.bindings.storageWarning.value)
-    assert.equal(await restored.bindings.saveDraft(), true)
-    restored.unmount()
+    const editor = mountEditor({ creationContext: internal })
+    editor.bindings.setCreationMode('organization_initiated')
+    Object.assign(editor.bindings.draft.value, badFields)
+    assert.equal(await editor.bindings.saveDraft(), false)
+    assert.equal(editor.bindings.record.value, null)
+    editor.unmount()
   }
 })
 
@@ -169,8 +154,7 @@ test('publication requires verified email and completed onboarding; no profile s
 
 test('organization selection follows authorized relationships and keeps each organization draft isolated', async () => {
   const orgB = { id: '6376d976-a9ef-483d-8b60-71df1aaebf64', name: 'Community B' }
-  const local = storage()
-  const editor = mountEditor({ storage: local, creationContext: { system_role: 'admin', initiable_organizations: [organization, orgB] } })
+  const editor = mountEditor({ creationContext: { system_role: 'admin', initiable_organizations: [organization, orgB] } })
   const vm = editor.bindings
   vm.setCreationMode('organization_initiated')
   assert.equal(vm.draft.value.initiator_organization_id, organization.id)
@@ -186,21 +170,10 @@ test('organization selection follows authorized relationships and keeps each org
   vm.draft.value.initiator_organization_id = 'unlisted-organization'
   assert.equal(await vm.saveDraft(), false)
   editor.unmount()
-  const restored = mountEditor({ storage: local, creationContext: { system_role: 'admin', initiable_organizations: [organization, orgB] } })
-  restored.bindings.setCreationMode('organization_initiated')
-  restored.bindings.selectOrganization(orgB.id)
-  assert.equal(restored.bindings.draft.value.title, 'Draft B')
-  restored.unmount()
 })
 
-test('revoked organization context never restores its cached draft as an authorized choice', async () => {
-  const local = storage()
-  const first = mountEditor({ storage: local, creationContext: internal })
-  first.bindings.setCreationMode('organization_initiated')
-  first.bindings.draft.value.title = 'Previously allowed'
-  await first.bindings.saveDraft()
-  first.unmount()
-  const revoked = mountEditor({ storage: local, creationContext: { system_role: 'user', initiable_organizations: [] } })
+test('revoked organization context cannot authorize an organization project', () => {
+  const revoked = mountEditor({ creationContext: { system_role: 'user', initiable_organizations: [] } })
   assert.equal(revoked.bindings.setCreationMode('organization_initiated'), false)
   assert.equal(revoked.bindings.draft.value.creation_mode, 'personal')
   revoked.unmount()

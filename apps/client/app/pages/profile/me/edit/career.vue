@@ -136,14 +136,7 @@ defineExpose({
 <template>
   <div class="flex flex-col gap-6">
     <section
-      v-if="isLoadingData"
-      class="rounded-2xl border border-neutral-200 bg-white"
-    >
-      <MoleculeLoading label="Memuat riwayat karier..." />
-    </section>
-
-    <section
-      v-else-if="errorMessage"
+      v-if="!isLoadingData && errorMessage"
       class="rounded-2xl border border-neutral-200 bg-white"
       role="alert"
     >
@@ -156,7 +149,7 @@ defineExpose({
       />
     </section>
 
-    <template v-else>
+    <template v-else-if="!isLoadingData">
       <section class="rounded-2xl border border-neutral-200 bg-white">
         <header
           class="flex flex-col gap-4 border-b border-neutral-200 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-7"

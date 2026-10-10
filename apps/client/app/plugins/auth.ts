@@ -4,7 +4,11 @@ export default defineNuxtPlugin(async () => {
     : window.location.pathname
   const isProfileOverview = /^\/profile\/[^/]+\/?$/.test(currentPath)
 
-  // Profile overview routes use local fixtures while the profile API is being integrated.
+  // These forms have no initial data dependency. Protected-route guards
+  // hydrate the session when the visitor enters the product.
+  if (/^\/(login|register)\/?$/.test(currentPath)) return
+
+  // Public profile routes stay anonymous; the API does not expose a public profile endpoint yet.
   if (isProfileOverview) return
 
   // The create route hydrates through its guards and retryable account loader.

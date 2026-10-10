@@ -2,6 +2,7 @@
 import type { Application, Project } from '~/types/project'
 import { getProjectCategoryLabel } from '~/constants/projectCategory'
 import ApplicantDetailModal from '~/components/project/ApplicantDetailModal.vue'
+import { getApiErrorMessage } from '~/utils/error'
 
 definePageMeta({ layout: 'home', middleware: ['auth', 'onboarding-guard'] })
 
@@ -12,9 +13,18 @@ const { user, currentUserId } = useAuth()
 
 const projectSlug = route.params.slug as string
 
-const { data: project } = await useAsyncData<Project | null>(
+const { data: project, pending: projectPending, error: projectError, refresh: refreshProject } = await useLazyAsyncData<Project | null>(
   `project-owner-${projectSlug}`,
-  () => getProjectBySlug(projectSlug)
+  async () => {
+    const loadedProject = await getProjectBySlug(projectSlug)
+    if (loadedProject && currentUserId.value !== loadedProject.creator_id) {
+      throw createError({
+        statusCode: 403,
+        message: 'Akses ditolak. Anda bukan pemilik project ini.'
+      })
+    }
+    return loadedProject
+  }
 )
 
 const projectId = computed(() => project.value?.id)
@@ -22,8 +32,9 @@ const projectId = computed(() => project.value?.id)
 const {
   data: applications,
   refresh: refreshApplicants,
-  pending
-} = await useAsyncData<Application[]>(
+  pending: applicantsPending,
+  error: applicantsError
+} = await useLazyAsyncData<Application[]>(
   `project-applicants-${projectSlug}`,
   () =>
     projectId.value
@@ -32,16 +43,16 @@ const {
   { watch: [projectId] }
 )
 
-if (project.value && currentUserId.value !== project.value.creator_id) {
-  throw createError({
-    statusCode: 403,
-    message: 'Akses ditolak. Anda bukan pemilik project ini.'
-  })
-}
-
-useHead({
-  title: project.value ? `Pelamar: ${project.value.title}` : 'Kelola Pelamar'
+const pending = computed(() => projectPending.value || (!!projectId.value && applicantsPending.value))
+const loadError = computed(() => {
+  const failure = projectError.value || applicantsError.value
+  return failure ? getApiErrorMessage(failure, 'Pelamar belum dapat dimuat. Coba lagi.') : ''
 })
+const retryLoad = () => projectError.value || !project.value ? refreshProject() : refreshApplicants()
+
+useHead(() => ({
+  title: project.value ? `Pelamar: ${project.value.title}` : 'Kelola Pelamar'
+}))
 
 // UI State
 const searchQuery = ref('')
@@ -219,6 +230,12 @@ const availabilityLabels: Record<string, string> = {
 
     <!-- ─── MAIN CONTENT ─── -->
     <main class="max-w-7xl py-10">
+      <OrganismAsyncContent :pending="pending" :ready="Boolean(project && applications)" label="Memuat pelamar...">
+      <div v-if="loadError || !project" class="py-12 text-center" role="alert">
+        <p class="font-body-2 text-neutral-600">{{ loadError || 'Proyek belum tersedia.' }}</p>
+        <AtomicButton class="mt-4" variant="outline" @click="retryLoad">Coba lagi</AtomicButton>
+      </div>
+      <template v-else>
       <!-- ─── STATISTICS ─── -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <!-- Pending -->
@@ -333,11 +350,9 @@ const availabilityLabels: Record<string, string> = {
         </div>
       </div>
 
-      <MoleculeLoading v-if="pending" text="Memuat pelamar..." class="py-16" />
-
       <!-- ─── APPLICATIONS GRID ─── -->
       <div
-        v-else-if="filteredApplications.length > 0"
+        v-if="filteredApplications.length > 0"
         class="grid grid-cols-1 lg:grid-cols-2 gap-5"
       >
         <OrganismCard
@@ -470,6 +485,8 @@ const availabilityLabels: Record<string, string> = {
           }}
         </p>
       </div>
+      </template>
+      </OrganismAsyncContent>
     </main>
 
     <!-- Application Detail Modal -->

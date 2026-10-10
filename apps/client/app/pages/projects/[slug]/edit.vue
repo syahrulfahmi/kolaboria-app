@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { getApiErrorMessage } from '~/utils/error'
-import { isProjectEditorPreview } from '~/utils/project-editor-preview'
 import { toProjectEditorRecord } from '~/utils/project-editor-api'
+import { isProjectDefinitionEditableBy } from '~/utils/project-presentation'
 import { useProjectEditorApi } from '~/composables/useProjectEditorApi'
 import type {
   ProjectDetailResponse,
@@ -17,9 +17,8 @@ const { checkOnboardingStatus } = useProfile()
 const persistence = useProjectEditorApi()
 const slug = computed(() => {
   const value = route.params.slug
-  return Array.isArray(value) ? value[0] ?? '' : String(value ?? '')
+  return Array.isArray(value) ? (value[0] ?? '') : String(value ?? '')
 })
-const isPreview = computed(() => isProjectEditorPreview(import.meta.dev, route.query.preview))
 const loading = ref(true)
 const failed = ref(false)
 const errorMessage = ref('')
@@ -28,8 +27,12 @@ const detail = shallowRef<ProjectDetailResponse | null>(null)
 const record = shallowRef<ProjectEditorRecord | null>(null)
 const creationContext = shallowRef<ProjectEditorCreationContext | null>(null)
 const eligibility = shallowRef<ProjectEditorEligibility | null>(null)
-const contextAvailable = computed(() =>
-  !loading.value && !failed.value && accountId.value !== '' && accountId.value === user.value?.id
+const contextAvailable = computed(
+  () =>
+    !loading.value &&
+    !failed.value &&
+    accountId.value !== '' &&
+    accountId.value === user.value?.id
 )
 let loadSequence = 0
 let mounted = false
@@ -48,15 +51,26 @@ const loadProject = async () => {
     const serverDetail = await persistence.loadBySlug(slug.value)
     if (sequence !== loadSequence) return
     const latestAccount = user.value
-    if (!latestAccount || latestAccount.id !== account.id) throw new Error('account context changed')
-    if (!serverDetail.capabilities?.can_edit_definition) throw Object.assign(new Error('forbidden'), { statusCode: 403 })
+    if (!latestAccount || latestAccount.id !== account.id)
+      throw new Error('account context changed')
+    if (!isProjectDefinitionEditableBy({
+      status: serverDetail.status,
+      creation_mode: serverDetail.creation_mode,
+      owner_id: serverDetail.ownership.owner_id,
+      creator_id: serverDetail.ownership.created_by_user_id,
+      initiator_organization_id: serverDetail.ownership.initiator_organization_id
+    }, latestAccount))
+      throw Object.assign(new Error('forbidden'), { statusCode: 403 })
 
     accountId.value = latestAccount.id
     creationContext.value = {
       system_role: latestAccount.systemRole ?? 'user',
-      initiable_organizations: latestAccount.systemRole === 'admin'
-        ? (latestAccount.initiableOrganizations ?? []).map(({ id, name }) => ({ id, name }))
-        : []
+      initiable_organizations:
+        latestAccount.systemRole === 'admin'
+          ? (latestAccount.initiableOrganizations ?? []).map(
+              ({ id, name }) => ({ id, name })
+            )
+          : []
     }
     eligibility.value = {
       email_verified: Boolean(latestAccount.emailVerifiedAt),
@@ -67,28 +81,35 @@ const loadProject = async () => {
   } catch (error: unknown) {
     if (sequence !== loadSequence) return
     failed.value = true
-    errorMessage.value = getApiErrorMessage(error, 'Proyek belum dapat dimuat untuk diedit.')
+    errorMessage.value = getApiErrorMessage(
+      error,
+      'Proyek belum dapat dimuat untuk diedit.'
+    )
   } finally {
     if (sequence === loadSequence) loading.value = false
   }
 }
 
 watch(slug, () => {
-  if (mounted && !isPreview.value) void loadProject()
+  if (mounted) void loadProject()
 })
-watch(() => user.value?.id, currentId => {
-  if (accountId.value && currentId !== accountId.value) {
-    loadSequence += 1
-    failed.value = true
-    loading.value = false
-    detail.value = null
-    record.value = null
-    errorMessage.value = 'Akun berubah. Muat ulang halaman dengan akun yang sesuai.'
+watch(
+  () => user.value?.id,
+  (currentId) => {
+    if (accountId.value && currentId !== accountId.value) {
+      loadSequence += 1
+      failed.value = true
+      loading.value = false
+      detail.value = null
+      record.value = null
+      errorMessage.value =
+        'Akun berubah. Muat ulang halaman dengan akun yang sesuai.'
+    }
   }
-})
+)
 onMounted(() => {
   mounted = true
-  if (!isPreview.value) void loadProject()
+  void loadProject()
 })
 
 definePageMeta({
@@ -105,15 +126,18 @@ useHead({ title: 'Edit Proyek — Kolaboria' })
 </script>
 
 <template>
-  <ProjectEditorPreview v-if="isPreview" mode="edit" :slug="slug" />
-  <div v-else-if="loading" class="px-4 py-10 sm:px-6" role="status" aria-live="polite">
-    <p class="font-body-2 text-secondary">Memuat proyek dari server…</p>
-  </div>
-  <main v-else-if="failed" class="m-4 rounded-xl border border-neutral-200 bg-white p-6 sm:m-6" role="alert">
+  <OrganismAsyncContent :pending="loading" label="Memuat proyek dari server…">
+  <main
+    v-if="failed"
+    class="m-4 rounded-xl border border-neutral-200 bg-white p-6 sm:m-6"
+    role="alert"
+  >
     <h1 class="font-title-2 text-primary">Proyek belum dapat diedit</h1>
     <p class="mt-2 font-body-3 text-secondary">{{ errorMessage }}</p>
     <div class="mt-5 flex gap-3">
-      <AtomicButton variant="outline" @click="loadProject">Coba lagi</AtomicButton>
+      <AtomicButton variant="outline" @click="loadProject"
+        >Coba lagi</AtomicButton
+      >
       <NuxtLink to="/projects/my-projects">
         <AtomicButton variant="ghost">Kembali ke proyekku</AtomicButton>
       </NuxtLink>
@@ -132,4 +156,5 @@ useHead({ title: 'Edit Proyek — Kolaboria' })
     :context-available="contextAvailable"
     :persistence="persistence"
   />
+  </OrganismAsyncContent>
 </template>

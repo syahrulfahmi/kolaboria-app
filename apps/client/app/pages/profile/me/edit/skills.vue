@@ -268,11 +268,7 @@ defineExpose({
       </p>
     </header>
 
-    <section v-if="isLoadingData" class="py-6">
-      <MoleculeLoading label="Memuat skills dan tools..." />
-    </section>
-
-    <section v-else-if="errorMessage" class="py-6" role="alert">
+    <section v-if="!isLoadingData && errorMessage" class="py-6" role="alert">
       <OrganismEmptyState
         title="Skills dan tools belum bisa dimuat"
         :description="errorMessage"
@@ -282,7 +278,7 @@ defineExpose({
       />
     </section>
 
-    <template v-else>
+    <template v-else-if="!isLoadingData">
       <section class="py-6">
         <header class="mb-5">
           <h2 class="font-title-3">Keahlian</h2>

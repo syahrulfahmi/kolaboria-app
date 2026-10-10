@@ -1,7 +1,7 @@
 <template>
-  <div class="relative flex items-center w-full">
+  <div class="relative flex items-center w-full h-11">
     <!-- Icon Left (Search or Loading) -->
-    <div class="absolute left-4 text-neutral-400">
+    <div class="absolute left-3.5 flex items-center pointer-events-none text-neutral-400">
       <Icon name="lucide:loader-circle" v-if="loading" class="animate-spin h-5 w-5 text-primary-400" />
       <Icon name="lucide:search" v-else class="h-5 w-5" aria-hidden="true" />
     </div>
@@ -11,14 +11,14 @@
       type="text"
       v-model="localValue"
       :placeholder="placeholder"
-      class="w-full bg-white border border-neutral-200 rounded-lg pl-9 pr-3.5 py-1.5 font-body-2 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all placeholder-neutral-400 text-neutral-800"
+      class="w-full h-full min-h-[44px] bg-white border border-neutral-300 hover:border-neutral-400 focus:border-primary-500 rounded-lg pl-10.5 pr-10 font-body-2 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all placeholder-neutral-400 text-neutral-800"
       v-bind="$attrs"
     />
 
     <!-- Clear Button -->
     <div
       v-if="localValue && !loading"
-      class="absolute right-3 text-neutral-400"
+      class="absolute right-3 flex items-center text-neutral-400"
     >
       <button
         type="button"

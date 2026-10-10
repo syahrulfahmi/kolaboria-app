@@ -66,6 +66,7 @@ export default defineNuxtConfig({
     // Reserved/private routes must remain client-rendered even though they
     // share a prefix with public project/profile routes above.
     '/projects/my-projects': { ssr: false },
+    '/my-projects': { ssr: false },
     '/projects/my-applications': { ssr: false },
     '/projects/create': { ssr: false },
     '/projects/*/edit': { ssr: false },

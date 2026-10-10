@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import './helpers/frontend-runtime.mjs'
-import { createProjectEditorFixture } from '../app/data/project-editor-fixtures.ts'
+import { createProjectEditorFixture } from './helpers/project-editor-fixtures.ts'
 import { toProjectDefinition, toProjectEditorRecord } from '../app/utils/project-editor-api.ts'
 
 const projectId = '11111111-1111-4111-8111-111111111111'

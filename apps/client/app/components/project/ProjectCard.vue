@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { Users, Calendar, ArrowRight } from '@lucide/vue'
 import type { Project } from '../../types/project'
 import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
@@ -106,57 +108,21 @@ const creatorName = computed(
     >
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-1.5 font-body-2 text-secondary">
-          <svg
-            class="h-3.5 w-3.5 text-neutral-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
+          <Users class="h-3.5 w-3.5 text-neutral-400" />
           <span>{{ openSlots }} slot</span>
         </div>
         <span
           v-if="formattedDeadline"
           class="flex items-center gap-1.5 font-label--2"
         >
-          <svg
-            class="h-3.5 w-3.5 text-neutral-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
+          <Calendar class="h-3.5 w-3.5 text-neutral-400" />
           {{ formattedDeadline }}
         </span>
       </div>
       <div
         class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600 transition-colors group-hover:bg-primary-100"
       >
-        <svg
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+        <ArrowRight class="h-4 w-4" />
       </div>
     </div>
   </NuxtLink>

@@ -232,7 +232,7 @@ const loadMoreMobile = async () => {
   mobileDisplayCount.value += itemsPerPage
 }
 
-const { sentinelRef, isLoading: isEndlessLoading } = useInfiniteScroll({
+const { sentinelRef } = useInfiniteScroll({
   onLoadMore: loadMoreMobile,
   hasMore: hasMoreMobile,
   disabled: isDesktop,
@@ -487,7 +487,11 @@ const paginatedProjects = computed(() => {
       </aside>
 
       <!-- ── Right Main Area ── -->
-      <section class="flex-1 min-w-0 w-full px-4 lg:px-0 mb-4">
+      <OrganismAsyncContent :pending="projectsLoading" :ready="Boolean(projects.length)" label="Memuat proyek..." class="flex-1 min-w-0 w-full px-4 lg:px-0 mb-4">
+        <div v-if="projectsError" class="mb-6 rounded-xl border border-danger-200 bg-white p-6" role="alert">
+          <p class="font-body-2 text-danger-700">{{ projectsError }}</p>
+          <AtomicButton class="mt-4" variant="outline" @click="loadProjects">Coba lagi</AtomicButton>
+        </div>
         <!-- Desktop Header Row (≥ lg) - Matches Desktop Design System Reference -->
         <div class="hidden lg:flex items-center justify-between gap-4 mb-5">
           <div>
@@ -702,33 +706,6 @@ const paginatedProjects = computed(() => {
           v-if="!isDesktop && filteredProjects.length > 0"
           class="w-full flex flex-col items-center"
         >
-          <!-- Loading State Animation -->
-          <div
-            v-if="isEndlessLoading"
-            class="py-8 flex flex-col items-center justify-center gap-2.5 transition-all duration-300"
-            role="status"
-            aria-live="polite"
-          >
-            <div class="flex items-center gap-2" aria-hidden="true">
-              <div
-                class="h-2.5 w-2.5 animate-bounce rounded-full bg-primary-400 shadow-xs"
-                style="animation-delay: -0.3s"
-              ></div>
-              <div
-                class="h-2.5 w-2.5 animate-bounce rounded-full bg-primary-500 shadow-xs"
-                style="animation-delay: -0.15s"
-              ></div>
-              <div
-                class="h-2.5 w-2.5 animate-bounce rounded-full bg-primary-600 shadow-xs"
-              ></div>
-            </div>
-            <span
-              class="font-body-2 text-xs font-medium text-neutral-500 animate-pulse"
-            >
-              Memuat lebih banyak proyek...
-            </span>
-          </div>
-
           <!-- Invisible Sentinel Element observed by IntersectionObserver -->
           <div
             v-if="hasMoreMobile"
@@ -791,7 +768,7 @@ const paginatedProjects = computed(() => {
             :per-page="itemsPerPage"
           />
         </div>
-      </section>
+      </OrganismAsyncContent>
 
       <!-- ── Mobile Sorting Bottom Sheet (< lg) ── -->
       <OrganismBottomSheet

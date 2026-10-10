@@ -36,16 +36,9 @@ onMounted(async () => {
 
 <template>
   <div>
-    <!-- State: Menghubungkan (Loading) -->
-    <div
-      v-if="!errorMsg"
-      class="flex flex-col items-center justify-center py-12 text-center"
-    >
-      <MoleculeLoading type="section" label="Menghubungkan dengan Google..." />
-    </div>
-
+    <OrganismAsyncContent :pending="!errorMsg" label="Menghubungkan dengan Google...">
     <!-- State: Gagal (Error) -->
-    <div v-else class="py-4">
+    <div v-if="errorMsg" class="py-4">
       <MoleculeTicker
         variant="danger"
         :message="errorMsg"
@@ -61,5 +54,6 @@ onMounted(async () => {
         </NuxtLink>
       </div>
     </div>
+    </OrganismAsyncContent>
   </div>
 </template>

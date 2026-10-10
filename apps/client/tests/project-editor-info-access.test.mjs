@@ -4,10 +4,10 @@ import { nextTick, reactive } from 'vue'
 import { mountComponent } from './helpers/frontend-runtime.mjs'
 
 const { default: Info } = await import('../app/components/project/editor/ProjectEditorInfo.vue')
-const { createBlankProjectEditorDraft } = await import('../app/data/project-editor-fixtures.ts')
+const { createBlankProjectEditorDraft } = await import('./helpers/project-editor-fixtures.ts')
 const organization = { id: 'organization-a', name: 'Community A' }
 
-test('editing only the title preserves the project URL slug', async () => {
+test('editing the title updates the project URL slug in edit mode', async () => {
   const draft = reactive({ ...createBlankProjectEditorDraft(), title: 'Judul Lama', slug: 'stable-public-url' })
   const mounted = mountComponent(Info, {
     mode: 'edit', form: draft, errors: {}, disabled: false
@@ -16,7 +16,23 @@ test('editing only the title preserves the project URL slug', async () => {
   draft.title = 'Judul Baru'
   await nextTick()
 
-  assert.equal(draft.slug, 'stable-public-url')
+  assert.equal(draft.slug, 'judul-baru')
+  mounted.unmount()
+})
+
+test('manually customized slug keeps its format and stops following the title', async () => {
+  const draft = reactive({ ...createBlankProjectEditorDraft(), title: 'Judul Lama', slug: 'judul-lama' })
+  const mounted = mountComponent(Info, {
+    mode: 'edit', form: draft, errors: {}, disabled: false
+  })
+
+  mounted.bindings.onSlugInput('Judul Baru !!!')
+  assert.equal(draft.slug, 'judul-baru')
+
+  draft.title = 'Judul Berikutnya'
+  await nextTick()
+
+  assert.equal(draft.slug, 'judul-baru')
   mounted.unmount()
 })
 
