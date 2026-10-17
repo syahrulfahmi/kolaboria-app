@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { ArrowLeft, MessageCircle, Pencil, Trash2 } from '@lucide/vue'
+import { ArrowLeft, MessageCircle } from '@lucide/vue'
 import WorkspaceDiscussionReplyComposer from './WorkspaceDiscussionReplyComposer.vue'
 import WorkspaceDiscussionReplyItem from './WorkspaceDiscussionReplyItem.vue'
+import WorkspaceDiscussionActionsMenu from './WorkspaceDiscussionActionsMenu.vue'
 import {
   formatWorkspaceDiscussionDate,
   workspaceDiscussionReplyParentId
@@ -124,16 +125,14 @@ const findReply = (
               </time>
             </div>
           </div>
-          <div v-if="discussion.canEdit || discussion.canDelete" class="flex shrink-0 items-center gap-1">
-            <AtomicButton v-if="discussion.canEdit" variant="outline" size="sm" @click="openEdit">
-              <template #icon-left><Pencil class="h-4 w-4" aria-hidden="true" /></template>
-              Edit
-            </AtomicButton>
-            <AtomicButton v-if="discussion.canDelete" variant="danger" size="sm" @click="deleteDialogOpen = true">
-              <template #icon-left><Trash2 class="h-4 w-4" aria-hidden="true" /></template>
-              Hapus
-            </AtomicButton>
-          </div>
+          <WorkspaceDiscussionActionsMenu
+            v-if="discussion.canEdit || discussion.canDelete"
+            label="Aksi untuk diskusi"
+            :can-edit="discussion.canEdit"
+            :can-delete="discussion.canDelete"
+            @edit="openEdit"
+            @delete="deleteDialogOpen = true"
+          />
         </div>
         <h1 class="mt-5 break-words font-title-1 leading-tight tracking-tight text-secondary-900 sm:mt-6">
           {{ discussion.title }}

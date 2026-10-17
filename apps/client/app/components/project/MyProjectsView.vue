@@ -11,6 +11,7 @@ import { getMyProjectSummaryStats } from '~/utils/my-project-summary-stats'
 import { getApiErrorMessage } from '~/utils/error'
 import MyProjectCard from '~/components/project/MyProjectCard.vue'
 import ProjectStatusConfirmModal from '~/components/project/ProjectStatusConfirmModal.vue'
+import { useWorkspaceActivityInvalidation } from '~/composables/useWorkspaceActivityInvalidation'
 import { useProjectLifecycle } from '~/composables/useProjectLifecycle'
 import type { ProjectLifecycleAction } from '~/types/project-editor'
 
@@ -269,9 +270,11 @@ const currentDisplayedCount = computed(() => {
   return Math.min(mobileDisplayCount.value, filteredProjects.value.length)
 })
 
+const activityInvalidation = useWorkspaceActivityInvalidation()
 const lifecycle = useProjectLifecycle({
   accountId: currentUserId,
-  onChanged: async (action) => {
+  onChanged: async (action, detail) => {
+    if (detail) activityInvalidation.markDirty({ id: detail.id })
     toast.success(
       action === 'delete'
         ? 'Draft proyek berhasil dihapus.'

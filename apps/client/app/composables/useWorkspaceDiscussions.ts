@@ -1,3 +1,4 @@
+import { useWorkspaceActivityInvalidation } from './useWorkspaceActivityInvalidation'
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 import { getApiErrorMessage } from '../utils/error'
 import {
@@ -36,6 +37,7 @@ const findReply = (replies: WorkspaceDiscussionReplyViewModel[], id: string): Wo
 export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) => {
   const slug = computed(() => toValue(projectSlug).trim())
   const service = useWorkspaceDiscussionService()
+  const activityInvalidation = useWorkspaceActivityInvalidation()
   const pendingIdempotencyKeys = new Map<string, { fingerprint: string; key: string }>()
   const listKey = computed(() => `workspace-discussions:${slug.value || 'missing-project'}`)
   const {
@@ -132,7 +134,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     const key = stableDiscussionMutationKey(pendingIdempotencyKeys, scope, input, createDiscussionIdempotencyKey)
     mutationPending.value = true
     try {
-      await service.create(slug.value, input, key)
+      const mutationSlug = slug.value
+      await service.create(mutationSlug, input, key)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       clearDiscussionMutationKey(pendingIdempotencyKeys, scope)
       await refreshList()
       return true
@@ -150,7 +154,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      discussion.value = await service.update(slug.value, current.id, input)
+      const mutationSlug = slug.value
+      discussion.value = await service.update(mutationSlug, current.id, input)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       await refreshList()
       return true
     } catch (error) {
@@ -167,7 +173,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      await service.update(slug.value, discussionId, input)
+      const mutationSlug = slug.value
+      await service.update(mutationSlug, discussionId, input)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       await refreshList()
       return true
     } catch (error) {
@@ -184,7 +192,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      await service.delete(slug.value, current.id)
+      const mutationSlug = slug.value
+      await service.delete(mutationSlug, current.id)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       discussion.value = null
       replies.value = []
       activeDiscussionId.value = null
@@ -204,7 +214,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      await service.delete(slug.value, discussionId)
+      const mutationSlug = slug.value
+      await service.delete(mutationSlug, discussionId)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       await refreshList()
       return true
     } catch (error) {
@@ -246,6 +258,7 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationPending.value = true
     try {
       const savedReply = await service.createReply(requestSlug, current.id, input, key)
+      activityInvalidation.markDirty({ slug: requestSlug })
       clearDiscussionMutationKey(pendingIdempotencyKeys, scope)
 
       const isCurrentDiscussion = () => requestSlug === slug.value &&
@@ -311,7 +324,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      await service.updateReply(slug.value, current.id, replyId, body)
+      const mutationSlug = slug.value
+      await service.updateReply(mutationSlug, current.id, replyId, body)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       await loadDiscussion(current.id)
       return true
     } catch (error) {
@@ -329,7 +344,9 @@ export const useWorkspaceDiscussions = (projectSlug: MaybeRefOrGetter<string>) =
     mutationError.value = ''
     mutationPending.value = true
     try {
-      await service.deleteReply(slug.value, current.id, replyId)
+      const mutationSlug = slug.value
+      await service.deleteReply(mutationSlug, current.id, replyId)
+      activityInvalidation.markDirty({ slug: mutationSlug })
       await loadDiscussion(current.id)
       await refreshList()
       return true

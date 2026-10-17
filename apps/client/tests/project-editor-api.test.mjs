@@ -25,11 +25,11 @@ test('project editor API uses create, atomic publish, full-definition update, pu
   await api.loadBySlug('project name')
 
   assert.deepEqual(calls, [
-    { path: '/projects', options: { method: 'POST', body: createRequest } },
-    { path: '/projects/publish', options: { method: 'POST', body: publishNewRequest } },
-    { path: '/projects/project%2Fid', options: { method: 'PUT', body: updateRequest } },
-    { path: '/projects/project%2Fid/publish', options: { method: 'POST', body: publishRequest } },
-    { path: '/projects/slug/project%20name', options: undefined }
+    { path: '/v1/projects', options: { method: 'POST', body: createRequest } },
+    { path: '/v1/projects/publish', options: { method: 'POST', body: publishNewRequest } },
+    { path: '/v1/projects/project%2Fid', options: { method: 'PUT', body: updateRequest } },
+    { path: '/v1/projects/project%2Fid/publish', options: { method: 'POST', body: publishRequest } },
+    { path: '/v1/projects/slug/project%20name', options: undefined }
   ])
 })
 

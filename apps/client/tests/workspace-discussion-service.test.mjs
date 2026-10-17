@@ -24,7 +24,7 @@ test('discussion service follows the project page pagination envelope without ca
   })
 
   const page = await service.list('platform edukasi', { page: 2, limit: 25 })
-  assert.equal(calls[0].url, '/workspaces/platform%20edukasi/discussions')
+  assert.equal(calls[0].url, '/v1/workspaces/platform%20edukasi/discussions')
   assert.deepEqual(calls[0].options.query, { page: 2, limit: 25 })
   assert.equal(page.items[0].replyCount, 4)
   assert.equal(page.items[0].canDelete, true)
@@ -48,7 +48,7 @@ test('discussion service sends snake_case payload and idempotency key for create
   })
 
   await service.create('platform', { title: 'Topik', body: 'Isi' }, 'request-key')
-  assert.equal(calls[0].url, '/workspaces/platform/discussions')
+  assert.equal(calls[0].url, '/v1/workspaces/platform/discussions')
   assert.equal(calls[0].options.method, 'POST')
   assert.equal(calls[0].options.headers['Idempotency-Key'], 'request-key')
   assert.deepEqual(calls[0].options.body, { title: 'Topik', body: 'Isi' })
@@ -67,7 +67,7 @@ test('discussion replies use page pagination metadata from the shared response e
   })
 
   const page = await service.listReplies('platform', 'topic-1', { page: 3, limit: 10 })
-  assert.equal(calls[0].url, '/workspaces/platform/discussions/topic-1/replies')
+  assert.equal(calls[0].url, '/v1/workspaces/platform/discussions/topic-1/replies')
   assert.deepEqual(calls[0].options.query, { page: 3, limit: 10 })
   assert.deepEqual(page, { items: [], page: 3, limit: 10, total: 21, totalPages: 3 })
 })

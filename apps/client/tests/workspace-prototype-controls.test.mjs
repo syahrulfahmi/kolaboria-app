@@ -6,11 +6,12 @@ const workspaceApp = await readFile(new URL('../app/components/workspace/Workspa
 const projectInfo = await readFile(new URL('../app/components/workspace/views/WorkspaceProjectInfoView.vue', import.meta.url), 'utf8')
 const projectInfoPage = await readFile(new URL('../app/pages/projects/[slug]/workspace/info.vue', import.meta.url), 'utf8')
 
-test('workspace exposes local scenario and member selectors without a reset control', () => {
-  assert.match(workspaceApp, /id="workspace-demo-project"/)
-  assert.match(workspaceApp, /id="workspace-demo-person"/)
-  assert.match(workspaceApp, /@change="changeDemoProject"/)
-  assert.match(workspaceApp, /@change="changeDemoPerson"/)
+test('workspace navbar uses live project context and profile navigation without demo controls', () => {
+  assert.doesNotMatch(workspaceApp, /workspace-demo-project|workspace-demo-person|Skenario demo|Lihat sebagai pengguna demo|changeDemoProject|changeDemoPerson/)
+  assert.match(workspaceApp, /import WorkspaceNavbar from "\.\/WorkspaceNavbar\.vue"/)
+  assert.match(workspaceApp, /<WorkspaceNavbar[\s\S]*:project-title="workspaceProjectTitle"[\s\S]*:user-name="authenticatedUser\?\.name \?\? null"/)
+  assert.match(workspaceApp, /workspaceProjectTitle/)
+  assert.match(workspaceApp, /'discussion'/)
 
   for (const copy of ['Kontrol prototype', 'Data simulasi', 'Prototype interaktif', 'Reset data']) {
     assert.equal(workspaceApp.includes(copy) || projectInfo.includes(copy), false, `unexpected prototype UI copy: ${copy}`)

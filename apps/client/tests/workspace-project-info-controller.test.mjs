@@ -22,6 +22,7 @@ const info = ({ slug = 'platform', remaining = 1, version = 4 } = {}) => {
       start_date: null, deadline: null,
       ownership: { owner_id: 'owner', owner_profile: null, initiator_organization_id: null, initiator_organization: null, initiator_profile: null, show_initiator: false }
     },
+    closure: { eligible: false, completion: null, task_summary: { version: 0, total_tasks: 0, done_tasks: 0, closed_tasks: 0, outstanding_tasks: 0, deleted_tasks: 0, invalid_closed_tasks: 0 } },
     positions: [position],
     position_capacity_summary: { all_positions_filled: remaining === 0, underfilled_position_count: remaining > 0 ? 1 : 0, total_remaining_capacity: remaining },
     viewer: { scope: 'owner', capabilities: { can_view_info: true, can_start_project: true, can_manage_workspace: true } }

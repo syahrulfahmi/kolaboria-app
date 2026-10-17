@@ -263,10 +263,11 @@ export const setTaskManagerAccess = (
   projectId: string,
   actorId: string,
   memberId: string,
-  enabled: boolean
+  enabled: boolean,
+  allowStatusMismatch = false
 ) => {
   const project = projectFor(state, projectId)
-  if (!project || !isProjectManager(project, actorId) || project.status !== 'in_progress' || memberId === project.ownerId || !project.memberIds.includes(memberId)) return false
+  if (!project || !isProjectManager(project, actorId) || (!allowStatusMismatch && project.status !== 'in_progress') || memberId === project.ownerId || !project.memberIds.includes(memberId)) return false
   const alreadyEnabled = project.taskManagerIds.includes(memberId)
   if (alreadyEnabled === enabled) return false
   if (enabled) project.taskManagerIds.push(memberId)

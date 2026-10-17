@@ -19,8 +19,8 @@ test('lifecycle API sends versioned status and draft delete requests', async () 
   assert.deepEqual(await api.changeStatus('project-a', { status: 'draft', version: 3 }), detail)
   await api.deleteDraft('project-a', { version: 4 })
   assert.deepEqual(calls, [
-    { path: '/projects/project-a/status', options: { method: 'PATCH', body: { status: 'draft', version: 3 } } },
-    { path: '/projects/project-a', options: { method: 'DELETE', body: { version: 4 } } }
+    { path: '/v1/projects/project-a/status', options: { method: 'PATCH', body: { status: 'draft', version: 3 } } },
+    { path: '/v1/projects/project-a', options: { method: 'DELETE', body: { version: 4 } } }
   ])
 })
 

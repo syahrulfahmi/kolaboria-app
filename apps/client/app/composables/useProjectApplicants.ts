@@ -1,3 +1,4 @@
+import { useWorkspaceActivityInvalidation } from './useWorkspaceActivityInvalidation'
 import { computed, onMounted, onScopeDispose, ref, watch, type Ref } from 'vue'
 import { getApiErrorStatus } from '../utils/error'
 import type {
@@ -27,6 +28,7 @@ export const useProjectApplicants = (
   const detailPending = ref(false)
   const detailError = ref<unknown>(null)
   const submitting = ref(false)
+  const activityInvalidation = useWorkspaceActivityInvalidation(accountId)
   const currentPage = ref(1)
   const { revision, notifyApplicationMutation } = useApplicationRefresh(accountId)
   let requestSequence = 0
@@ -127,12 +129,14 @@ export const useProjectApplicants = (
   const review = async (status: 'accepted' | 'rejected', note: string) => {
     const actor = accountId.value
     const applicationId = detail.value?.id
+    const mutationProject = projectId.value
     if (!actor || !applicationId || submitting.value) return null
     submitting.value = true
     try {
       const response = await gateway.reviewApplication(applicationId, { status, reviewer_note: note.trim() || null })
       if (actor !== accountId.value) return null
       detail.value = response.data ?? null
+      if (status === 'accepted' && mutationProject) activityInvalidation.markDirty({ id: mutationProject })
       notifyApplicationMutation(actor)
       await refresh()
       return detail.value

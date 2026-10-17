@@ -1,21 +1,13 @@
 import { inject, type InjectionKey } from "vue";
 import type {
-  WorkspaceActivityContext,
   WorkspaceController,
   WorkspaceDiscussionContext,
-  WorkspaceOverviewContext,
-  WorkspaceProjectInfoContext,
   WorkspaceTasksContext,
-  WorkspaceTeamContext,
 } from "~/composables/useWorkspaceController";
 
 export interface WorkspaceViewContexts {
-  overview: WorkspaceOverviewContext;
   tasks: WorkspaceTasksContext;
-  team: WorkspaceTeamContext;
   discussion: WorkspaceDiscussionContext;
-  activity: WorkspaceActivityContext;
-  info: WorkspaceProjectInfoContext;
 }
 
 export interface WorkspaceRouteContext {

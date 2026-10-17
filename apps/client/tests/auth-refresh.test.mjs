@@ -26,10 +26,10 @@ async function fixture(t, settings = {}) {
     let body = ''
     for await (const chunk of request) body += chunk
     calls.push({ url: request.url, method: request.method, authorization: request.headers.authorization, body: body ? JSON.parse(body) : undefined, custom: request.headers['x-custom'] })
-    const path = request.url.slice((settings.basePath ?? '').length)
+    const path = request.url
     for (const listener of listeners) listener()
     response.setHeader('Content-Type', 'application/json')
-    if (path === '/auth/refresh') {
+    if (path === '/v1/auth/refresh') {
       if (settings.waitForRefresh) await settings.waitForRefresh
       response.statusCode = settings.refreshStatus ?? 200
       response.end(JSON.stringify(settings.refreshEnvelope ?? {
@@ -41,12 +41,12 @@ async function fixture(t, settings = {}) {
       }))
     } else {
       if (settings.waitForOldRequest && request.headers.authorization === 'Bearer expired-access' && path === '/late') await settings.waitForOldRequest
-      response.statusCode = path === '/auth/login' || settings.alwaysUnauthorized || request.headers.authorization !== 'Bearer fresh-access' ? 401 : 200
+      response.statusCode = path === '/v1/auth/login' || settings.alwaysUnauthorized || request.headers.authorization !== 'Bearer fresh-access' ? 401 : 200
       response.end(JSON.stringify({ status: response.statusCode, data: response.statusCode === 200 ? { saved: true } : { trace_id: 'request-trace' } }))
     }
   })
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-  globalThis.useRuntimeConfig = () => ({ public: { apiBaseUrl: `http://127.0.0.1:${server.address().port}${settings.basePath ?? ''}${settings.trailingSlash ? '/' : ''}` } })
+  globalThis.useRuntimeConfig = () => ({ public: { apiBaseUrl: `http://127.0.0.1:${server.address().port}${settings.trailingSlash ? '/' : ''}` } })
   globalThis.useNuxtApp = () => app
   globalThis.useCookie = name => {
     if (settings.watchCookies) watch(cookies[name], value => cookieWrites.push([name, value]))
@@ -68,7 +68,7 @@ async function fixture(t, settings = {}) {
 test('401 refresh follows API contract and replays a mutation once with its body and headers', async t => {
   const f = await fixture(t)
   assert.deepEqual(await useApi().$api('/protected?sort=recent', { method: 'POST', body: { name: 'New' }, headers: { 'X-Custom': 'kept' } }), { status: 200, data: { saved: true } })
-  assert.deepEqual(f.calls.map(c => c.url), ['/protected?sort=recent', '/auth/refresh', '/protected?sort=recent'])
+  assert.deepEqual(f.calls.map(c => c.url), ['/protected?sort=recent', '/v1/auth/refresh', '/protected?sort=recent'])
   assert.equal(f.calls[1].method, 'POST')
   assert.deepEqual(f.calls[1].body, { refreshToken: 'valid-refresh' })
   assert.equal(f.calls[1].authorization, undefined)
@@ -80,15 +80,15 @@ test('401 refresh follows API contract and replays a mutation once with its body
 })
 
 for (const trailingSlash of [false, true]) {
-  test(`versioned base URL preserves /v1 through refresh and replay (trailing slash: ${trailingSlash})`, async t => {
-    const f = await fixture(t, { basePath: '/v1', trailingSlash })
-    assert.deepEqual(await useApi().$api('/protected?sort=recent', {
+  test(`server-only base URL preserves endpoint version through refresh and replay (trailing slash: ${trailingSlash})`, async t => {
+    const f = await fixture(t, { trailingSlash })
+    assert.deepEqual(await useApi().$api('/v1/protected?sort=recent', {
       method: 'POST', body: { name: 'New' }
     }), { status: 200, data: { saved: true } })
     assert.deepEqual(f.calls.map(call => call.url), [
       '/v1/protected?sort=recent', '/v1/auth/refresh', '/v1/protected?sort=recent'
     ])
-    assert.deepEqual(await useApiFetch('/protected'), { status: 200, data: { saved: true } })
+    assert.deepEqual(await useApiFetch('/v1/protected'), { status: 200, data: { saved: true } })
     assert.equal(f.calls.at(-1).url, '/v1/protected')
   })
 }
@@ -109,7 +109,7 @@ test('concurrent composable instances share a single refresh', async t => {
   await f.waitForCalls(calls => calls.filter(c => c.authorization === 'Bearer expired-access').length === 3)
   release()
   await completed
-  assert.equal(f.calls.filter(c => c.url === '/auth/refresh').length, 1)
+  assert.equal(f.calls.filter(c => c.url === '/v1/auth/refresh').length, 1)
   assert.equal(f.calls.filter(c => c.authorization === 'Bearer fresh-access').length, 3)
 })
 
@@ -121,12 +121,12 @@ test('a late 401 for the old token reuses the token already refreshed', async t 
   await useApi().$api('/first')
   release()
   await late
-  assert.equal(f.calls.filter(c => c.url === '/auth/refresh').length, 1)
+  assert.equal(f.calls.filter(c => c.url === '/v1/auth/refresh').length, 1)
 })
 
 test('login 401 does not refresh or destroy an existing session', async t => {
   const f = await fixture(t)
-  await assert.rejects(useApi().$api('/auth/login', { method: 'POST', body: { email: 'test@example.com', password: 'wrong' } }), { statusCode: 401 })
+  await assert.rejects(useApi().$api('/v1/auth/login', { method: 'POST', body: { email: 'test@example.com', password: 'wrong' } }), { statusCode: 401 })
   assert.equal(f.calls.length, 1)
   assert.equal(f.cookies.auth_token.value, 'expired-access')
   assert.deepEqual(f.navigations, [])
@@ -180,7 +180,7 @@ test('logout during refresh cannot restore a cleared session', async t => {
   const waitForRefresh = new Promise(resolve => { release = resolve })
   const f = await fixture(t, { waitForRefresh })
   const result = useApi().$api('/protected').catch(error => error)
-  await f.waitForCalls(calls => calls.some(c => c.url === '/auth/refresh'))
+  await f.waitForCalls(calls => calls.some(c => c.url === '/v1/auth/refresh'))
   f.cookies.auth_token.value = null
   f.cookies.auth_refresh_token.value = null
   release()
@@ -240,7 +240,7 @@ test('separate Nuxt apps never share an in-flight refresh or token refs', async 
   globalThis.useCookie = name => otherCookies[name]
   const second = useApi().refreshAccessToken()
   const completed = Promise.all([first, second])
-  await f.waitForCalls(calls => calls.filter(c => c.url === '/auth/refresh').length === 2)
+  await f.waitForCalls(calls => calls.filter(c => c.url === '/v1/auth/refresh').length === 2)
   release()
   assert.deepEqual(await completed, [true, true])
   assert.deepEqual(f.calls.map(c => c.body.refreshToken).sort(), ['other-refresh', 'valid-refresh'])

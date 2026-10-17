@@ -26,10 +26,10 @@ Copy `apps/client/.env.example` to `apps/client/.env` and set `NUXT_PUBLIC_API_B
 
 | Environment | `NUXT_PUBLIC_API_BASE_URL` |
 | --- | --- |
-| Local (default) | `http://localhost:8081/v1` |
-| Deployed development | `https://api.dev.kolaboria.com/v1/` |
+| Local (default) | `http://localhost:8081/` |
+| Deployed development | `https://api.dev.kolaboria.com/` |
 
-The value includes the API version prefix; a trailing slash is optional. `useApi` and `useApiFetch` share this runtime configuration, including token refresh. Keep entries in `apps/client/app/constants/api-endpoints.ts` relative to the base URL (for example, `/auth/login`). Set the same environment variable on the deployment when running the built server. Existing `.env` files override the default and must also use `/v1`.
+The value is the server URL only; a trailing slash is optional. Version prefixes belong to individual paths in `apps/client/app/constants/api-endpoints.ts` (for example, `/v1/auth/login`). `useApi` and `useApiFetch` share the same server configuration, including token refresh, and preserve the version supplied by each endpoint. Set the same environment variable on the deployment when running the built server. Remove `/v1` from existing `.env` and deployment overrides to avoid repeating the prefix.
 
 See [API base URL migration](docs/api-base-url.md) for deployment and verification notes.
 

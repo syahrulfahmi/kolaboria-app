@@ -29,6 +29,17 @@ const validateInfo = (info: WorkspaceProjectInfoDTO): void => {
   if (!info || !info.project || !Array.isArray(info.positions) || !info.position_capacity_summary || !info.viewer?.capabilities) {
     throw new Error('Response Workspace Info tidak lengkap')
   }
+  const closure = info.closure
+  if (closure != null) {
+    const tasks = closure.task_summary
+    if (!tasks || [tasks.version, tasks.total_tasks, tasks.done_tasks, tasks.closed_tasks,
+        tasks.outstanding_tasks, tasks.deleted_tasks, tasks.invalid_closed_tasks].some(value => !Number.isSafeInteger(value) || value < 0) ||
+        tasks.total_tasks !== tasks.done_tasks + tasks.closed_tasks + tasks.outstanding_tasks ||
+        tasks.invalid_closed_tasks > tasks.closed_tasks ||
+        closure.eligible !== (info.project.status === 'in_progress' && tasks.outstanding_tasks === 0 && tasks.invalid_closed_tasks === 0)) {
+      throw new Error('Ringkasan penutupan proyek tidak lengkap atau tidak konsisten')
+    }
+  }
   for (const position of info.positions) {
     if (!Number.isInteger(position.capacity) || position.capacity < 1 ||
         !Number.isInteger(position.active_contributor_count) || position.active_contributor_count < 0) {
@@ -58,6 +69,8 @@ export const mapWorkspaceProjectInfo = (info: WorkspaceProjectInfoDTO): Workspac
   const showOrganization = project.creation_mode === 'organization_initiated' && !!organizationId
 
   return {
+    closure: info.closure ?? null,
+    canCompleteProject: info.closure != null && info.viewer.capabilities.can_complete_project === true && project.status === 'in_progress',
     project: {
       id: project.id,
       slug: project.slug,

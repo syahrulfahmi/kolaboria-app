@@ -28,6 +28,7 @@ const response = (overrides = {}) => ({
       show_initiator: true
     }
   },
+  closure: { eligible: false, completion: null, task_summary: { version: 0, total_tasks: 0, done_tasks: 0, closed_tasks: 0, outstanding_tasks: 0, deleted_tasks: 0, invalid_closed_tasks: 0 } },
   positions: [
     { id: 'role-full', name: 'Designer', capacity: 3, active_contributor_count: 3, remaining_capacity: 0, recruitment_status: 'filled', readiness_state: 'ready' },
     { id: 'role-partial', name: 'Developer', capacity: 3, active_contributor_count: 2, remaining_capacity: 1, recruitment_status: 'open', readiness_state: 'to_fill' },
@@ -78,4 +79,44 @@ test('rejects inconsistent or invalid position capacity payloads instead of usin
   assert.throws(() => presentation.mapWorkspaceProjectInfo(response({
     positions: [{ id: 'bad', name: 'Role', capacity: 0, active_contributor_count: 0, remaining_capacity: 0, recruitment_status: 'filled', readiness_state: 'ready' }]
   })))
+})
+
+test('legacy Info without closure still maps the project and readiness without inventing task counts', () => {
+  const source = response()
+  source.project.status = 'in_progress'
+  source.project.version = 6
+  delete source.closure
+  const model = presentation.mapWorkspaceProjectInfo(source)
+  assert.equal(model.project.title, source.project.title)
+  assert.equal(model.project.status, 'in_progress')
+  assert.equal(model.project.version, 6)
+  assert.equal(model.positions[0].readinessLabel, 'Siap')
+  assert.equal(model.positions[1].remainingCapacity, 1)
+  assert.equal(model.closure, null, 'missing counts must remain unavailable, not zero')
+  assert.equal(model.canCompleteProject, false)
+})
+
+test('missing or null closure cannot enable completion even when a capability is present', () => {
+  for (const closure of [undefined, null]) {
+    const source = response({ closure })
+    source.project.status = 'in_progress'
+    source.viewer.capabilities.can_complete_project = true
+    assert.equal(presentation.mapWorkspaceProjectInfo(source).canCompleteProject, false)
+  }
+})
+
+test('current completion contract keeps real counts and requires explicit server authority', () => {
+  const source = response()
+  source.project.status = 'in_progress'
+  source.closure = { eligible: true, completion: null, task_summary: {
+    version: 8, total_tasks: 2, done_tasks: 1, closed_tasks: 1, outstanding_tasks: 0,
+    deleted_tasks: 3, invalid_closed_tasks: 0
+  } }
+  assert.equal(presentation.mapWorkspaceProjectInfo(source).canCompleteProject, false)
+  source.viewer.capabilities.can_complete_project = true
+  const model = presentation.mapWorkspaceProjectInfo(source)
+  assert.equal(model.canCompleteProject, true)
+  assert.deepEqual(model.closure, source.closure)
+  source.closure.task_summary.total_tasks = 9
+  assert.throws(() => presentation.mapWorkspaceProjectInfo(source), /Ringkasan penutupan/)
 })

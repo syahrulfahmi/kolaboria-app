@@ -77,6 +77,7 @@ export const useWorkspaceController = () => {
     addTask,
     removeTask,
     grantTaskManagement,
+    grantTaskManagementAsOwnerPreview,
     commentOnTask,
     startDiscussion,
     replyToDiscussion,
@@ -442,16 +443,26 @@ export const useWorkspaceController = () => {
     closeDialog();
   };
 
-  const confirmTaskAccessChange = (memberId: string, enabled: boolean) => {
+  const confirmTaskAccessChange = (memberId: string, enabled: boolean, authorizedWorkspaceOwnerPreview = false) => {
     const member = personFor(state.value, memberId)?.name ?? "contributor ini";
     requestConfirmation({
-      title: enabled ? "Berikan izin kelola task?" : "Cabut izin kelola task?",
-      description: enabled
-        ? `${member} dapat membuat dan menghapus task aktif. Izin ini tidak memberi akses ke pengaturan dan penutupan proyek.`
-        : `Setelah izin dicabut, ${member} tidak lagi dapat membuat atau menghapus task. Task yang sudah ada tetap tersimpan.`,
-      confirmLabel: enabled ? "Berikan akses" : "Cabut akses",
+      title: authorizedWorkspaceOwnerPreview
+        ? "Ubah izin task simulasi?"
+        : enabled ? "Berikan izin kelola task?" : "Cabut izin kelola task?",
+      description: authorizedWorkspaceOwnerPreview
+        ? enabled
+          ? `${member} akan mendapat izin membuat dan menghapus task aktif pada board simulasi lokal.`
+          : `Izin task simulasi untuk ${member} akan dicabut. Perubahan ini tersimpan pada data simulasi lokal.`
+        : enabled
+          ? `${member} dapat membuat dan menghapus task aktif. Izin ini tidak memberi akses ke pengaturan dan penutupan proyek.`
+          : `Setelah izin dicabut, ${member} tidak lagi dapat membuat atau menghapus task. Task yang sudah ada tetap tersimpan.`,
+      confirmLabel: authorizedWorkspaceOwnerPreview
+        ? "Simpan simulasi"
+        : enabled ? "Berikan akses" : "Cabut akses",
       variant: enabled ? "primary" : "danger",
-      action: () => grantTaskManagement(memberId, enabled),
+      action: () => authorizedWorkspaceOwnerPreview
+        ? grantTaskManagementAsOwnerPreview(memberId, enabled)
+        : grantTaskManagement(memberId, enabled),
     });
   };
 
@@ -725,6 +736,7 @@ export const useWorkspaceController = () => {
       addTask,
       removeTask,
       grantTaskManagement,
+      grantTaskManagementAsOwnerPreview,
       commentOnTask,
       startDiscussion,
       replyToDiscussion,
@@ -856,35 +868,12 @@ export type WorkspaceTasksContext = WorkspaceProjectViewContext<Pick<
   | "priorityLabel"
 >>
 
-export type WorkspaceTeamContext = WorkspaceProjectViewContext<Pick<
-  WorkspaceController,
-  | "state"
-  | "isOwner"
-  | "currentProject"
-  | "projectMembers"
->>
-
 export type WorkspaceDiscussionContext = WorkspaceProjectViewContext<Pick<
   WorkspaceController,
   | "state"
   | "currentProject"
   | "timeLabel"
 >>
-
-export type WorkspaceActivityContext = WorkspaceProjectViewContext<Pick<
-  WorkspaceController,
-  "state" | "currentProject" | "timeLabel"
->>
-
-export type WorkspaceProjectInfoContext = Pick<
-  WorkspaceController,
-  | "canClose"
-  | "activeTaskCount"
-  | "completedTaskCount"
-  | "progress"
-  | "openTasks"
-  | "closedTasks"
->
 
 export type WorkspaceConfirmationDialogContext = Pick<
   WorkspaceController,

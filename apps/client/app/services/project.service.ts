@@ -124,10 +124,10 @@ export const ProjectService = {
 
   async leaveProject(projectId: string) {
     console.warn(
-      `[ProjectService] leaveProject for ${projectId}: Endpoint /projects/:id/members/leave belum didukung backend Go.`
+      `[ProjectService] leaveProject for ${projectId}: Endpoint /v1/projects/:id/members/leave belum didukung backend Go.`
     )
     const { $api } = useApi()
-    return await $api<ApiResponse<null>>(`/projects/${projectId}/members/leave`, {
+    return await $api<ApiResponse<null>>(API_ENDPOINTS.PROJECT.MEMBER_LEAVE(projectId), {
       method: 'POST'
     })
   },
@@ -138,11 +138,11 @@ export const ProjectService = {
     status: 'active' | 'removed'
   ) {
     console.warn(
-      `[ProjectService] updateMemberStatus for member ${memberId}: Endpoint /projects/:id/members/:memberId/status belum didukung backend Go.`
+      `[ProjectService] updateMemberStatus for member ${memberId}: Endpoint /v1/projects/:id/members/:memberId/status belum didukung backend Go.`
     )
     const { $api } = useApi()
     return await $api<ApiResponse<null>>(
-      `/projects/${projectId}/members/${memberId}/status`,
+      API_ENDPOINTS.PROJECT.MEMBER_STATUS(projectId, memberId),
       {
         method: 'PATCH',
         body: { status }
@@ -156,11 +156,11 @@ export const ProjectService = {
     projectRoleId: string
   ) {
     console.warn(
-      `[ProjectService] changeMemberRole for member ${memberId}: Endpoint /projects/:id/members/:memberId/role belum didukung backend Go.`
+      `[ProjectService] changeMemberRole for member ${memberId}: Endpoint /v1/projects/:id/members/:memberId/role belum didukung backend Go.`
     )
     const { $api } = useApi()
     return await $api<ApiResponse<null>>(
-      `/projects/${projectId}/members/${memberId}/role`,
+      API_ENDPOINTS.PROJECT.MEMBER_ROLE(projectId, memberId),
       {
         method: 'PATCH',
         body: { project_role_id: projectRoleId }

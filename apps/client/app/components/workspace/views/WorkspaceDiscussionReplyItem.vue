@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { MessageCircle, Pencil, Trash2 } from '@lucide/vue'
+import { MessageCircle } from '@lucide/vue'
 import WorkspaceDiscussionReplyComposer from './WorkspaceDiscussionReplyComposer.vue'
+import WorkspaceDiscussionActionsMenu from './WorkspaceDiscussionActionsMenu.vue'
 import type { WorkspaceDiscussionReplyViewModel } from '~/types/workspace-discussion'
 
 const props = defineProps<{
@@ -52,14 +53,14 @@ const submitEdit = () => {
               {{ timeLabel ? timeLabel(reply.createdAt) : reply.createdAt }}
             </time>
           </div>
-          <div v-if="reply.canEdit || reply.canDelete" class="flex items-center gap-1">
-            <AtomicButton v-if="reply.canEdit" variant="ghost" size="sm" :aria-label="'Edit balasan'" @click="editBody = reply.body; editOpen = true">
-              <Pencil class="h-4 w-4" aria-hidden="true" />
-            </AtomicButton>
-            <AtomicButton v-if="reply.canDelete" variant="danger" size="sm" :aria-label="'Hapus balasan'" @click="deleteOpen = true">
-              <Trash2 class="h-4 w-4" aria-hidden="true" />
-            </AtomicButton>
-          </div>
+          <WorkspaceDiscussionActionsMenu
+            v-if="reply.canEdit || reply.canDelete"
+            :label="`Aksi untuk balasan ${reply.author.name}`"
+            :can-edit="reply.canEdit"
+            :can-delete="reply.canDelete"
+            @edit="editBody = reply.body; editOpen = true"
+            @delete="deleteOpen = true"
+          />
         </div>
 
         <p v-if="reply.isDeleted" class="mt-3 italic font-body-3 text-neutral-500">

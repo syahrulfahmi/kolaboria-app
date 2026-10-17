@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '../../utils/error'
 import type { Project } from '../../types/project'
+import { useWorkspaceActivityInvalidation } from '~/composables/useWorkspaceActivityInvalidation'
 import { getProjectCategoryLabel } from '~/constants/projectCategory'
 
 const props = defineProps<{
@@ -11,6 +12,7 @@ const props = defineProps<{
 const { startProject } = useProjects()
 const toast = useToast()
 const starting = ref(false)
+const activityInvalidation = useWorkspaceActivityInvalidation()
 
 const openSlots = computed(() => {
   return (
@@ -79,7 +81,9 @@ const handleStartProject = () => {
     onPositive: async () => {
       starting.value = true
       try {
-        await startProject(props.project.id)
+        const project = props.project
+        await startProject(project.id)
+        activityInvalidation.markDirty({ id: project.id, slug: project.slug })
         toast.success('Project berhasil dimulai.')
         await navigateTo(`/projects/${props.project.slug}/workspace`)
       } catch (error) {

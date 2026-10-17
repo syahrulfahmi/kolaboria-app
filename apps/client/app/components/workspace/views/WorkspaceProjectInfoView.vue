@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Play, RotateCw } from "@lucide/vue";
-import type { WorkspaceProjectInfoContext } from "~/composables/useWorkspaceController";
+import WorkspaceProjectClosureCard from "~/components/workspace/WorkspaceProjectClosureCard.vue";
 import type { WorkspaceProjectInfoViewModel } from "~/types/workspace-info";
 
 const props = defineProps<{
   info: WorkspaceProjectInfoViewModel | null;
-  context: WorkspaceProjectInfoContext;
+  reviewingClosure: boolean;
+  closureError: string | null;
   loading: boolean;
   error: string | null;
   confirmingStart: boolean;
@@ -19,16 +20,9 @@ const emit = defineEmits<{
   "start-request": [];
   "start-confirm": [];
   "start-cancel": [];
+  "closure-review": [];
+  "closure-refresh": [];
 }>();
-
-const {
-  canClose,
-  activeTaskCount,
-  completedTaskCount,
-  progress,
-  openTasks,
-  closedTasks,
-} = props.context;
 
 const underfilledPositions = computed(
   () => props.info?.positions.filter((position) => position.remainingCapacity > 0) ?? [],
@@ -39,13 +33,7 @@ const hasUnderfilledPositions = computed(
 </script>
 
 <template>
-  <div v-if="loading" class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]" aria-label="Memuat informasi proyek">
-    <div class="grid gap-4">
-      <div class="h-52 animate-pulse rounded-xl bg-white" />
-      <div class="h-56 animate-pulse rounded-xl bg-white" />
-    </div>
-    <div class="h-56 animate-pulse rounded-xl bg-white lg:col-start-2 lg:row-start-1" />
-  </div>
+  <MoleculeLoading v-if="loading" label="Memuat informasi proyek…" />
 
   <section v-else-if="error" class="rounded-xl border border-neutral-200 bg-white p-6 text-center">
     <h2 class="font-title-3 text-secondary-900">Informasi proyek belum dapat dimuat</h2>
@@ -139,30 +127,13 @@ const hasUnderfilledPositions = computed(
       </section>
     </div>
 
-    <section class="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 lg:col-start-2 lg:row-start-1">
-      <div class="flex items-center justify-between gap-2">
-        <h2 class="font-title-3 text-secondary-900">Penutupan proyek</h2>
-        <AtomicTag variant="default">Data prototipe</AtomicTag>
-      </div>
-      <p class="mt-1.5 font-body-2 text-neutral-600">
-        Owner meninjau hasil setelah seluruh task selesai atau ditutup dengan alasan perubahan scope.
-      </p>
-      <div class="mt-4 space-y-2 rounded-lg bg-neutral-50 p-3">
-        <div class="flex items-center justify-between gap-2">
-          <span class="font-body-3 text-neutral-700">Task selesai</span>
-          <span class="font-label-3 text-secondary-800">{{ completedTaskCount }} / {{ activeTaskCount }}</span>
-        </div>
-        <div class="h-2 overflow-hidden rounded-full bg-neutral-200">
-          <div class="h-full rounded-full bg-success-500" :style="{ width: `${progress}%` }" />
-        </div>
-        <p class="font-body-3" :class="canClose ? 'text-success-700' : 'text-neutral-500'">
-          {{ canClose ? "Semua task memenuhi syarat untuk direview." : `${openTasks.length} task masih perlu diselesaikan atau ditinjau.` }}
-        </p>
-        <p v-if="closedTasks.length" class="font-body-3 text-neutral-500">
-          {{ closedTasks.length }} task ditutup karena perubahan scope dan tidak dihitung sebagai hasil.
-        </p>
-      </div>
-    </section>
+    <WorkspaceProjectClosureCard
+      :info="info"
+      :reviewing="reviewingClosure"
+      :error="closureError"
+      @review="emit('closure-review')"
+      @refresh="emit('closure-refresh')"
+    />
   </section>
 
   <OrganismModal

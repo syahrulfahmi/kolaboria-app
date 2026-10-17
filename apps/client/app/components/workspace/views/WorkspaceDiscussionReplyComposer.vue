@@ -1,22 +1,22 @@
 <script setup lang="ts">
 defineProps<{
-  modelValue: string
-  heading: string
-  placeholder: string
-  pending?: boolean
-}>()
+  modelValue: string;
+  heading: string;
+  placeholder: string;
+  pending?: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  submit: []
-  cancel: []
-}>()
+  "update:modelValue": [value: string];
+  submit: [];
+  cancel: [];
+}>();
 </script>
 
 <template>
   <form
     data-inline-reply-composer
-    class="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3.5 sm:p-4"
+    class="space-y-3 rounded-lg border border-neutral-200 bg-white p-3.5 sm:p-4"
     :aria-label="heading"
     @submit.prevent="emit('submit')"
   >
@@ -33,8 +33,12 @@ const emit = defineEmits<{
         @update:model-value="emit('update:modelValue', $event)"
       />
     </div>
-    <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <p class="font-body-3 text-neutral-500">Balasan terlihat oleh anggota proyek.</p>
+    <div
+      class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="font-body-3 text-neutral-500">
+        Balasan terlihat oleh anggota proyek.
+      </p>
       <div class="flex items-center justify-end gap-4">
         <AtomicButton
           variant="text-button"
@@ -52,7 +56,7 @@ const emit = defineEmits<{
           :disabled="pending || !modelValue.trim()"
           class="min-h-11"
         >
-          {{ pending ? 'Mengirim…' : 'Kirim balasan' }}
+          {{ pending ? "Mengirim…" : "Kirim balasan" }}
         </AtomicButton>
       </div>
     </div>

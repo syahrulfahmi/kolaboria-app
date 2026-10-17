@@ -3,7 +3,9 @@
     :class="[
       type === 'fullscreen'
         ? 'fixed inset-0 z-[9999] bg-neutral-900/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300'
-        : 'relative p-8 w-full min-h-[200px] flex flex-col items-center justify-center gap-4 transition-all duration-300'
+        : compact
+          ? 'inline-flex items-center justify-center gap-2 transition-all duration-300'
+          : 'relative p-8 w-full min-h-[200px] flex flex-col items-center justify-center gap-4 transition-all duration-300'
     ]"
     role="status"
     aria-live="polite"
@@ -12,28 +14,33 @@
       :class="[
         type === 'fullscreen'
           ? 'bg-white rounded-2xl shadow-xl shadow-neutral-200/50 p-8 flex flex-col items-center justify-center min-w-[240px] border border-neutral-100 gap-5'
-          : 'contents'
+          : compact
+            ? 'inline-flex items-center gap-2'
+            : 'contents'
       ]"
     >
       <!-- Premium Dots Animation with Depth -->
-      <div class="flex items-center gap-2" aria-hidden="true">
+      <div :class="['flex items-center', compact ? 'gap-1' : 'gap-2']" aria-hidden="true">
         <div
-          class="h-3 w-3 animate-bounce rounded-full bg-primary-300 shadow-sm"
+          :class="[compact ? 'h-2 w-2' : 'h-3 w-3', 'animate-bounce rounded-full bg-primary-300 shadow-sm']"
           style="animation-delay: -0.3s"
         ></div>
         <div
-          class="h-3 w-3 animate-bounce rounded-full bg-primary-400 shadow-sm"
+          :class="[compact ? 'h-2 w-2' : 'h-3 w-3', 'animate-bounce rounded-full bg-primary-400 shadow-sm']"
           style="animation-delay: -0.15s"
         ></div>
         <div
-          class="h-3 w-3 animate-bounce rounded-full bg-primary-500 shadow-sm"
+          :class="[compact ? 'h-2 w-2' : 'h-3 w-3', 'animate-bounce rounded-full bg-primary-500 shadow-sm']"
         ></div>
       </div>
 
       <!-- Optional Label -->
       <span
         v-if="label"
-        class="font-body-2 tracking-wide text-neutral-500 animate-pulse"
+        :class="[
+          compact ? 'font-body-3 whitespace-nowrap' : 'font-body-2',
+          'tracking-wide text-neutral-500 animate-pulse'
+        ]"
       >
         {{ label }}
       </span>
@@ -46,9 +53,11 @@ withDefaults(
   defineProps<{
     type?: 'section' | 'fullscreen'
     label?: string
+    compact?: boolean
   }>(),
   {
-    type: 'section'
+    type: 'section',
+    compact: false
   }
 )
 </script>

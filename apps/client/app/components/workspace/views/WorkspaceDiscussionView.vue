@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, toRef } from "vue";
-import { MessagesSquare, Pencil, Plus, Trash2 } from "@lucide/vue";
+import { MessagesSquare, Plus } from "@lucide/vue";
 import { useWorkspaceDiscussions } from "~/composables/useWorkspaceDiscussions";
 import { useWorkspaceProjectInfo } from "~/composables/useWorkspaceProjectInfo";
 import { projectWorkspaceDiscussionPath } from "~/utils/workspace-paths";
+import WorkspaceDiscussionActionsMenu from "./WorkspaceDiscussionActionsMenu.vue";
 
 const props = defineProps<{ projectSlug: string }>();
 const discussions = useWorkspaceDiscussions(() => props.projectSlug);
@@ -134,13 +135,7 @@ const formatDate = (value: string): string => {
       </AtomicButton>
     </div>
 
-    <div
-      v-if="listPending"
-      class="rounded-xl border border-neutral-200 bg-white px-5 py-10 text-center"
-      role="status"
-    >
-      <p class="font-body-2 text-neutral-500">Memuat diskusi proyek…</p>
-    </div>
+    <MoleculeLoading v-if="listPending" label="Memuat diskusi proyek…" />
 
     <div
       v-else-if="listErrorMessage"
@@ -163,8 +158,8 @@ const formatDate = (value: string): string => {
         <div class="flex items-start gap-3 sm:gap-4">
           <AtomicAvatar :name="item.author.name" :size="'sm'" />
           <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div class="min-w-0">
+            <div class="flex items-start justify-between gap-2 sm:gap-3">
+              <div class="min-w-0 flex-1">
                 <NuxtLink
                   :to="projectWorkspaceDiscussionPath(projectSlug, item.id)"
                   class="break-words font-title-3 text-secondary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
@@ -176,29 +171,14 @@ const formatDate = (value: string): string => {
                   {{ formatDate(item.lastActivityAt) }}
                 </p>
               </div>
-              <div
+              <WorkspaceDiscussionActionsMenu
                 v-if="item.canEdit || item.canDelete"
-                class="flex shrink-0 items-center gap-1"
-              >
-                <AtomicButton
-                  v-if="item.canEdit"
-                  variant="ghost"
-                  size="sm"
-                  :aria-label="`Edit ${item.title}`"
-                  @click="openEditDialog(item.id)"
-                >
-                  <Pencil class="h-4 w-4" aria-hidden="true" />
-                </AtomicButton>
-                <AtomicButton
-                  v-if="item.canDelete"
-                  variant="danger"
-                  size="sm"
-                  :aria-label="`Hapus ${item.title}`"
-                  @click="openDeleteDialog(item.id)"
-                >
-                  <Trash2 class="h-4 w-4" aria-hidden="true" />
-                </AtomicButton>
-              </div>
+                :label="`Aksi untuk diskusi ${item.title}`"
+                :can-edit="item.canEdit"
+                :can-delete="item.canDelete"
+                @edit="openEditDialog(item.id)"
+                @delete="openDeleteDialog(item.id)"
+              />
             </div>
             <p
               class="mt-3 line-clamp-3 whitespace-pre-wrap break-words font-body-2 leading-relaxed text-neutral-700"
@@ -225,13 +205,13 @@ const formatDate = (value: string): string => {
         v-if="discussionPage.page < discussionPage.totalPages"
         class="flex justify-center pt-2"
       >
-        <AtomicButton
-          variant="outline"
-          size="sm"
-          :disabled="moreListPending"
-          @click="loadMoreDiscussions"
-        >
-          {{ moreListPending ? "Memuat…" : "Muat diskusi lainnya" }}
+        <MoleculeLoading
+          v-if="moreListPending"
+          compact
+          label="Memuat diskusi…"
+        />
+        <AtomicButton v-else variant="outline" size="sm" @click="loadMoreDiscussions">
+          Muat diskusi lainnya
         </AtomicButton>
       </div>
     </div>

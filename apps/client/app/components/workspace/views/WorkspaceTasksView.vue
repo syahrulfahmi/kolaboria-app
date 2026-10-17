@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { X } from '@lucide/vue'
 import type { WorkspaceTasksContext } from '~/composables/useWorkspaceController'
 import type { WorkspacePrototypeTask, WorkspacePrototypeTaskStatus } from '~/utils/workspace-prototype-state'
@@ -31,6 +32,11 @@ const {
   projectMembers,
   visibleTaskGroups,
 } = props.context
+const sortedProjectMembers = computed(() =>
+  [...projectMembers.value].sort((left, right) =>
+    left.name.localeCompare(right.name, 'id-ID', { sensitivity: 'base' })
+  )
+)
 </script>
 
 <template>
@@ -66,7 +72,7 @@ const {
         </button>
       </div>
       <div
-        class="flex min-w-0 items-center gap-2 sm:ml-auto sm:flex-1 sm:justify-end"
+        class="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:flex-1 sm:justify-end"
         >
         <span
           class="hidden shrink-0 font-body-3 text-neutral-500 sm:inline"
@@ -78,19 +84,19 @@ const {
             aria-hidden="true"
           />
           <div
-            class="flex shrink-0 items-center"
+            class="flex max-w-full shrink-0 flex-wrap items-center gap-1"
             role="group"
             aria-label="Filter tugas berdasarkan anggota"
             >
             <button
-              v-for="person in projectMembers"
+              v-for="person in sortedProjectMembers"
               :key="person.id"
               type="button"
-              class="relative -ml-1 rounded-full border-2 border-transparent bg-white transition-transform first:ml-0 hover:z-10 hover:scale-110 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              class="relative rounded-full border-2 border-transparent bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               :class="
               assigneeFilter === person.id
-              ? 'z-[1] scale-110 border-primary-600 ring-2 ring-primary-300 shadow-md'
-              : 'z-0'
+              ? 'border-primary-600 ring-2 ring-primary-300 shadow-md'
+              : ''
               "
               :aria-label="`Filter tugas: ${person.name}`"
               :aria-pressed="assigneeFilter === person.id"

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import WorkspaceActivityView from "~/components/workspace/views/WorkspaceActivityView.vue";
-import { useWorkspaceRouteContext } from "~/composables/workspace-route-context";
+import { computed } from 'vue'
+import WorkspaceActivityView from '~/components/workspace/views/WorkspaceActivityView.vue'
+import { useWorkspaceActivity } from '~/composables/useWorkspaceActivity'
 
-const { views } = useWorkspaceRouteContext();
+const route = useRoute()
+const activity = useWorkspaceActivity(computed(() => String(route.params.slug ?? '')))
 </script>
 
 <template>
-  <WorkspaceActivityView :context="views.activity" />
+  <WorkspaceActivityView :controller="activity" />
 </template>

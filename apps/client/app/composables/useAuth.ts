@@ -79,6 +79,9 @@ export const useAuth = () => {
       refreshToken.value = null
       user.value = null
 
+      useState<Record<string, unknown>>('workspace-activity-cache', () => ({})).value = {}
+      useState<Record<string, number>>('workspace-activity-revisions', () => ({})).value = {}
+
       const currentProfile = useState('current_profile')
       const currentTalentProfile = useState('current_talent_profile')
       const isOnboardedState = useState('is_onboarded')

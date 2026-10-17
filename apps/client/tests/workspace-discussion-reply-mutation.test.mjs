@@ -49,6 +49,7 @@ const mountReplyMutation = async (savedReply, { failSummaryRefresh = false, init
     useRuntimeConfig: globalThis.useRuntimeConfig,
     useCookie: globalThis.useCookie,
     useAsyncData: globalThis.useAsyncData,
+    useState: globalThis.useState,
     $fetch: globalThis.$fetch
   }
   const calls = []
@@ -67,6 +68,11 @@ const mountReplyMutation = async (savedReply, { failSummaryRefresh = false, init
     updated_at: savedReply.updated_at, can_edit: false, can_delete: false
   }
 
+  const states = new Map()
+  globalThis.useState = (key, factory = () => undefined) => {
+    if (!states.has(key)) states.set(key, ref(factory()))
+    return states.get(key)
+  }
   globalThis.useNuxtApp = () => app
   globalThis.useRuntimeConfig = () => ({ public: { apiBaseUrl: 'http://api.local' } })
   globalThis.useCookie = () => ref(null)
@@ -84,17 +90,17 @@ const mountReplyMutation = async (savedReply, { failSummaryRefresh = false, init
     const method = options.method ?? 'GET'
     calls.push({ path, method })
 
-    if (path === '/workspaces/platform/discussions/topic-1' && method === 'GET') {
+    if (path === '/v1/workspaces/platform/discussions/topic-1' && method === 'GET') {
       return { status: 200, message: 'ok', data: topic(initialRoots?.length ?? 1) }
     }
-    if (path === '/workspaces/platform/discussions/topic-1/replies' && method === 'GET') {
+    if (path === '/v1/workspaces/platform/discussions/topic-1/replies' && method === 'GET') {
       if (options.query?.page === 2) return paginated([savedReply], initialRoots.length + 1, 2)
       return paginated(initialRoots ?? [reply({ id: 'reply-1', body: 'Mari mulai.' })], initialRoots?.length ?? 1)
     }
-    if (path === '/workspaces/platform/discussions/topic-1/replies' && method === 'POST') {
+    if (path === '/v1/workspaces/platform/discussions/topic-1/replies' && method === 'POST') {
       return { status: 201, message: 'created', data: savedReply }
     }
-    if (path === '/workspaces/platform/discussions' && method === 'GET') {
+    if (path === '/v1/workspaces/platform/discussions' && method === 'GET') {
       if (failSummaryRefresh) throw new Error('summary unavailable')
       return paginated([listItem])
     }
@@ -130,8 +136,8 @@ test('creating a root reply posts once and refreshes only the discussion summary
 
     assert.equal(created, true)
     assert.deepEqual(mounted.calls, [
-      { path: '/workspaces/platform/discussions/topic-1/replies', method: 'POST' },
-      { path: '/workspaces/platform/discussions', method: 'GET' }
+      { path: '/v1/workspaces/platform/discussions/topic-1/replies', method: 'POST' },
+      { path: '/v1/workspaces/platform/discussions', method: 'GET' }
     ])
     assert.equal(mounted.bindings.replies.value.length, 21)
     assert.equal(mounted.bindings.replies.value.at(-1).id, 'reply-new')

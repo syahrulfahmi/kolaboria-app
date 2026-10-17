@@ -176,6 +176,13 @@ export const useWorkspacePrototype = () => {
     return true
   }
 
+  const grantTaskManagementAsOwnerPreview = (memberId: string, enabled: boolean) => {
+    const project = activeProject.value
+    if (!project || !setTaskManagerAccessState(state.value, project.id, project.ownerId, memberId, enabled, true)) return false
+    notify(enabled ? 'Izin task simulasi diberikan.' : 'Izin task simulasi dicabut.')
+    return true
+  }
+
   const commentOnTask = (taskId: string, body: string) => {
     const project = activeProject.value
     if (!project || !addTaskComment(state.value, project.id, taskId, state.value.currentUserId, body)) {
@@ -264,7 +271,7 @@ export const useWorkspacePrototype = () => {
     state, activeProject, currentUser, isOwner, isProjectManager, canManageTasks, taskGroups, activeTaskCount,
     completedTaskCount, progress, reviewCount, canClose, notice,
     switchProject, switchPerson, changeReadiness, startProject,
-    moveTask, closeTask, addTask, removeTask, grantTaskManagement, commentOnTask, startDiscussion,
+    moveTask, closeTask, addTask, removeTask, grantTaskManagement, grantTaskManagementAsOwnerPreview, commentOnTask, startDiscussion,
     replyToDiscussion, finishProject, proposeContributions,
     reviewContribution, shareContribution, stopSharingContribution
   }

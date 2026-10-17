@@ -112,7 +112,7 @@ test('actual HTTP failures and refresh retries produce safe action errors', asyn
   const authorizations = []
   const server = createServer((request, response) => {
     response.setHeader('Content-Type', 'application/json')
-    if (request.url === '/auth/refresh') {
+    if (request.url === '/v1/auth/refresh') {
       response.end(JSON.stringify({ status: 200, data: { access_token: 'new-access', refresh_token: 'new-refresh' } }))
     } else if (request.url === '/protected') {
       authorizations.push(request.headers.authorization)

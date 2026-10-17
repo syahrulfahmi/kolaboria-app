@@ -7,6 +7,7 @@ import { useProjectEditor } from '~/composables/useProjectEditor'
 import { useProjectEditorCatalogs } from '~/composables/useProjectEditorCatalogs'
 import { useProjectEditorNotifications } from '~/composables/useProjectEditorNotifications'
 import { useAuth } from '~/composables/useAuth'
+import { useWorkspaceActivityInvalidation } from '~/composables/useWorkspaceActivityInvalidation'
 import { useProjectLifecycle } from '~/composables/useProjectLifecycle'
 import ProjectLifecycleActions from '../ProjectLifecycleActions.vue'
 import ProjectStatusConfirmModal from '../ProjectStatusConfirmModal.vue'
@@ -98,9 +99,11 @@ const isSavedDraft = computed(
 )
 const lifecycleMenu = ref<HTMLDetailsElement | null>(null)
 const toast = useToast()
+const activityInvalidation = useWorkspaceActivityInvalidation()
 const lifecycle = useProjectLifecycle({
   accountId: computed(() => props.accountId || currentUserId.value),
   onChanged: async (action, detail) => {
+    if (detail) activityInvalidation.markDirty({ id: detail.id })
     toast.success(action === 'delete' ? 'Draft proyek berhasil dihapus.' : action === 'draft' ? 'Proyek berhasil dikembalikan ke draft.' : 'Proyek berhasil diarsipkan.')
     if (action === 'draft' && detail) editor.acceptServerDetail(detail)
     else await router.replace('/projects/my-projects')

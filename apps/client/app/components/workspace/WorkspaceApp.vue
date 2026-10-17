@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { computed, provide, watch } from "vue";
-import { ArrowLeft, Ellipsis, Plus } from "@lucide/vue";
+import { computed, provide, ref, watch } from "vue";
+import { Ellipsis, Plus } from "@lucide/vue";
 import {
   useWorkspaceController,
-  type WorkspaceActivityContext,
   type WorkspaceConfirmationDialogContext,
   type WorkspaceDiscussionContext,
-  type WorkspaceOverviewContext,
   type WorkspaceProjectCloseDialogContext,
-  type WorkspaceProjectInfoContext,
   type WorkspaceTaskDialogContext,
   type WorkspaceTasksContext,
-  type WorkspaceTeamContext,
 } from "~/composables/useWorkspaceController";
 import { workspaceRouteContextKey } from "~/composables/workspace-route-context";
+import { useAuth } from '~/composables/useAuth';
+import { useWorkspaceProjectInfoQuery } from '~/composables/useWorkspaceProjectInfo';
+import { useWorkspaceLiveContext } from '~/composables/workspace-live-context';
+import { getApiErrorMessage } from '~/utils/error';
 import WorkspaceConfirmationDialog from "./dialogs/WorkspaceConfirmationDialog.vue";
 import WorkspaceTaskDialog from "./dialogs/WorkspaceTaskDialog.vue";
 import WorkspaceProjectCloseDialog from "./dialogs/WorkspaceProjectCloseDialog.vue";
+import WorkspaceNavbar from "./WorkspaceNavbar.vue";
 
 const workspace = useWorkspaceController();
 const route = useRoute();
@@ -25,7 +26,6 @@ const {
   currentUser,
   isProjectManager,
   canManageTasks,
-  reviewCount,
   canClose,
   notice,
   views,
@@ -41,9 +41,6 @@ const {
   currentProject,
   selectedTask,
   taskIsClosed,
-  viewerRoleLabel,
-  switchProject,
-  switchPerson,
   statusLabel,
   activeTitle,
   activeDescription,
@@ -72,30 +69,57 @@ const {
   setContributionNote,
 } = workspace;
 
-watch(
-  () => [String(route.params.slug ?? ""), state.value.projects] as const,
-  ([projectSlug]) => {
-    if (state.value.projects.some((project) => project.id === projectSlug)) {
-      switchProject(projectSlug);
-    }
-  },
-  { immediate: true },
-);
-
-const demoPeople = computed(() => {
-  const memberIds = currentProject.value?.memberIds ?? [];
-  return state.value.people.filter((person) => memberIds.includes(person.id));
+const isLiveView = computed(() => ['overview', 'info', 'team', 'tasks', 'discussion', 'activity'].includes(activeView.value));
+const activitySlug = computed(() => activeView.value === 'activity' ? String(route.params.slug ?? '') : '');
+const workspaceSlug = computed(() => String(route.params.slug ?? ''));
+const { user: authenticatedUser } = useAuth();
+const { header: workspaceLiveHeader } = useWorkspaceLiveContext();
+const workspaceProjectInfo = useWorkspaceProjectInfoQuery(workspaceSlug);
+const liveOverviewHeader = computed(() => {
+  const candidate = workspaceLiveHeader.value;
+  if (!candidate || candidate.project_slug !== String(route.params.slug ?? '') || candidate.account_id !== authenticatedUser.value?.id) return null;
+  return candidate;
 });
-
-const changeDemoProject = (event: Event) => {
-  const projectId = (event.target as HTMLSelectElement).value;
-  switchProject(projectId);
+const workspaceProjectTitle = computed(() => {
+  const info = workspaceProjectInfo.data.value;
+  if (liveOverviewHeader.value) return liveOverviewHeader.value.title;
+  return info?.project.slug === workspaceSlug.value ? info.project.title : '';
+});
+const workspaceViewerRoleLabel = computed(() => {
+  const info = workspaceProjectInfo.data.value;
+  const scope = liveOverviewHeader.value?.viewer_scope ??
+    (info?.project.slug === workspaceSlug.value ? info.viewer.scope : null);
+  return scope === 'owner' ? 'Project Owner'
+    : scope === 'organization_initiator' ? 'Inisiator Organisasi'
+      : scope === 'member' ? 'Anggota Proyek' : 'Profil saya';
+});
+const liveStatusLabel = computed(() => {
+  const status = liveOverviewHeader.value?.status;
+  return status ? ({ draft: 'Draft', open: 'Persiapan', awaiting_owner: 'Menunggu Project Lead', in_progress: 'Berjalan', completed: 'Selesai', archived: 'Diarsipkan' })[status] : '';
+});
+const createTaskFromOverview = () => {
+  const slug = String(route.params.slug ?? '');
+  if (slug) void navigateTo(`/projects/${encodeURIComponent(slug)}/workspace/tasks?action=create`);
 };
-
-const changeDemoPerson = (event: Event) => {
-  const personId = (event.target as HTMLSelectElement).value;
-  switchPerson(personId);
+const activityInfo = useWorkspaceProjectInfoQuery(activitySlug);
+const activityProject = computed(() => activityInfo.data.value?.project ?? null);
+const activityInfoError = ref('');
+const activityStatusLabel = computed(() => {
+  const status = activityProject.value?.status;
+  return status ? ({ draft: 'Draft', open: 'Persiapan', awaiting_owner: 'Menunggu Project Lead', in_progress: 'Berjalan', completed: 'Selesai', archived: 'Diarsipkan' })[status] : '';
+});
+const loadActivityInfo = async () => {
+  const slug = activitySlug.value;
+  const account = authenticatedUser.value?.id;
+  activityInfoError.value = '';
+  if (!slug || !account) return;
+  try { await activityInfo.getInfo(slug); }
+  catch (cause) {
+    if (activitySlug.value === slug && authenticatedUser.value?.id === account) activityInfoError.value = getApiErrorMessage(cause, 'Konteks proyek belum dapat dimuat.');
+  }
 };
+watch([activitySlug, () => authenticatedUser.value?.id], () => { void loadActivityInfo(); }, { immediate: true });
+
 
 const pickContext = <T extends object, const K extends readonly (keyof T)[]>(
   source: T,
@@ -117,24 +141,6 @@ const workspaceViewSource = {
   }),
 };
 
-const overviewContext: WorkspaceOverviewContext = pickContext(workspaceViewSource, [
-  "state",
-  "currentUser",
-  "isOwner",
-  "isProjectManager",
-  "taskGroups",
-  "activeTaskCount",
-  "completedTaskCount",
-  "progress",
-  "reviewCount",
-  "currentProject",
-  "projectMembers",
-  "myActiveTasks",
-  "dateLabel",
-  "timeLabel",
-  "taskStatusLabel",
-  "taskStatusTone",
-]);
 const tasksContext: WorkspaceTasksContext = pickContext(workspaceViewSource, [
   "state",
   "canManageTasks",
@@ -150,29 +156,10 @@ const tasksContext: WorkspaceTasksContext = pickContext(workspaceViewSource, [
   "shortDate",
   "priorityLabel",
 ]);
-const teamContext: WorkspaceTeamContext = pickContext(workspaceViewSource, [
-  "state",
-  "isOwner",
-  "currentProject",
-  "projectMembers",
-]);
 const discussionContext: WorkspaceDiscussionContext = pickContext(workspaceViewSource, [
   "state",
   "currentProject",
   "timeLabel",
-]);
-const activityContext: WorkspaceActivityContext = pickContext(workspaceViewSource, [
-  "state",
-  "currentProject",
-  "timeLabel",
-]);
-const projectInfoContext: WorkspaceProjectInfoContext = pickContext(workspaceViewSource, [
-  "canClose",
-  "activeTaskCount",
-  "completedTaskCount",
-  "progress",
-  "openTasks",
-  "closedTasks",
 ]);
 const confirmationDialogContext: WorkspaceConfirmationDialogContext =
   pickContext(workspace, ["pendingConfirmation"]);
@@ -202,12 +189,8 @@ const projectCloseDialogContext: WorkspaceProjectCloseDialogContext =
 provide(workspaceRouteContextKey, {
   controller: workspace,
   views: {
-    overview: overviewContext,
     tasks: tasksContext,
-    team: teamContext,
     discussion: discussionContext,
-    activity: activityContext,
-    info: projectInfoContext,
   },
 });
 </script>
@@ -253,11 +236,6 @@ provide(workspaceRouteContextKey, {
               aria-hidden="true"
             />
             <span>{{ view.label }}</span>
-            <span
-              v-if="view.id === 'tasks' && reviewCount"
-              class="ml-auto rounded-full bg-accent-100 px-1.5 py-0.5 font-label-3 text-accent-900"
-              >{{ reviewCount }}</span
-            >
           </button>
         </nav>
 
@@ -267,94 +245,12 @@ provide(workspaceRouteContextKey, {
         class="flex h-full min-h-0 min-w-0 flex-1 flex-col"
         :class="activeView === 'tasks' ? 'overflow-hidden' : 'overflow-y-auto'"
       >
-        <header
-          class="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-neutral-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-7"
-        >
-          <nav
-            class="flex min-w-0 items-center gap-2 font-body-3 text-neutral-500"
-            aria-label="Breadcrumb workspace"
-          >
-            <NuxtLink
-              :to="`/projects/${String(route.params.slug)}`"
-              class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              aria-label="Kembali ke detail proyek"
-              title="Kembali ke detail proyek"
-            >
-              <ArrowLeft class="h-4 w-4" aria-hidden="true" />
-            </NuxtLink>
-            <div class="flex min-w-0 items-center gap-1.5">
-              <span class="hidden sm:inline">Kolaboria</span>
-              <span class="hidden sm:inline" aria-hidden="true">/</span>
-              <span>Workspace</span>
-              <span aria-hidden="true">/</span>
-              <span
-              v-if="currentProject && activeView !== 'info'"
-                class="truncate font-label-3 text-secondary-900"
-                >{{ currentProject.title }}</span
-              >
-            </div>
-          </nav>
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div
-              v-if="state.projects.length > 1 && activeView !== 'info'"
-              class="flex items-center gap-1.5 sm:gap-2"
-            >
-              <span
-                class="hidden rounded-full bg-primary-50 px-2 py-1 font-label-3 text-primary-800 md:inline-flex"
-              >
-                Demo
-              </span>
-              <label class="sr-only" for="workspace-demo-project">
-                Skenario demo
-              </label>
-              <select
-                id="workspace-demo-project"
-                class="h-9 w-28 truncate rounded-lg border border-neutral-200 bg-white px-2 font-body-3 text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 sm:w-44"
-                :value="state.activeProjectId"
-                @change="changeDemoProject"
-              >
-                <option
-                  v-for="project in state.projects"
-                  :key="project.id"
-                  :value="project.id"
-                >
-                  {{ project.title }}
-                </option>
-              </select>
-              <label class="sr-only" for="workspace-demo-person">
-                Lihat sebagai pengguna demo
-              </label>
-              <select
-                id="workspace-demo-person"
-                class="h-9 w-24 truncate rounded-lg border border-neutral-200 bg-white px-2 font-body-3 text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 sm:w-36"
-                :value="state.currentUserId"
-                @change="changeDemoPerson"
-              >
-                <option
-                  v-for="person in demoPeople"
-                  :key="person.id"
-                  :value="person.id"
-                >
-                  {{ person.name }}
-                </option>
-              </select>
-            </div>
-            <div v-if="currentUser && activeView !== 'info'" class="hidden items-center gap-2 sm:flex">
-              <AtomicAvatar :name="currentUser.name" :size="'sm'" />
-              <div class="hidden min-w-0 xl:block">
-                <p class="max-w-36 truncate font-label-3 text-secondary-900">
-                  {{ currentUser.name }}
-                </p>
-                <p class="font-body-3 text-neutral-500">
-                  {{ viewerRoleLabel
-                  }}{{
-                    canManageTasks && !isProjectManager ? " · Kelola task" : ""
-                  }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </header>
+        <WorkspaceNavbar
+          :project-slug="workspaceSlug"
+          :project-title="workspaceProjectTitle"
+          :user-name="authenticatedUser?.name ?? null"
+          :viewer-role-label="workspaceViewerRoleLabel"
+        />
 
         <main
           class="mx-auto w-full px-4 pt-5 pb-3 sm:px-6 sm:pt-7 lg:px-8 lg:pb-10"
@@ -371,8 +267,12 @@ provide(workspaceRouteContextKey, {
             "
           >
             <div class="min-w-0">
+              <p v-if="activeView === 'activity' && activityProject" class="font-label-3 uppercase tracking-[0.1em] text-primary-700">{{ activityProject.title }}</p>
               <p
-                v-if="currentProject && activeView !== 'info'"
+              v-if="activeView === 'overview' && liveOverviewHeader"
+                class="font-label-3 uppercase tracking-[0.1em] text-primary-700">{{ liveOverviewHeader.title }}</p>
+              <p
+                v-else-if="currentProject && !isLiveView"
                 class="font-label-3 uppercase tracking-[0.1em] text-primary-700"
               >
                 {{ currentProject?.title }}
@@ -381,8 +281,10 @@ provide(workspaceRouteContextKey, {
                 <h1 class="font-title-1 text-secondary-900">
                   {{ activeTitle }}
                 </h1>
+                <AtomicTag v-if="activeView === 'activity' && activityStatusLabel">{{ activityStatusLabel }}</AtomicTag>
+                <AtomicTag v-if="activeView === 'overview' && liveStatusLabel">{{ liveStatusLabel }}</AtomicTag>
                 <AtomicTag
-                  v-if="currentProject && activeView !== 'info'"
+                  v-if="currentProject && !isLiveView"
                   :variant="
                     currentProject?.status === 'completed'
                       ? 'success'
@@ -402,13 +304,11 @@ provide(workspaceRouteContextKey, {
             </div>
             <AtomicButton
               v-if="
-                canManageTasks &&
-                currentProject?.status === 'in_progress' &&
-                ['overview', 'tasks'].includes(activeView)
+                liveOverviewHeader?.can_create_task && activeView === 'overview'
               "
               variant="primary"
               size="sm"
-              @click="openNewTask"
+              @click="createTaskFromOverview"
             >
               <template #icon-left
                 ><Plus class="h-4 w-4" aria-hidden="true"
@@ -417,7 +317,11 @@ provide(workspaceRouteContextKey, {
             </AtomicButton>
           </div>
 
-          <slot v-if="currentProject || activeView === 'info'" />
+          <p v-if="activeView === 'activity' && activityInfoError" class="mb-4 rounded-lg bg-warning-50 p-3 font-body-3 text-warning-900" role="alert">
+            {{ activityInfoError }}
+            <AtomicButton variant="text-button" size="sm" @click="loadActivityInfo">Coba lagi</AtomicButton>
+          </p>
+          <slot v-if="currentProject || isLiveView" />
           <section
             v-else
             class="mx-auto mt-8 w-full max-w-2xl rounded-xl border border-neutral-200 bg-white px-5 py-8 text-center sm:mt-12 sm:px-8 sm:py-10"
@@ -505,7 +409,7 @@ provide(workspaceRouteContextKey, {
       leave-to-class="opacity-0"
     >
       <div
-        v-if="notice"
+        v-if="notice && !['overview', 'tasks', 'activity', 'info'].includes(activeView)"
         class="fixed bottom-20 left-4 right-4 z-[80] mx-auto max-w-md rounded-xl bg-secondary-800 px-4 py-3 font-body-2 text-white shadow-lg sm:bottom-6 sm:left-auto sm:right-6"
         role="status"
       >
@@ -514,6 +418,7 @@ provide(workspaceRouteContextKey, {
     </Transition>
 
     <OrganismModal
+      v-if="!['overview', 'tasks', 'activity', 'info'].includes(activeView)"
       v-model="dialogOpen"
       @close="closeDialog"
       :title="

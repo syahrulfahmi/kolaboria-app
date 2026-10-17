@@ -1,5 +1,7 @@
 # API base URL audit — 16 October 2026
 
+This report records the earlier migration audit, before the subsequent refactor moved version prefixes into endpoint paths. The current base URL is server-only (`http://localhost:8081/` or `https://api.dev.kolaboria.com/`), while registry entries supply `/v1`. See [the current configuration guide](api-base-url.md). The endpoint compatibility findings below remain separate from URL configuration.
+
 The migration to /v1 is correct in the current source and local environment. No migration-introduced Standards or Spec findings were identified. All 13 service modules use the shared useApi transport, directly or through delegation/injection. auth.service.ts uses relative AUTH endpoints; the Google authorization redirect targets Google, and its callback exchanges the code through /v1/auth/google.
 
 ## Evidence

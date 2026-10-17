@@ -24,7 +24,8 @@ registerHooks({
     if (!/\.(ts|vue)$/.test(url)) return nextLoad(url, context)
     let source = readFileSync(new URL(url), 'utf8')
     if (url.endsWith('.vue')) {
-      source = compileScript(parse(source).descriptor, { id: url }).content
+      const descriptor = parse(source).descriptor
+      source = compileScript(descriptor, { id: url, inlineTemplate: url.endsWith('/WorkspaceNavbar.vue') }).content
     }
     source = source.replaceAll('import.meta.client', 'true').replaceAll('import.meta.env.PROD', 'false')
     return { format: 'module', shortCircuit: true, source: ts.transpileModule(source, {

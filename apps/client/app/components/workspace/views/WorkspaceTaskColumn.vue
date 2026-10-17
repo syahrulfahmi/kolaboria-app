@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
-import { GripVertical, Plus } from "@lucide/vue";
 import { useDraggable } from "vue-draggable-plus";
 import type { WorkspaceTasksContext } from "~/composables/useWorkspaceController";
 import type {
@@ -117,23 +116,10 @@ useDraggable(taskList, {
         class="workspace-task-card w-full min-w-0 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm transition hover:border-primary-300 hover:shadow-md"
         :class="canDragTask(task) ? 'cursor-grab active:cursor-grabbing' : ''"
       >
-        <div class="flex items-start justify-between gap-2">
-          <button
-            v-if="canDragTask(task)"
-            type="button"
-            :data-task-drag-handle="true"
-            class="workspace-task-drag-handle grid h-8 w-8 shrink-0 place-items-center rounded-md text-neutral-400 transition hover:bg-neutral-100 hover:text-secondary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            :aria-label="`Seret untuk mengubah status ${task.title}`"
-            title="Seret untuk mengubah status"
-            @click.stop.prevent
-          >
-            <GripVertical class="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-
         <button
           type="button"
-          class="mt-2 block w-full text-left focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          class="block w-full text-left focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          :class="canDragTask(task) ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'"
           @click="emit('open-task', task)"
         >
           <h3 class="break-words font-label-2 leading-snug text-secondary-900">
@@ -210,7 +196,4 @@ useDraggable(taskList, {
   box-shadow: 0 8px 20px rgb(15 23 42 / 12%);
 }
 
-.workspace-task-drag-handle {
-  touch-action: none;
-}
 </style>

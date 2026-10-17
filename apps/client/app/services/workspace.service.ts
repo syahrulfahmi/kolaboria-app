@@ -17,9 +17,17 @@ import type {
   UpdateDeliverablePayload
 } from '../types/workspace'
 import type { WorkHistory } from '../types/project'
-import type { WorkspaceProjectInfoDTO } from '../types/workspace-info'
+import type { CompleteWorkspaceProjectInput, WorkspaceProjectCompletion, WorkspaceProjectInfoDTO } from '../types/workspace-info'
 
 export const WorkspaceService = {
+  async completeProject(projectSlug: string, request: CompleteWorkspaceProjectInput): Promise<WorkspaceProjectCompletion> {
+    const { $api } = useApi()
+    const response = await $api<ApiResponse<WorkspaceProjectCompletion>>(API_ENDPOINTS.WORKSPACE.COMPLETION(projectSlug), {
+      method: 'POST', body: request
+    })
+    if (!response.data) throw new Error(getApiErrorMessage(response, 'Penutupan proyek belum dapat disimpan.'))
+    return response.data
+  },
   async getProjectInfo(projectSlug: string, signal?: AbortSignal): Promise<WorkspaceProjectInfoDTO> {
     const { $api } = useApi()
     const response = await $api<ApiResponse<WorkspaceProjectInfoDTO>>(
